@@ -93,13 +93,17 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem>
-                  <User className="w-4 h-4 mr-2" />
-                  Profil
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <User className="w-4 h-4 mr-2" />
+                    Profil
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Ustawienia
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Ustawienia
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 

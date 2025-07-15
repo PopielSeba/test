@@ -10,6 +10,8 @@ import Equipment from "@/pages/equipment";
 import Quotes from "@/pages/quotes";
 import CreateQuote from "@/pages/create-quote";
 import Admin from "@/pages/admin";
+import Profile from "@/pages/profile";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import Navbar from "@/components/navbar";
 
@@ -42,6 +44,8 @@ function Router() {
         <Route path="/quotes" component={Quotes} />
         <Route path="/create-quote" component={CreateQuote} />
         <Route path="/admin" component={Admin} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </div>
