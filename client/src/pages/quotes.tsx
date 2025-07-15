@@ -101,11 +101,11 @@ export default function Quotes() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen p-4">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="h-96 bg-gray-200 rounded"></div>
+            <div className="h-8 bg-muted rounded w-1/4 mb-8"></div>
+            <div className="h-96 bg-muted rounded"></div>
           </div>
         </div>
       </div>
@@ -113,12 +113,12 @@ export default function Quotes() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Zarządzanie Wycenami</h1>
-            <p className="text-gray-600 mt-2">Przeglądaj i zarządzaj wycenami</p>
+            <h1 className="text-3xl font-bold text-foreground">Zarządzanie Wycenami</h1>
+            <p className="text-muted-foreground mt-2">Przeglądaj i zarządzaj wycenami</p>
           </div>
           <Link href="/create-quote">
             <Button>
@@ -147,7 +147,7 @@ export default function Quotes() {
                   </SelectContent>
                 </Select>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     placeholder="Szukaj wyceny..."
                     value={searchTerm}

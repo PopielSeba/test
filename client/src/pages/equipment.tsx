@@ -102,19 +102,19 @@ export default function Equipment() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Katalog Sprzętu</h1>
-            <p className="text-gray-600 mt-2">Przeglądaj dostępny sprzęt budowlany</p>
+            <h1 className="text-3xl font-bold text-foreground">Katalog Sprzętu</h1>
+            <p className="text-muted-foreground mt-2">Przeglądaj dostępny sprzęt budowlany</p>
           </div>
         </div>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Szukaj sprzętu..."
               value={searchTerm}
@@ -143,7 +143,7 @@ export default function Equipment() {
           {Object.entries(groupedEquipment).map(([categoryName, items]) => (
             <div key={categoryName}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">{categoryName}</h2>
+                <h2 className="text-xl font-semibold text-foreground">{categoryName}</h2>
                 <Badge className={getCategoryColor(categoryName)}>
                   {items.reduce((sum, item) => sum + item.quantity, 0)} szt.
                 </Badge>
@@ -157,10 +157,10 @@ export default function Equipment() {
                         <div>
                           <CardTitle className="text-lg">{item.name}</CardTitle>
                           {item.model && (
-                            <p className="text-sm text-gray-600 mt-1">{item.model}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{item.model}</p>
                           )}
                           {item.power && (
-                            <p className="text-sm text-gray-600">{item.power}</p>
+                            <p className="text-sm text-muted-foreground">{item.power}</p>
                           )}
                         </div>
                         <Badge variant="outline">
@@ -170,18 +170,18 @@ export default function Equipment() {
                     </CardHeader>
                     <CardContent>
                       {item.description && (
-                        <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+                        <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
                       )}
                       
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700">Dostępne:</span>
+                          <span className="text-sm font-medium text-foreground">Dostępne:</span>
                           <span className="text-sm font-medium text-green-600">
                             {item.availableQuantity} szt.
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700">Cena:</span>
+                          <span className="text-sm font-medium text-foreground">Cena:</span>
                           <span className="text-sm font-medium text-primary">
                             {getPriceDisplay(item.pricing)}
                           </span>

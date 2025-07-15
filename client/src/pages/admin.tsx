@@ -117,12 +117,12 @@ export default function Admin() {
   // Check if user is admin
   if (!authLoading && user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
-            <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Brak uprawnień</h2>
-            <p className="text-gray-600">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
+            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
+            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
           </CardContent>
         </Card>
       </div>
@@ -390,18 +390,18 @@ export default function Admin() {
 
   if (authLoading || equipmentLoading || categoriesLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Panel Administratora</h1>
-          <p className="text-gray-600 mt-2">Zarządzaj sprzętem, cenami i ustawieniami systemu</p>
+          <h1 className="text-3xl font-bold text-foreground">Panel Administratora</h1>
+          <p className="text-muted-foreground mt-2">Zarządzaj sprzętem, cenami i ustawieniami systemu</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -633,7 +633,7 @@ export default function Admin() {
                     <TableBody>
                       {equipment.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             Brak sprzętu do wyświetlenia
                           </TableCell>
                         </TableRow>
@@ -644,7 +644,7 @@ export default function Admin() {
                               <div>
                                 <div className="font-medium">{item.name}</div>
                                 {item.model && (
-                                  <div className="text-sm text-gray-500">{item.model}</div>
+                                  <div className="text-sm text-muted-foreground">{item.model}</div>
                                 )}
                               </div>
                             </TableCell>
@@ -714,11 +714,11 @@ export default function Admin() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Stawka VAT (%)</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Stawka VAT (%)</label>
                   <Input type="number" defaultValue="23" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Domyślna waluta</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Domyślna waluta</label>
                   <Select defaultValue="PLN">
                     <SelectTrigger>
                       <SelectValue />
@@ -746,15 +746,15 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {user?.firstName && user?.lastName 
                           ? `${user.firstName} ${user.lastName}`
                           : user?.email?.split('@')[0] || 'Aktualny użytkownik'
                         }
                       </p>
-                      <p className="text-sm text-gray-600 capitalize">{user?.role}</p>
+                      <p className="text-sm text-muted-foreground capitalize">{user?.role}</p>
                     </div>
                     <Badge>Aktualny</Badge>
                   </div>
