@@ -322,6 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentYear = new Date().getFullYear();
       
       const monthlyQuotes = quotes.filter(quote => {
+        if (!quote.createdAt) return false;
         const quoteDate = new Date(quote.createdAt);
         return quoteDate.getMonth() === currentMonth && quoteDate.getFullYear() === currentYear;
       });

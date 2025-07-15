@@ -24,22 +24,27 @@ function Router() {
     );
   }
 
-  return (
-    <Switch>
-      {!isAuthenticated ? (
+  if (!isAuthenticated) {
+    return (
+      <Switch>
         <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Navbar />
-          <Route path="/" component={Dashboard} />
-          <Route path="/equipment" component={Equipment} />
-          <Route path="/quotes" component={Quotes} />
-          <Route path="/create-quote" component={CreateQuote} />
-          <Route path="/admin" component={Admin} />
-        </>
-      )}
-      <Route component={NotFound} />
-    </Switch>
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/equipment" component={Equipment} />
+        <Route path="/quotes" component={Quotes} />
+        <Route path="/create-quote" component={CreateQuote} />
+        <Route path="/admin" component={Admin} />
+        <Route component={NotFound} />
+      </Switch>
+    </div>
   );
 }
 
