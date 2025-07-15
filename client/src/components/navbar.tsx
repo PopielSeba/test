@@ -40,7 +40,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-300">
+    <nav className="bg-card shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -48,7 +48,7 @@ export default function Navbar() {
               <div className="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center mr-3">
                 <Settings className="w-6 h-6" />
               </div>
-              <h1 className="text-xl font-bold text-gray-800">REKORD</h1>
+              <h1 className="text-xl font-bold text-foreground">REKORD</h1>
             </Link>
           </div>
           
@@ -59,8 +59,8 @@ export default function Navbar() {
                   variant={isActive(item.path) ? "default" : "ghost"}
                   className={`flex items-center space-x-2 ${
                     isActive(item.path) 
-                      ? "bg-primary text-white" 
-                      : "text-gray-600 hover:text-primary"
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-muted-foreground hover:text-primary"
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -71,7 +71,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="text-gray-600 hover:text-primary">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
               <Bell className="w-5 h-5" />
             </Button>
             
@@ -84,7 +84,7 @@ export default function Navbar() {
                       <User className="w-4 h-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-foreground">
                     {user?.firstName && user?.lastName 
                       ? `${user.firstName} ${user.lastName}`
                       : user?.email?.split('@')[0] || 'Użytkownik'
@@ -119,7 +119,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-gray-300 py-3">
+        <div className="md:hidden border-t border-border py-3">
           <div className="flex space-x-1 overflow-x-auto">
             {navItems.map((item) => (
               <Link key={item.path} href={item.path}>
@@ -128,8 +128,8 @@ export default function Navbar() {
                   size="sm"
                   className={`flex items-center space-x-1 whitespace-nowrap ${
                     isActive(item.path) 
-                      ? "bg-primary text-white" 
-                      : "text-gray-600"
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-muted-foreground"
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
