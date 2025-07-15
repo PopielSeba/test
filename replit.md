@@ -4,6 +4,21 @@
 
 REKORD is a comprehensive equipment rental pricing system designed for construction equipment rental companies. The application provides automated quote generation with tiered discount pricing, equipment catalog management, client management, and admin controls. Built as a full-stack TypeScript application with a React frontend and Express backend.
 
+## Recent Changes
+
+### January 15, 2025
+- Fixed navigation routing issue by restructuring Router component in App.tsx
+- Set up admin access for s.popiel.doa@gmail.com
+- Added equipment categories: Klimatyzacje, Nagrzewnice, Maszty oświetleniowe, Agregaty prądotwórcze, Kurtyny powietrzne, Wyciągi spalin
+- Added sample equipment with pricing:
+  - Nagrzewnica Jumbo 235 and Master BV691 (identical pricing at 450 zł/day)
+  - Master BV77 (180 zł/day)
+  - Klimatyzator mobilny 5kW (220 zł/day)
+  - Maszt oświetleniowy Atlas Copco (320 zł/day)
+  - Agregat prądotwórczy 100kW (680 zł/day)
+- Added sample clients for testing quote creation
+- Fixed TypeScript error in dashboard stats route for null date handling
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
