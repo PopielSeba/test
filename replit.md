@@ -1,0 +1,138 @@
+# REKORD - Equipment Rental Pricing System
+
+## Overview
+
+REKORD is a comprehensive equipment rental pricing system designed for construction equipment rental companies. The application provides automated quote generation with tiered discount pricing, equipment catalog management, client management, and admin controls. Built as a full-stack TypeScript application with a React frontend and Express backend.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Routing**: Wouter for client-side routing
+- **State Management**: TanStack React Query for server state management
+- **UI Components**: Radix UI primitives with shadcn/ui component library
+- **Styling**: Tailwind CSS with CSS custom properties for theming
+- **Form Handling**: React Hook Form with Zod validation
+- **Build Tool**: Vite for development and production builds
+
+### Backend Architecture
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js for REST API
+- **Database**: PostgreSQL with Neon serverless driver
+- **ORM**: Drizzle ORM for type-safe database operations
+- **Authentication**: Replit OIDC authentication with Passport.js
+- **Session Management**: PostgreSQL-backed sessions using connect-pg-simple
+
+### Database Design
+- **Users**: Role-based access (admin/employee) with Replit user integration
+- **Equipment Categories**: Hierarchical equipment organization
+- **Equipment**: Items with specifications, quantities, and availability tracking
+- **Equipment Pricing**: Tiered pricing structure with period-based discounts
+- **Clients**: Company and contact information storage
+- **Quotes**: Quote generation with line items and automatic calculations
+- **Sessions**: Secure session storage for authentication
+
+## Key Components
+
+### Authentication System
+- **Provider**: Replit OIDC integration
+- **Flow**: OpenID Connect with automatic user provisioning
+- **Session Storage**: PostgreSQL-backed sessions with 7-day TTL
+- **Authorization**: Role-based access control (admin vs employee)
+
+### Equipment Management
+- **Categories**: Organize equipment by type (Klimatyzacje, Nagrzewnice, Maszty, etc.)
+- **Inventory Tracking**: Available vs total quantity management
+- **Specifications**: Model, power, description fields
+- **Pricing Tiers**: Period-based pricing with automatic discount calculation
+
+### Quote Generation System
+- **Dynamic Pricing**: Automatic price calculation based on rental period
+- **Discount Logic**: Tiered discounts (14.29%, 28.57%, 42.86%, 57.14%)
+- **Client Integration**: Link quotes to client records
+- **Line Items**: Multiple equipment items per quote with individual pricing
+
+### Admin Panel
+- **Equipment CRUD**: Full equipment and category management
+- **Pricing Management**: Configure period-based pricing tiers
+- **User Management**: Role assignment and user oversight
+- **Data Validation**: Zod schemas for all data operations
+
+## Data Flow
+
+### Quote Creation Process
+1. User selects client or creates new client record
+2. User adds equipment items to quote
+3. System calculates pricing based on rental period and equipment pricing tiers
+4. Automatic discount application based on period ranges
+5. Real-time total calculation with net and gross amounts
+6. Quote storage with audit trail
+
+### Equipment Pricing Logic
+- 1-2 days: Base price (0% discount)
+- 3-7 days: 14.29% discount
+- 8-18 days: 28.57% discount  
+- 19-29 days: 42.86% discount
+- 30+ days: 57.14% discount
+
+### Authentication Flow
+1. User clicks login button
+2. Redirect to Replit OIDC provider
+3. User authenticates with Replit
+4. System creates/updates user record
+5. Session created with PostgreSQL storage
+6. User redirected to dashboard
+
+## External Dependencies
+
+### Core Dependencies
+- **@neondatabase/serverless**: PostgreSQL database connection
+- **drizzle-orm**: Type-safe database operations
+- **@tanstack/react-query**: Server state management
+- **@radix-ui/***: Accessible UI primitives
+- **react-hook-form**: Form state management
+- **passport**: Authentication middleware
+- **openid-client**: OIDC authentication
+
+### Development Tools
+- **TypeScript**: Type safety across the stack
+- **Vite**: Fast development builds
+- **Tailwind CSS**: Utility-first styling
+- **ESBuild**: Production bundling
+- **Drizzle Kit**: Database migrations
+
+### Replit Integration
+- **@replit/vite-plugin-runtime-error-modal**: Development error overlay
+- **@replit/vite-plugin-cartographer**: Development tooling
+
+## Deployment Strategy
+
+### Development Environment
+- **Server**: Express with Vite middleware for HMR
+- **Database**: Neon PostgreSQL with connection pooling
+- **Session Storage**: PostgreSQL sessions table
+- **Authentication**: Replit OIDC with development callbacks
+
+### Production Build
+- **Frontend**: Vite build to `dist/public`
+- **Backend**: ESBuild bundle to `dist/index.js`
+- **Database**: Drizzle migrations with `db:push` command
+- **Environment**: Production mode with optimized builds
+
+### Environment Variables Required
+- `DATABASE_URL`: PostgreSQL connection string
+- `SESSION_SECRET`: Session encryption key
+- `REPL_ID`: Replit application identifier
+- `ISSUER_URL`: OIDC provider URL (defaults to replit.com)
+- `REPLIT_DOMAINS`: Allowed domains for OIDC callbacks
+
+### Folder Structure
+- `client/`: React frontend application
+- `server/`: Express backend with API routes
+- `shared/`: Common TypeScript types and schemas
+- `migrations/`: Drizzle database migration files
+- `attached_assets/`: Static file storage
