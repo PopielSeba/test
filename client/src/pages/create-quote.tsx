@@ -31,6 +31,12 @@ interface QuoteItemData {
   discountPercent: number;
   totalPrice: number;
   notes?: string;
+  // Fuel cost fields for generators
+  fuelConsumptionLH?: number;
+  fuelPricePerLiter?: number;
+  hoursPerDay?: number;
+  totalFuelCost?: number;
+  includeFuelCost?: boolean;
 }
 
 interface Equipment {
@@ -110,6 +116,11 @@ export default function CreateQuote() {
       discountPercent: 0,
       totalPrice: 0,
       notes: "",
+      fuelConsumptionLH: 0,
+      fuelPricePerLiter: 0,
+      hoursPerDay: 8,
+      totalFuelCost: 0,
+      includeFuelCost: false,
     };
     setQuoteItems([...quoteItems, newItem]);
   };

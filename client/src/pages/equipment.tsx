@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 interface EquipmentCategory {
   id: number;
@@ -45,6 +46,7 @@ const getCategoryColor = (categoryName: string) => {
 export default function Equipment() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [, navigate] = useLocation();
 
   const { data: equipment = [], isLoading } = useQuery<Equipment[]>({
     queryKey: ["/api/equipment"],
@@ -192,6 +194,7 @@ export default function Equipment() {
                         variant="outline" 
                         className="w-full mt-4"
                         disabled={item.availableQuantity === 0}
+                        onClick={() => navigate('/create-quote')}
                       >
                         {item.availableQuantity === 0 ? 'Niedostępny' : 'Dodaj do wyceny'}
                       </Button>

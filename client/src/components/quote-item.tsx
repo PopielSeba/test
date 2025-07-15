@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Trash2, Fuel } from "lucide-react";
 
 interface QuoteItemData {
   id: string;
@@ -15,6 +17,12 @@ interface QuoteItemData {
   discountPercent: number;
   totalPrice: number;
   notes?: string;
+  // Fuel cost fields for generators
+  fuelConsumptionLH?: number;
+  fuelPricePerLiter?: number;
+  hoursPerDay?: number;
+  totalFuelCost?: number;
+  includeFuelCost?: boolean;
 }
 
 interface Equipment {
@@ -74,17 +82,28 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       if (pricing) {
         const pricePerDay = parseFloat(pricing.pricePerDay);
         const discountPercent = parseFloat(pricing.discountPercent);
-        const totalPrice = pricePerDay * item.quantity * item.rentalPeriodDays;
+        const basePrice = pricePerDay * item.quantity * item.rentalPeriodDays;
+        
+        // Calculate fuel cost for generators
+        let fuelCost = 0;
+        if (item.includeFuelCost && item.fuelConsumptionLH && item.fuelPricePerLiter && item.hoursPerDay) {
+          const totalHours = item.rentalPeriodDays * item.hoursPerDay;
+          const totalFuelNeeded = totalHours * item.fuelConsumptionLH * item.quantity;
+          fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
+        }
+        
+        const totalPrice = basePrice + fuelCost;
 
         onUpdate({
           ...item,
           pricePerDay,
           discountPercent,
           totalPrice,
+          totalFuelCost: fuelCost,
         });
       }
     }
-  }, [item.equipmentId, item.quantity, item.rentalPeriodDays]);
+  }, [item.equipmentId, item.quantity, item.rentalPeriodDays, item.includeFuelCost, item.fuelConsumptionLH, item.fuelPricePerLiter, item.hoursPerDay]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
     // Find the appropriate pricing tier based on days
@@ -158,11 +177,11 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   };
 
   return (
-    <Card className="border border-gray-200">
+    <Card className="border border-border">
       <CardContent className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Kategoria</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Kategoria</label>
             <Select value={selectedCategory?.toString() || ""} onValueChange={handleCategoryChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Wybierz kategorię" />
@@ -178,7 +197,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sprzęt</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Sprzęt</label>
             <Select 
               value={item.equipmentId.toString()} 
               onValueChange={handleEquipmentChange}
@@ -198,7 +217,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Ilość</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Ilość</label>
             <Input
               type="number"
               min="1"
@@ -209,7 +228,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Okres wynajmu</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Okres wynajmu</label>
             <Select value={item.rentalPeriodDays.toString()} onValueChange={handlePeriodChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Wybierz okres" />
@@ -225,9 +244,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cena netto</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Cena netto</label>
             <div className="flex items-center justify-between">
-              <span className="text-lg font-medium text-gray-900">
+              <span className="text-lg font-medium text-foreground">
                 {formatCurrency(item.totalPrice)}
               </span>
               {canRemove && (
@@ -250,8 +269,94 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
         </div>
 
+        {/* Fuel Cost Calculation for Generators */}
+        {selectedEquipment && selectedEquipment.category.name === 'Agregaty prądotwórcze' && (
+          <div className="mt-4">
+            <Separator className="my-4" />
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox 
+                id="includeFuelCost" 
+                checked={item.includeFuelCost || false}
+                onCheckedChange={(checked) => 
+                  onUpdate({ 
+                    ...item, 
+                    includeFuelCost: checked as boolean,
+                    totalFuelCost: checked ? item.totalFuelCost : 0
+                  })
+                }
+              />
+              <label htmlFor="includeFuelCost" className="text-sm font-medium text-foreground flex items-center">
+                <Fuel className="w-4 h-4 mr-2" />
+                Uwzględnij koszty paliwa
+              </label>
+            </div>
+            
+            {item.includeFuelCost && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/50 p-4 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Zużycie paliwa (l/h)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={item.fuelConsumptionLH || ""}
+                    onChange={(e) => onUpdate({
+                      ...item,
+                      fuelConsumptionLH: parseFloat(e.target.value) || 0
+                    })}
+                    placeholder="np. 15.5"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Cena paliwa (zł/l)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.fuelPricePerLiter || ""}
+                    onChange={(e) => onUpdate({
+                      ...item,
+                      fuelPricePerLiter: parseFloat(e.target.value) || 0
+                    })}
+                    placeholder="np. 6.50"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Godziny pracy/dzień
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="24"
+                    value={item.hoursPerDay || 8}
+                    onChange={(e) => onUpdate({
+                      ...item,
+                      hoursPerDay: parseInt(e.target.value) || 8
+                    })}
+                    placeholder="8"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Koszt paliwa
+                  </label>
+                  <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                    {formatCurrency(item.totalFuelCost || 0)}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Uwagi</label>
+          <label className="block text-sm font-medium text-foreground mb-2">Uwagi</label>
           <Textarea
             value={item.notes || ""}
             onChange={(e) => handleNotesChange(e.target.value)}

@@ -109,6 +109,12 @@ export const quoteItems = pgTable("quote_items", {
   pricePerDay: decimal("price_per_day", { precision: 10, scale: 2 }).notNull(),
   discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
   totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
+  // Fuel cost fields for generators
+  fuelConsumptionLH: decimal("fuel_consumption_lh", { precision: 5, scale: 2 }), // liters per hour
+  fuelPricePerLiter: decimal("fuel_price_per_liter", { precision: 6, scale: 2 }), // PLN per liter
+  hoursPerDay: integer("hours_per_day").default(8), // operating hours per day
+  totalFuelCost: decimal("total_fuel_cost", { precision: 12, scale: 2 }).default("0"),
+  includeFuelCost: boolean("include_fuel_cost").default(false),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
