@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Fuel, Car } from "lucide-react";
+import { Trash2, Fuel, Car, Wrench } from "lucide-react";
 
 interface QuoteItemData {
   id: string;
@@ -31,6 +31,28 @@ interface QuoteItemData {
   serviceRatePerTechnician?: number;
   travelRatePerKm?: number;
   totalInstallationCost?: number;
+
+  // Maintenance/exploitation cost fields for generators
+  includeMaintenanceCost?: boolean;
+  maintenanceIntervalHours?: number;
+  // Filter costs (6 filters)
+  fuelFilter1Cost?: number;
+  fuelFilter2Cost?: number;
+  oilFilterCost?: number;
+  airFilter1Cost?: number;
+  airFilter2Cost?: number;
+  engineFilterCost?: number;
+  // Oil cost
+  oilCost?: number;
+  oilQuantityLiters?: number;
+  // Service work cost
+  serviceWorkHours?: number;
+  serviceWorkRatePerHour?: number;
+  // Service travel cost
+  serviceTravelDistanceKm?: number;
+  serviceTravelRatePerKm?: number;
+  totalMaintenanceCost?: number;
+  expectedMaintenanceHours?: number;
 }
 
 interface Equipment {
@@ -124,9 +146,15 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
           installationCost = travelCost + serviceCost;
         }
+
+        // Calculate maintenance cost
+        let maintenanceCost = 0;
+        if (item.includeMaintenanceCost) {
+          maintenanceCost = item.totalMaintenanceCost || 0;
+        }
         
         // Total price is just the sum of all components (no additional discount needed)
-        const totalPrice = totalEquipmentPrice + fuelCost + installationCost;
+        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + maintenanceCost;
         
 
 
@@ -137,6 +165,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           totalPrice,
           totalFuelCost: fuelCost,
           totalInstallationCost: installationCost,
+          totalMaintenanceCost: maintenanceCost,
         });
       }
     }
@@ -154,6 +183,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     item.travelRatePerKm,
     item.numberOfTechnicians,
     item.serviceRatePerTechnician,
+
+    item.includeMaintenanceCost,
+    item.totalMaintenanceCost,
     selectedEquipment
   ]);
 
@@ -274,6 +306,43 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       style: 'currency',
       currency: 'PLN',
     }).format(amount);
+  };
+
+  const updateMaintenanceCost = (updatedItem: QuoteItemData) => {
+    if (!updatedItem.includeMaintenanceCost) {
+      onUpdate({ ...updatedItem, totalMaintenanceCost: 0 });
+      return;
+    }
+
+    // Calculate total filters cost
+    const filtersCost = 
+      (updatedItem.fuelFilter1Cost || 49) +
+      (updatedItem.fuelFilter2Cost || 118) +
+      (updatedItem.oilFilterCost || 45) +
+      (updatedItem.airFilter1Cost || 105) +
+      (updatedItem.airFilter2Cost || 54) +
+      (updatedItem.engineFilterCost || 150);
+    
+    // Calculate oil cost
+    const oilTotalCost = (updatedItem.oilQuantityLiters || 14.7) * (updatedItem.oilCost || 162.44) / 14.7;
+    
+    // Calculate service work cost
+    const serviceWorkCost = (updatedItem.serviceWorkHours || 2) * (updatedItem.serviceWorkRatePerHour || 100);
+    
+    // Calculate travel cost
+    const travelCost = (updatedItem.serviceTravelDistanceKm || 31) * (updatedItem.serviceTravelRatePerKm || 1.15) * 2;
+    
+    // Total maintenance cost for 500 hours
+    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost + travelCost;
+    
+    // Calculate how much of maintenance cost applies to rental period
+    const expectedHours = (updatedItem.expectedMaintenanceHours || 0);
+    let totalCost = 0;
+    if (expectedHours > 0) {
+      totalCost = (maintenanceCostPer500h / (updatedItem.maintenanceIntervalHours || 500)) * expectedHours;
+    }
+
+    onUpdate({ ...updatedItem, totalMaintenanceCost: totalCost });
   };
 
   return (
@@ -597,6 +666,340 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
             </div>
           )}
         </div>
+
+        {/* Maintenance/Exploitation Cost Section (for generators only) */}
+        {isGenerator && (
+          <div className="mt-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <Checkbox 
+                id="includeMaintenanceCost" 
+                checked={item.includeMaintenanceCost || false}
+                onCheckedChange={(checked) => {
+                  let totalCost = 0;
+                  if (checked) {
+                    // Calculate total filters cost
+                    const filtersCost = 
+                      (item.fuelFilter1Cost || 49) +
+                      (item.fuelFilter2Cost || 118) +
+                      (item.oilFilterCost || 45) +
+                      (item.airFilter1Cost || 105) +
+                      (item.airFilter2Cost || 54) +
+                      (item.engineFilterCost || 150);
+                    
+                    // Calculate oil cost
+                    const oilTotalCost = (item.oilQuantityLiters || 14.7) * (item.oilCost || 162.44) / 14.7;
+                    
+                    // Calculate service work cost
+                    const serviceWorkCost = (item.serviceWorkHours || 2) * (item.serviceWorkRatePerHour || 100);
+                    
+                    // Calculate travel cost
+                    const travelCost = (item.serviceTravelDistanceKm || 31) * (item.serviceTravelRatePerKm || 1.15) * 2;
+                    
+                    // Total maintenance cost for 500 hours
+                    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost + travelCost;
+                    
+                    // Calculate how much of maintenance cost applies to rental period
+                    const expectedHours = (item.expectedMaintenanceHours || 0);
+                    if (expectedHours > 0) {
+                      totalCost = (maintenanceCostPer500h / 500) * expectedHours;
+                    }
+                  }
+                  onUpdate({ 
+                    ...item, 
+                    includeMaintenanceCost: checked as boolean,
+                    fuelFilter1Cost: checked ? (item.fuelFilter1Cost || 49) : 49,
+                    fuelFilter2Cost: checked ? (item.fuelFilter2Cost || 118) : 118,
+                    oilFilterCost: checked ? (item.oilFilterCost || 45) : 45,
+                    airFilter1Cost: checked ? (item.airFilter1Cost || 105) : 105,
+                    airFilter2Cost: checked ? (item.airFilter2Cost || 54) : 54,
+                    engineFilterCost: checked ? (item.engineFilterCost || 150) : 150,
+                    oilCost: checked ? (item.oilCost || 162.44) : 162.44,
+                    oilQuantityLiters: checked ? (item.oilQuantityLiters || 14.7) : 14.7,
+                    serviceWorkHours: checked ? (item.serviceWorkHours || 2) : 2,
+                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 100) : 100,
+                    serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm || 31) : 31,
+                    serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm || 1.15) : 1.15,
+                    maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || 500) : 500,
+                    expectedMaintenanceHours: checked ? (item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))) : 0,
+                    totalMaintenanceCost: totalCost
+                  });
+                }}
+              />
+              <label htmlFor="includeMaintenanceCost" className="text-sm font-medium text-foreground flex items-center">
+                <Wrench className="w-4 h-4 mr-2" />
+                Uwzględnij koszty eksploatacji (co 500 mth)
+              </label>
+            </div>
+            
+            {item.includeMaintenanceCost && (
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="md:col-span-4">
+                    <h4 className="font-medium text-foreground mb-3">Filtra (6 szt.)</h4>
+                  </div>
+                  
+                  {/* Filter costs - 6 filters */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Filtr Paliwa 1 (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.fuelFilter1Cost || 49}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 49;
+                        updateMaintenanceCost({ ...item, fuelFilter1Cost: cost });
+                      }}
+                      placeholder="49.00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Filtr Paliwa 2 (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.fuelFilter2Cost || 118}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 118;
+                        updateMaintenanceCost({ ...item, fuelFilter2Cost: cost });
+                      }}
+                      placeholder="118.00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Filtr Olejowy (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.oilFilterCost || 45}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 45;
+                        updateMaintenanceCost({ ...item, oilFilterCost: cost });
+                      }}
+                      placeholder="45.00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Filtr Powietrza 1 (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.airFilter1Cost || 105}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 105;
+                        updateMaintenanceCost({ ...item, airFilter1Cost: cost });
+                      }}
+                      placeholder="105.00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Filtr Powietrza 2 (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.airFilter2Cost || 54}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 54;
+                        updateMaintenanceCost({ ...item, airFilter2Cost: cost });
+                      }}
+                      placeholder="54.00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Filtr dołmu (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.engineFilterCost || 150}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 150;
+                        updateMaintenanceCost({ ...item, engineFilterCost: cost });
+                      }}
+                      placeholder="150.00"
+                    />
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="md:col-span-3">
+                    <h4 className="font-medium text-foreground mb-3">Olej</h4>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Koszt oleju (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.oilCost || 162.44}
+                      onChange={(e) => {
+                        const cost = parseFloat(e.target.value) || 162.44;
+                        updateMaintenanceCost({ ...item, oilCost: cost });
+                      }}
+                      placeholder="162.44"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Ilość oleju (l)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={item.oilQuantityLiters || 14.7}
+                      onChange={(e) => {
+                        const quantity = parseFloat(e.target.value) || 14.7;
+                        updateMaintenanceCost({ ...item, oilQuantityLiters: quantity });
+                      }}
+                      placeholder="14.7"
+                    />
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="md:col-span-4">
+                    <h4 className="font-medium text-foreground mb-3">Koszt pracy i dojazdu serwisanta</h4>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Czas pracy (h)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={item.serviceWorkHours || 2}
+                      onChange={(e) => {
+                        const hours = parseFloat(e.target.value) || 2;
+                        updateMaintenanceCost({ ...item, serviceWorkHours: hours });
+                      }}
+                      placeholder="2"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Stawka za godzinę (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.serviceWorkRatePerHour || 100}
+                      onChange={(e) => {
+                        const rate = parseFloat(e.target.value) || 100;
+                        updateMaintenanceCost({ ...item, serviceWorkRatePerHour: rate });
+                      }}
+                      placeholder="100.00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Odległość dojazdu (km)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={item.serviceTravelDistanceKm || 31}
+                      onChange={(e) => {
+                        const distance = parseFloat(e.target.value) || 31;
+                        updateMaintenanceCost({ ...item, serviceTravelDistanceKm: distance });
+                      }}
+                      placeholder="31"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Stawka za km (zł)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.serviceTravelRatePerKm || 1.15}
+                      onChange={(e) => {
+                        const rate = parseFloat(e.target.value) || 1.15;
+                        updateMaintenanceCost({ ...item, serviceTravelRatePerKm: rate });
+                      }}
+                      placeholder="1.15"
+                    />
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Przewidywane motogodziny
+                    </label>
+                    <Input
+                      type="number"
+                      value={item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))}
+                      onChange={(e) => {
+                        const hours = parseInt(e.target.value) || 0;
+                        updateMaintenanceCost({ ...item, expectedMaintenanceHours: hours });
+                      }}
+                      placeholder="Dni × godz/dzień"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Domyślnie: {item.rentalPeriodDays} dni × {item.hoursPerDay || 8} h/dzień
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Interwał serwisu (mth)
+                    </label>
+                    <Input
+                      type="number"
+                      value={item.maintenanceIntervalHours || 500}
+                      onChange={(e) => {
+                        const interval = parseInt(e.target.value) || 500;
+                        updateMaintenanceCost({ ...item, maintenanceIntervalHours: interval });
+                      }}
+                      placeholder="500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Koszt eksploatacji
+                    </label>
+                    <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                      {formatCurrency(item.totalMaintenanceCost || 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Za okres wynajmu
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-2">Uwagi</label>

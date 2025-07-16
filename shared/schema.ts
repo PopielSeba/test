@@ -123,9 +123,27 @@ export const quoteItems = pgTable("quote_items", {
   hoursPerDay: integer("hours_per_day").default(8), // operating hours per day
   totalFuelCost: decimal("total_fuel_cost", { precision: 12, scale: 2 }).default("0"),
   includeFuelCost: boolean("include_fuel_cost").default(false),
-  // Maintenance cost fields for generators
+  // Maintenance/exploitation cost fields for generators (every 500 mth)
   includeMaintenanceCost: boolean("include_maintenance_cost").default(false),
-  maintenanceCostPerPeriod: decimal("maintenance_cost_per_period", { precision: 10, scale: 2 }).default("0"),
+  maintenanceIntervalHours: integer("maintenance_interval_hours").default(500), // every 500 mth
+  // Filter costs (6 filters)
+  fuelFilter1Cost: decimal("fuel_filter_1_cost", { precision: 8, scale: 2 }).default("49.00"),
+  fuelFilter2Cost: decimal("fuel_filter_2_cost", { precision: 8, scale: 2 }).default("118.00"),
+  oilFilterCost: decimal("oil_filter_cost", { precision: 8, scale: 2 }).default("45.00"),
+  airFilter1Cost: decimal("air_filter_1_cost", { precision: 8, scale: 2 }).default("105.00"),
+  airFilter2Cost: decimal("air_filter_2_cost", { precision: 8, scale: 2 }).default("54.00"),
+  engineFilterCost: decimal("engine_filter_cost", { precision: 8, scale: 2 }).default("150.00"),
+  // Oil cost
+  oilCost: decimal("oil_cost", { precision: 8, scale: 2 }).default("162.44"),
+  oilQuantityLiters: decimal("oil_quantity_liters", { precision: 5, scale: 1 }).default("14.7"),
+  // Service work cost
+  serviceWorkHours: decimal("service_work_hours", { precision: 4, scale: 1 }).default("2"),
+  serviceWorkRatePerHour: decimal("service_work_rate_per_hour", { precision: 8, scale: 2 }).default("100.00"),
+  // Service travel cost
+  serviceTravelDistanceKm: decimal("service_travel_distance_km", { precision: 8, scale: 2 }).default("31"),
+  serviceTravelRatePerKm: decimal("service_travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
+  // Total maintenance cost for the rental period
+  totalMaintenanceCost: decimal("total_maintenance_cost", { precision: 12, scale: 2 }).default("0"),
   expectedMaintenanceHours: integer("expected_maintenance_hours"), // expected operating hours for the rental period
   // Service travel cost fields
   includeTravelCost: boolean("include_travel_cost").default(false),
