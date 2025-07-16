@@ -116,6 +116,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   const selectedEquipment = equipment.find(eq => eq.id === item.equipmentId);
   const isGenerator = selectedEquipment?.category.name === 'Agregaty prądotwórcze';
   const isLightingTower = selectedEquipment?.category.name === 'Maszty oświetleniowe';
+  const hasMaintenanceCosts = isGenerator || isLightingTower;
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
@@ -683,8 +684,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           )}
         </div>
 
-        {/* Maintenance/Exploitation Cost Section (for generators only) */}
-        {isGenerator && (
+        {/* Maintenance/Exploitation Cost Section (for generators and lighting towers) */}
+        {hasMaintenanceCosts && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
               <Checkbox 
