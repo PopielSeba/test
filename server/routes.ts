@@ -287,6 +287,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/quotes/:id/pdf', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const quote = await storage.getQuoteById(id);
+      
+      if (!quote) {
+        return res.status(404).json({ message: "Quote not found" });
+      }
+
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && quote.createdById !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const puppeteer = require('puppeteer');
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      
+      const page = await browser.newPage();
+      
+      // Generate HTML content for the quote
+      const htmlContent = generateQuoteHTML(quote);
+      
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm'
+        }
+      });
+      
+      await browser.close();
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Wycena_${quote.quoteNumber}.pdf"`);
+      res.send(pdf);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
   // Quote Items
   app.post('/api/quote-items', isAuthenticated, async (req: any, res) => {
     try {
@@ -357,4 +406,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+function generateQuoteHTML(quote: any) {
+  const formatCurrency = (amount: string | number) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat('pl-PL', {
+      style: 'currency',
+      currency: 'PLN',
+    }).format(numAmount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pl-PL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const getRentalPeriodText = (days: number) => {
+    if (days === 1) return "1 dzień";
+    if (days < 5) return `${days} dni`;
+    return `${days} dni`;
+  };
+
+  const itemsHTML = quote.items.map((item: any) => {
+    const additionalCosts = [];
+    if (item.includeFuelCost && item.totalFuelCost) {
+      additionalCosts.push(`Koszt paliwa: ${formatCurrency(item.totalFuelCost)}`);
+    }
+    if (item.includeInstallationCost && item.totalInstallationCost) {
+      additionalCosts.push(`Koszt montażu: ${formatCurrency(item.totalInstallationCost)}`);
+    }
+    if (item.includeMaintenanceCost && item.totalMaintenanceCost) {
+      additionalCosts.push(`Koszt eksploatacji: ${formatCurrency(item.totalMaintenanceCost)}`);
+    }
+    if (item.includeServiceItems && item.totalServiceItemsCost) {
+      additionalCosts.push(`Koszty serwisowe: ${formatCurrency(item.totalServiceItemsCost)}`);
+    }
+
+    return `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.equipment.name}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${getRentalPeriodText(item.rentalPeriodDays)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.pricePerDay)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.discountPercent}%</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.totalPrice)}</td>
+      </tr>
+      ${additionalCosts.length > 0 ? `
+        <tr>
+          <td colspan="6" style="padding: 5px 10px; border-bottom: 1px solid #ddd; background-color: #f9f9f9; font-size: 0.9em;">
+            ${additionalCosts.join(' | ')}
+          </td>
+        </tr>
+      ` : ''}
+      ${item.notes ? `
+        <tr>
+          <td colspan="6" style="padding: 5px 10px; border-bottom: 1px solid #ddd; background-color: #f9f9f9; font-size: 0.9em;">
+            <strong>Uwagi:</strong> ${item.notes}
+          </td>
+        </tr>
+      ` : ''}
+    `;
+  }).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pl">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Wycena ${quote.quoteNumber}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company-logo { font-size: 24px; font-weight: bold; color: #0066cc; }
+        .quote-title { font-size: 18px; margin-top: 10px; }
+        .quote-info { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .quote-info div { flex: 1; }
+        .quote-info h3 { margin: 0 0 10px 0; color: #0066cc; }
+        .quote-info p { margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background-color: #0066cc; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .total-row { font-weight: bold; background-color: #f0f0f0; }
+        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="company-logo">Sebastian Popiel</div>
+        <div class="quote-title">Wycena sprzętu budowlanego</div>
+      </div>
+
+      <div class="quote-info">
+        <div>
+          <h3>Dane klienta:</h3>
+          <p><strong>${quote.client.companyName}</strong></p>
+          ${quote.client.contactPerson ? `<p>Osoba kontaktowa: ${quote.client.contactPerson}</p>` : ''}
+          ${quote.client.email ? `<p>Email: ${quote.client.email}</p>` : ''}
+          ${quote.client.phone ? `<p>Telefon: ${quote.client.phone}</p>` : ''}
+          ${quote.client.address ? `<p>Adres: ${quote.client.address}</p>` : ''}
+          ${quote.client.nip ? `<p>NIP: ${quote.client.nip}</p>` : ''}
+        </div>
+        <div>
+          <h3>Dane wyceny:</h3>
+          <p><strong>Numer:</strong> ${quote.quoteNumber}</p>
+          <p><strong>Data utworzenia:</strong> ${formatDate(quote.createdAt)}</p>
+          <p><strong>Utworzył:</strong> ${quote.createdBy.firstName && quote.createdBy.lastName 
+            ? `${quote.createdBy.firstName} ${quote.createdBy.lastName}`
+            : quote.createdBy.email || 'Nieznany użytkownik'}</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nazwa sprzętu</th>
+            <th>Ilość</th>
+            <th>Okres wynajmu</th>
+            <th>Cena za dzień</th>
+            <th>Rabat</th>
+            <th>Wartość</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHTML}
+          <tr class="total-row">
+            <td colspan="5" style="text-align: right; padding: 15px;">Wartość netto:</td>
+            <td style="text-align: right; padding: 15px;">${formatCurrency(quote.totalNet)}</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="5" style="text-align: right; padding: 15px;">Wartość brutto (VAT 23%):</td>
+            <td style="text-align: right; padding: 15px;">${formatCurrency(quote.totalGross)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        <p>Wycena wygenerowana: ${formatDate(new Date().toISOString())}</p>
+        <p>Sebastian Popiel - Wynajem sprzętu budowlanego</p>
+      </div>
+    </body>
+    </html>
+  `;
 }

@@ -198,13 +198,22 @@ export default function Quotes() {
                           <TableCell>{getStatusBadge(quote.status)}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
-                              <Button variant="ghost" size="sm" title="Podgląd">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" title="Edytuj">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" title="Pobierz PDF">
+                              <Link href={`/quotes/${quote.id}`}>
+                                <Button variant="ghost" size="sm" title="Podgląd">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              <Link href={`/quotes/${quote.id}/edit`}>
+                                <Button variant="ghost" size="sm" title="Edytuj">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                title="Pobierz PDF"
+                                onClick={() => window.open(`/api/quotes/${quote.id}/pdf`, '_blank')}
+                              >
                                 <Download className="w-4 h-4" />
                               </Button>
                               <Button 
@@ -212,6 +221,11 @@ export default function Quotes() {
                                 size="sm" 
                                 className="text-red-600 hover:text-red-700"
                                 title="Usuń"
+                                onClick={() => {
+                                  if (confirm('Czy na pewno chcesz usunąć tę wycenę?')) {
+                                    // TODO: Implement delete functionality
+                                  }
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
