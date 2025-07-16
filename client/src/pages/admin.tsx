@@ -133,6 +133,19 @@ export default function Admin() {
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
 
+  // Initialize local prices when equipment is selected
+  useEffect(() => {
+    if (selectedEquipmentForPricing) {
+      const initialPrices: Record<number, number> = {};
+      selectedEquipmentForPricing.pricing.forEach(p => {
+        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+      });
+      setLocalPrices(initialPrices);
+    } else {
+      setLocalPrices({});
+    }
+  }, [selectedEquipmentForPricing?.id]);
+
   // Check if user is admin
   if (!authLoading && user?.role !== 'admin') {
     return (
@@ -966,17 +979,7 @@ export default function Admin() {
                   ))}
                 </div>
 
-                {selectedEquipmentForPricing && (() => {
-                  // Reset local prices when equipment changes
-                  if (Object.keys(localPrices).length === 0) {
-                    const initialPrices: Record<number, number> = {};
-                    selectedEquipmentForPricing.pricing.forEach(p => {
-                      initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
-                    });
-                    setLocalPrices(initialPrices);
-                  }
-                  return true;
-                })() && (
+                {selectedEquipmentForPricing && (
                   <div className="border rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">
                       {selectedEquipmentForPricing.name} - zasilane paliwem:
