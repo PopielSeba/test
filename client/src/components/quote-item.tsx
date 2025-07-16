@@ -334,7 +334,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     
     // Calculate travel cost - only if enabled
     const travelCost = updatedItem.includeServiceTravelCost !== false 
-      ? (updatedItem.serviceTravelDistanceKm || 31) * (updatedItem.serviceTravelRatePerKm || 1.15) * 2
+      ? (updatedItem.serviceTravelDistanceKm ?? 31) * (updatedItem.serviceTravelRatePerKm ?? 1.15) * 2
       : 0;
     
     // Total maintenance cost for 500 hours
@@ -905,7 +905,13 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                       id="includeServiceTravelCost"
                       checked={item.includeServiceTravelCost !== false}
                       onCheckedChange={(checked) => {
-                        updateMaintenanceCost({ ...item, includeServiceTravelCost: checked });
+                        const updatedItem = { 
+                          ...item, 
+                          includeServiceTravelCost: checked,
+                          serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm ?? 31) : 0,
+                          serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm ?? 1.15) : 0
+                        };
+                        updateMaintenanceCost(updatedItem);
                       }}
                     />
                     <label htmlFor="includeServiceTravelCost" className="text-sm font-medium text-foreground">
@@ -958,10 +964,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.1"
-                      value={item.serviceTravelDistanceKm || 31}
+                      value={item.includeServiceTravelCost === false ? 0 : (item.serviceTravelDistanceKm ?? 31)}
                       onChange={(e) => {
-                        const distance = parseFloat(e.target.value) || 31;
-                        updateMaintenanceCost({ ...item, serviceTravelDistanceKm: distance });
+                        const distance = parseFloat(e.target.value);
+                        updateMaintenanceCost({ ...item, serviceTravelDistanceKm: isNaN(distance) ? 0 : distance });
                       }}
                       placeholder="31"
                       disabled={item.includeServiceTravelCost === false}
@@ -975,10 +981,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.serviceTravelRatePerKm || 1.15}
+                      value={item.includeServiceTravelCost === false ? 0 : (item.serviceTravelRatePerKm ?? 1.15)}
                       onChange={(e) => {
-                        const rate = parseFloat(e.target.value) || 1.15;
-                        updateMaintenanceCost({ ...item, serviceTravelRatePerKm: rate });
+                        const rate = parseFloat(e.target.value);
+                        updateMaintenanceCost({ ...item, serviceTravelRatePerKm: isNaN(rate) ? 0 : rate });
                       }}
                       placeholder="1.15"
                       disabled={item.includeServiceTravelCost === false}
