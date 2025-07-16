@@ -133,6 +133,17 @@ export default function Admin() {
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
 
+  // Initialize local prices when equipment data loads
+  useEffect(() => {
+    if (selectedEquipmentForPricing && selectedEquipmentForPricing.pricing.length > 0) {
+      const initialPrices: Record<number, number> = {};
+      selectedEquipmentForPricing.pricing.forEach(p => {
+        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+      });
+      setLocalPrices(initialPrices);
+    }
+  }, [selectedEquipmentForPricing?.id]);
+
   // Check if user is admin
   if (!authLoading && user?.role !== 'admin') {
     return (
@@ -957,7 +968,12 @@ export default function Admin() {
                       variant={selectedEquipmentForPricing?.id === item.id ? "default" : "outline"}
                       onClick={() => {
                         setSelectedEquipmentForPricing(item);
-                        setLocalPrices({});
+                        // Initialize local prices for the selected equipment
+                        const initialPrices: Record<number, number> = {};
+                        item.pricing.forEach(p => {
+                          initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+                        });
+                        setLocalPrices(initialPrices);
                       }}
                       className="mb-2"
                     >
@@ -966,17 +982,7 @@ export default function Admin() {
                   ))}
                 </div>
 
-                {selectedEquipmentForPricing && (() => {
-                  // Reset local prices when equipment changes
-                  if (Object.keys(localPrices).length === 0) {
-                    const initialPrices: Record<number, number> = {};
-                    selectedEquipmentForPricing.pricing.forEach(p => {
-                      initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
-                    });
-                    setLocalPrices(initialPrices);
-                  }
-                  return true;
-                })() && (
+                {selectedEquipmentForPricing && (
                   <div className="border rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">
                       {selectedEquipmentForPricing.name} - zasilane paliwem:
