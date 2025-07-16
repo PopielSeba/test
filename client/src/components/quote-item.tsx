@@ -327,7 +327,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       (updatedItem.engineFilterCost || 150);
     
     // Calculate oil cost
-    const oilTotalCost = (updatedItem.oilQuantityLiters || 14.7) * (updatedItem.oilCost || 162.44) / 14.7;
+    const oilTotalCost = (updatedItem.oilQuantityLiters || 14.7) * (updatedItem.oilCost || 162.44);
     
     // Calculate service work cost
     const serviceWorkCost = (updatedItem.serviceWorkHours ?? 2) * (updatedItem.serviceWorkRatePerHour ?? 100);
