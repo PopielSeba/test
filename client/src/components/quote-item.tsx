@@ -101,12 +101,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
-    console.log('useEffect triggered:', {
-      equipmentId: item.equipmentId,
-      includeMaintenanceCost: item.includeMaintenanceCost,
-      selectedEquipment: selectedEquipment?.name
-    });
-    
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
       const pricing = getPricingForPeriod(selectedEquipment, item.rentalPeriodDays);
       if (pricing) {
@@ -114,28 +108,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         const discountPercent = parseFloat(pricing.discountPercent);
         
         if (isNaN(pricePerDay) || isNaN(discountPercent)) {
-          console.error("Invalid pricing data:", {
-            pricePerDay: pricing.pricePerDay,
-            discountPercent: pricing.discountPercent,
-            parsedPricePerDay: pricePerDay,
-            parsedDiscountPercent: discountPercent,
-            equipment: selectedEquipment.name
-          });
           return;
         }
-        
-        console.log("Price calculation:", {
-          equipmentName: selectedEquipment.name,
-          days: item.rentalPeriodDays,
-          pricePerDay,
-          discountPercent,
-          quantity: item.quantity,
-          basePrice: pricePerDay * item.quantity * item.rentalPeriodDays,
-          pricePerDayType: typeof pricePerDay,
-          quantityType: typeof item.quantity,
-          daysType: typeof item.rentalPeriodDays,
-          discountPercentType: typeof discountPercent
-        });
         
         const basePrice = pricePerDay * item.quantity * item.rentalPeriodDays;
         
@@ -149,14 +123,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
         // Calculate maintenance cost for generators and lighting towers
         let maintenanceCost = 0;
-        console.log('Maintenance cost check:', {
-          includeMaintenanceCost: item.includeMaintenanceCost,
-          categoryName: selectedEquipment.category.name,
-          isGenerator: selectedEquipment.category.name === 'Agregaty prądotwórcze',
-          isLightingTower: selectedEquipment.category.name === 'Maszty oświetleniowe',
-          willCalculate: item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')
-        });
-        
         if (item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')) {
           const totalHours = item.rentalPeriodDays * (item.hoursPerDay || 8);
           const maintenanceInterval = selectedEquipment.maintenanceIntervalHours || 200;
@@ -166,20 +132,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                              (selectedEquipment.airFilterCost || 0) + 
                              (selectedEquipment.fuelFilterCost || 0);
           maintenanceCost = maintenanceCycles * filterCosts * item.quantity;
-          
-          console.log('Maintenance calculation:', {
-            equipmentName: selectedEquipment.name,
-            category: selectedEquipment.category.name,
-            totalHours,
-            maintenanceInterval,
-            maintenanceCycles,
-            filterCosts,
-            oilFilterCost: selectedEquipment.oilFilterCost,
-            airFilterCost: selectedEquipment.airFilterCost,
-            fuelFilterCost: selectedEquipment.fuelFilterCost,
-            maintenanceCost,
-            quantity: item.quantity
-          });
         }
         
         // Calculate travel cost
@@ -193,18 +145,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         const discountedBasePrice = basePrice - discountAmount;
         const totalPrice = discountedBasePrice + fuelCost + maintenanceCost + travelCost;
         
-        console.log('Final price calculation:', {
-          equipmentName: selectedEquipment.name,
-          basePrice,
-          discountPercent,
-          discountAmount,
-          discountedBasePrice,
-          fuelCost,
-          maintenanceCost,
-          travelCost,
-          totalPrice,
-          isNaN: isNaN(totalPrice)
-        });
+
 
         onUpdate({
           ...item,
@@ -332,7 +273,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
   const formatCurrency = (amount: number) => {
     if (isNaN(amount)) {
-      console.error("formatCurrency received NaN:", amount);
       return "0,00 zł";
     }
     return new Intl.NumberFormat('pl-PL', {
@@ -527,14 +467,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
               <Checkbox 
                 id="includeMaintenanceCost" 
                 checked={item.includeMaintenanceCost || false}
-                onCheckedChange={(checked) => {
-                  console.log('Checkbox maintenance change:', { checked, type: typeof checked });
+                onCheckedChange={(checked) => 
                   onUpdate({ 
                     ...item, 
-                    includeMaintenanceCost: checked as boolean,
-                    maintenanceCostPerPeriod: checked ? item.maintenanceCostPerPeriod : 0
-                  });
-                }}
+                    includeMaintenanceCost: checked as boolean
+                  })
+                }
               />
               <label htmlFor="includeMaintenanceCost" className="text-sm font-medium text-foreground flex items-center">
                 <Settings className="w-4 h-4 mr-2" />
@@ -571,7 +509,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   <div>
                     <label className="text-sm text-muted-foreground">Koszt serwisu</label>
                     <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                      {formatCurrency(item.maintenanceCostPerPeriod || 0)}
+                      {formatCurrency(maintenanceCost)}
                     </div>
                   </div>
                 </div>
