@@ -96,15 +96,12 @@ export default function CreateQuote() {
           hoursPerDay: 8,
           totalFuelCost: 0,
           includeFuelCost: selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe',
-          includeMaintenanceCost: false,
-          maintenanceCostPerPeriod: 0,
-          expectedMaintenanceHours: 0,
-          includeTravelCost: false,
-          travelDistanceKm: 0,
+          includeInstallationCost: false,
+          installationDistanceKm: 0,
           numberOfTechnicians: 1,
-          hourlyRatePerTechnician: 150,
+          serviceRatePerTechnician: 150,
           travelRatePerKm: 1.15,
-          totalTravelCost: 0
+          totalInstallationCost: 0
         };
         setQuoteItems([newItem]);
         

@@ -161,13 +161,26 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   ]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
+    // Sort pricing by periodStart to ensure we get the correct tier
+    const sortedPricing = equipment.pricing.sort((a, b) => a.periodStart - b.periodStart);
+    
     // Find the appropriate pricing tier based on days
-    return equipment.pricing.find(p => {
-      if (p.periodEnd === null) {
-        return days >= p.periodStart;
+    for (const pricing of sortedPricing) {
+      if (!pricing.periodEnd) {
+        // This is the last tier (e.g., 30+ days)
+        if (days >= pricing.periodStart) {
+          return pricing;
+        }
+      } else {
+        // This is a bounded tier (e.g., 1-2 days, 3-7 days, etc.)
+        if (days >= pricing.periodStart && days <= pricing.periodEnd) {
+          return pricing;
+        }
       }
-      return days >= p.periodStart && days <= p.periodEnd;
-    });
+    }
+    
+    // Fallback: return the first pricing tier if no match found
+    return sortedPricing[0];
   };
 
   const handleCategoryChange = (categoryId: string) => {
