@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Fuel, Settings, Car } from "lucide-react";
+import { Trash2, Fuel, Car } from "lucide-react";
 
 interface QuoteItemData {
   id: string;
@@ -23,10 +23,7 @@ interface QuoteItemData {
   hoursPerDay?: number;
   totalFuelCost?: number;
   includeFuelCost?: boolean;
-  // Maintenance cost fields for generators
-  includeMaintenanceCost?: boolean;
-  maintenanceCostPerPeriod?: number;
-  expectedMaintenanceHours?: number;
+
   // Travel cost fields for service
   includeTravelCost?: boolean;
   travelDistanceKm?: number;
@@ -50,10 +47,6 @@ interface Equipment {
     discountPercent: string;
   }>;
   fuelConsumption75?: number; // l/h at 75% load for generators
-  oilFilterCost?: number;
-  airFilterCost?: number;
-  fuelFilterCost?: number;
-  maintenanceIntervalHours?: number;
 }
 
 interface QuoteItemProps {
@@ -121,18 +114,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
         }
 
-        // Calculate maintenance cost for generators and lighting towers
-        let maintenanceCost = 0;
-        if (item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')) {
-          const totalHours = item.rentalPeriodDays * (item.hoursPerDay || 8);
-          const maintenanceInterval = selectedEquipment.maintenanceIntervalHours || 200;
-          const maintenanceCycles = Math.ceil(totalHours / maintenanceInterval);
-          
-          const filterCosts = (selectedEquipment.oilFilterCost || 0) + 
-                             (selectedEquipment.airFilterCost || 0) + 
-                             (selectedEquipment.fuelFilterCost || 0);
-          maintenanceCost = maintenanceCycles * filterCosts * item.quantity;
-        }
+
         
         // Calculate travel cost
         let travelCost = 0;
@@ -143,7 +125,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         // Calculate discount
         const discountAmount = basePrice * (discountPercent / 100);
         const discountedBasePrice = basePrice - discountAmount;
-        const totalPrice = discountedBasePrice + fuelCost + maintenanceCost + travelCost;
+        const totalPrice = discountedBasePrice + fuelCost + travelCost;
         
 
 
@@ -153,7 +135,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           discountPercent,
           totalPrice,
           totalFuelCost: fuelCost,
-          maintenanceCostPerPeriod: maintenanceCost,
           totalTravelCost: travelCost,
         });
       }
@@ -166,7 +147,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     item.fuelConsumptionLH, 
     item.fuelPricePerLiter, 
     item.hoursPerDay, 
-    item.includeMaintenanceCost,
+
     item.includeTravelCost, 
     item.travelDistanceKm, 
     item.travelRatePerKm,
@@ -460,63 +441,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
         )}
 
-        {/* Maintenance costs section for generators and lighting towers */}
-        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe') && (
-          <div className="mt-4">
-            <div className="flex items-center space-x-2 mb-3">
-              <Checkbox 
-                id="includeMaintenanceCost" 
-                checked={item.includeMaintenanceCost || false}
-                onCheckedChange={(checked) => 
-                  onUpdate({ 
-                    ...item, 
-                    includeMaintenanceCost: checked as boolean
-                  })
-                }
-              />
-              <label htmlFor="includeMaintenanceCost" className="text-sm font-medium text-foreground flex items-center">
-                <Settings className="w-4 h-4 mr-2" />
-                Uwzględnij koszty serwisu/filtrów
-              </label>
-            </div>
-            
-            {item.includeMaintenanceCost && (
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="text-sm text-muted-foreground">Filtr oleju</label>
-                    <div className="text-sm font-medium">{formatCurrency(selectedEquipment.oilFilterCost || 0)}</div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Filtr powietrza</label>
-                    <div className="text-sm font-medium">{formatCurrency(selectedEquipment.airFilterCost || 0)}</div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Filtr paliwa</label>
-                    <div className="text-sm font-medium">{formatCurrency(selectedEquipment.fuelFilterCost || 0)}</div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-sm text-muted-foreground">Interwał serwisu</label>
-                    <div className="text-sm font-medium">{selectedEquipment.maintenanceIntervalHours || 200}h</div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Łączne godziny pracy</label>
-                    <div className="text-sm font-medium">{item.rentalPeriodDays * (item.hoursPerDay || 8)}h</div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Koszt serwisu</label>
-                    <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                      {formatCurrency(item.maintenanceCostPerPeriod || 0)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+
 
         {/* Service Travel Cost Section */}
         <div className="mt-4">

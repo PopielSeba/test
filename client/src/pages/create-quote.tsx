@@ -37,10 +37,7 @@ interface QuoteItemData {
   hoursPerDay?: number;
   totalFuelCost?: number;
   includeFuelCost?: boolean;
-  // Maintenance cost fields for generators
-  includeMaintenanceCost?: boolean;
-  maintenanceCostPerPeriod?: number;
-  expectedMaintenanceHours?: number;
+
   // Travel cost fields for service
   includeTravelCost?: boolean;
   travelDistanceKm?: number;
@@ -64,10 +61,6 @@ interface Equipment {
     discountPercent: string;
   }>;
   fuelConsumption75?: number; // l/h at 75% load for generators
-  oilFilterCost?: number;
-  airFilterCost?: number;
-  fuelFilterCost?: number;
-  maintenanceIntervalHours?: number;
 }
 
 export default function CreateQuote() {
@@ -182,9 +175,7 @@ export default function CreateQuote() {
       hoursPerDay: 8,
       totalFuelCost: 0,
       includeFuelCost: false,
-      includeMaintenanceCost: false,
-      maintenanceCostPerPeriod: 0,
-      expectedMaintenanceHours: 0,
+
       includeTravelCost: false,
       travelDistanceKm: 0,
       numberOfTechnicians: 1,

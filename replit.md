@@ -22,8 +22,6 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 ### January 16, 2025
 - Added complete SDMO generator lineup (22 models) with technical specifications
 - Implemented automatic fuel consumption calculation based on 75% load capacity
-- Added comprehensive filter and service cost system for generators
-- Integrated maintenance interval tracking and automatic service cost calculations
 - Changed application branding from "REKORD" to "Sebastian Popiel" throughout the system
 - Enhanced equipment catalog with direct "Add to Quote" functionality via URL parameters
 - Added comprehensive service travel cost calculation system:
@@ -34,14 +32,17 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
   • Automatic total travel cost calculation
 - Extended admin panel with full equipment parameter management:
   • Technical specifications (fuel consumption, dimensions, weight, engine, alternator)
-  • Service cost configuration (oil, air, fuel filters, maintenance intervals)
   • Complete CRUD operations for all equipment attributes
 - Added 4 lighting tower models with complete specifications:
   • Generac VT1 (4x1000W, 350 zł/day)
   • Generac V20 (4x320W, 320 zł/day)  
   • Atlas Copco H6+ (4x350W, 380 zł/day)
   • Atlas Copco H5+ (4x350W, 360 zł/day)
-  • Full technical specs including fuel consumption, dimensions, service costs
+  • Full technical specs including fuel consumption and dimensions
+- **REMOVED**: Service cost system completely removed from the entire application
+  • Eliminated all filter cost calculations and maintenance interval tracking
+  • Removed related database columns and interface elements
+  • Simplified quote calculations to focus on base pricing, fuel costs, and travel costs only
 
 ## User Preferences
 
