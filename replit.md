@@ -33,9 +33,10 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - Extended admin panel with full equipment parameter management:
   • Technical specifications (fuel consumption, dimensions, weight, engine, alternator)
   • Complete CRUD operations for all equipment attributes
-- Added 4 lighting tower models with complete specifications:
+- Added 5 lighting tower models with complete specifications:
   • Generac VT1 (4x1000W, 350 zł/day)
   • Generac V20 (4x320W, 320 zł/day)  
+  • Generac V20 PRO (4x60W/120W/180W/240W hybrid, 380 zł/day)
   • Atlas Copco H6+ (4x350W, 380 zł/day)
   • Atlas Copco H5+ (4x350W, 360 zł/day)
   • Full technical specs including fuel consumption and dimensions
