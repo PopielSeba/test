@@ -146,7 +146,7 @@ export default function Dashboard() {
             Witaj, {user?.firstName || user?.email}!
           </h1>
           <p className="text-muted-foreground mt-2">
-            Zarządzaj ofertami i sprzętem budowlanym
+            Zarządzaj ofertami i sprzętem
           </p>
         </div>
 

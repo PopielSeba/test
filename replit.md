@@ -29,6 +29,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Added guest access to equipment, quotes, and client management**
 - **Fixed pricing issue for manually added equipment**: New equipment now automatically gets standard pricing tiers (100 zł default, admin must update)
 - **Restricted quotes access to admin only**: List of quotes and quote details now accessible only to logged-in administrators
+- **Added quote deletion functionality for administrators** with confirmation dialog and proper security
+- **Cleaned up landing page UI** - removed "Budowlanego" from title, removed description text, and removed 4 feature tiles
+- **Fixed database integrity** - quote deletion now properly removes associated quote items
 - Application ready for production deployment as ofertnik.replit.app
 
 

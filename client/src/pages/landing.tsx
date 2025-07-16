@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Settings, Calculator, FileText, Users } from "lucide-react";
+import { Settings, Calculator } from "lucide-react";
 
 export default function Landing() {
   return (
@@ -12,13 +11,9 @@ export default function Landing() {
               <Settings className="w-12 h-12 text-white" />
             </div>
             <h1 className="text-5xl font-bold mb-4">Sebastian Popiel</h1>
-            <p className="text-xl opacity-90">System Wycen Sprzętu Budowlanego</p>
           </div>
           
-          <p className="text-lg mb-8 opacity-80 max-w-2xl mx-auto">
-            Profesjonalny system do zarządzania wyceną wynajmu sprzętu budowlanego. 
-            Automatyczne naliczanie rabatów, kompleksowe zarządzanie katalogiem i generowanie ofert PDF.
-          </p>
+
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -40,39 +35,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
-            <CardContent className="p-6 text-center">
-              <Calculator className="w-12 h-12 mx-auto mb-4 text-white" />
-              <h3 className="text-lg font-semibold mb-2">Automatyczne Wyceny</h3>
-              <p className="text-sm opacity-80">Kalkulacja cen z automatycznym naliczaniem rabatów według okresu wynajmu</p>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
-            <CardContent className="p-6 text-center">
-              <Settings className="w-12 h-12 mx-auto mb-4 text-white" />
-              <h3 className="text-lg font-semibold mb-2">Zarządzanie Sprzętem</h3>
-              <p className="text-sm opacity-80">Kompletny katalog sprzętu z różnych kategorii budowlanych</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
-            <CardContent className="p-6 text-center">
-              <FileText className="w-12 h-12 mx-auto mb-4 text-white" />
-              <h3 className="text-lg font-semibold mb-2">Generowanie PDF</h3>
-              <p className="text-sm opacity-80">Profesjonalne oferty PDF gotowe do wysłania klientom</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
-            <CardContent className="p-6 text-center">
-              <Users className="w-12 h-12 mx-auto mb-4 text-white" />
-              <h3 className="text-lg font-semibold mb-2">Zespołowa Praca</h3>
-              <p className="text-sm opacity-80">System ról i uprawnień dla zespołu pracowników</p>
-            </CardContent>
-          </Card>
-        </div>
 
         <div className="mt-16 text-center text-white/80">
           <p className="text-sm">
