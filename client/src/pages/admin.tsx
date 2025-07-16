@@ -218,11 +218,11 @@ export default function Admin() {
       const response = await apiRequest("POST", "/api/equipment", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
       toast({
         title: "Sukces",
-        description: "Sprzęt został dodany pomyślnie",
+        description: data.message || "Sprzęt został dodany pomyślnie",
       });
       setIsEquipmentDialogOpen(false);
       equipmentForm.reset();

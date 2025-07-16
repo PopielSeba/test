@@ -231,6 +231,30 @@ export class DatabaseStorage implements IStorage {
 
   async createEquipment(equipmentData: InsertEquipment): Promise<Equipment> {
     const [result] = await db.insert(equipment).values(equipmentData).returning();
+    
+    // Automatically create standard pricing tiers for new equipment
+    const standardPricing = [
+      { periodStart: 1, periodEnd: 2, discountPercent: 0 },
+      { periodStart: 3, periodEnd: 7, discountPercent: 14.29 },
+      { periodStart: 8, periodEnd: 18, discountPercent: 28.57 },
+      { periodStart: 19, periodEnd: 29, discountPercent: 42.86 },
+      { periodStart: 30, periodEnd: null, discountPercent: 57.14 }
+    ];
+
+    // Create default pricing entries (admin will need to set actual prices)
+    const defaultPricePerDay = 100; // Default price that admin should update
+    
+    for (const tier of standardPricing) {
+      const discountedPrice = defaultPricePerDay * (1 - tier.discountPercent / 100);
+      await db.insert(equipmentPricing).values({
+        equipmentId: result.id,
+        periodStart: tier.periodStart,
+        periodEnd: tier.periodEnd,
+        pricePerDay: discountedPrice.toFixed(2),
+        discountPercent: tier.discountPercent.toString()
+      });
+    }
+    
     return result;
   }
 
