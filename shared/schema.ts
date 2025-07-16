@@ -53,6 +53,13 @@ export const equipment = pgTable("equipment", {
   description: text("description"),
   model: varchar("model"),
   power: varchar("power"), // e.g., "90.18 kW", "235 kW"
+  // Additional technical specifications for generators
+  fuelConsumption75: decimal("fuel_consumption_75", { precision: 6, scale: 2 }), // l/h at 75% load
+  dimensions: varchar("dimensions"), // LxWxH in mm
+  weight: varchar("weight"), // in kg
+  engine: varchar("engine"), // engine manufacturer/model
+  alternator: varchar("alternator"), // alternator info
+  fuelTankCapacity: integer("fuel_tank_capacity"), // liters
   quantity: integer("quantity").notNull().default(0),
   availableQuantity: integer("available_quantity").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),

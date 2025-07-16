@@ -52,6 +52,7 @@ interface Equipment {
     pricePerDay: string;
     discountPercent: string;
   }>;
+  fuelConsumption75?: number; // l/h at 75% load for generators
 }
 
 export default function CreateQuote() {

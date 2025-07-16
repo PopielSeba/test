@@ -38,6 +38,7 @@ interface Equipment {
     pricePerDay: string;
     discountPercent: string;
   }>;
+  fuelConsumption75?: number; // l/h at 75% load for generators
 }
 
 interface QuoteItemProps {
@@ -135,15 +136,36 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     if (equipment) {
       // Set the category based on selected equipment
       setSelectedCategory(equipment.category.id);
+      
+      // Auto-fill fuel consumption for generators
+      let fuelData = {};
+      if (equipment.category.name === 'Agregaty prądotwórcze') {
+        fuelData = {
+          includeFuelCost: true,
+          fuelConsumptionLH: equipment.fuelConsumption75 || 0,
+          fuelPricePerLiter: 6.50, // Default fuel price PLN/liter
+          hoursPerDay: 8,
+          totalFuelCost: 0
+        };
+      }
+      
+      onUpdate({
+        ...item,
+        equipmentId: eqId,
+        pricePerDay: 0,
+        discountPercent: 0,
+        totalPrice: 0,
+        ...fuelData
+      });
+    } else {
+      onUpdate({
+        ...item,
+        equipmentId: eqId,
+        pricePerDay: 0,
+        discountPercent: 0,
+        totalPrice: 0,
+      });
     }
-    
-    onUpdate({
-      ...item,
-      equipmentId: eqId,
-      pricePerDay: 0,
-      discountPercent: 0,
-      totalPrice: 0,
-    });
   };
 
   const handleQuantityChange = (quantity: string) => {
