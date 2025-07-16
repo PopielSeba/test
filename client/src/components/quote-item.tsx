@@ -880,38 +880,38 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="md:col-span-3">
-                    <h4 className="font-medium text-foreground mb-3">Olej</h4>
+                    <h4 className="font-medium text-foreground mb-3">{isAirConditioner ? 'Czynnik' : 'Olej'}</h4>
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Koszt oleju (zł)
+                      Koszt {isAirConditioner ? 'czynnika' : 'oleju'} (zł)
                     </label>
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.oilCost || 162.44}
+                      value={item.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 162.44;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.oilCost || "162.44");
                         updateMaintenanceCost({ ...item, oilCost: cost });
                       }}
-                      placeholder="162.44"
+                      placeholder={maintenanceDefaults?.oilCost || "162.44"}
                     />
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Ilość oleju (l)
+                      Ilość {isAirConditioner ? 'czynnika (g)' : 'oleju (l)'}
                     </label>
                     <Input
                       type="number"
-                      step="0.1"
-                      value={item.oilQuantityLiters || 14.7}
+                      step={isAirConditioner ? "10" : "0.1"}
+                      value={item.oilQuantityLiters || parseFloat(maintenanceDefaults?.oilQuantity || "14.7")}
                       onChange={(e) => {
-                        const quantity = parseFloat(e.target.value) || 14.7;
+                        const quantity = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.oilQuantity || "14.7");
                         updateMaintenanceCost({ ...item, oilQuantityLiters: quantity });
                       }}
-                      placeholder="14.7"
+                      placeholder={maintenanceDefaults?.oilQuantity || "14.7"}
                     />
                   </div>
                 </div>
