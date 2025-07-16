@@ -1212,10 +1212,11 @@ export default function Admin() {
 function MaintenanceDefaultsCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedCategory, setSelectedCategory] = useState("Agregaty prądotwórcze");
 
-  // Query do pobierania aktualnych domyślnych wartości
+  // Query do pobierania aktualnych domyślnych wartości dla wybranej kategorii
   const { data: maintenanceDefaults, isLoading } = useQuery({
-    queryKey: ["/api/maintenance-defaults"],
+    queryKey: ["/api/maintenance-defaults", selectedCategory],
     retry: false,
   });
 
@@ -1292,11 +1293,11 @@ function MaintenanceDefaultsCard() {
   // Mutacja do zapisywania zmian
   const updateDefaultsMutation = useMutation({
     mutationFn: async (data: z.infer<typeof maintenanceDefaultsSchema>) => {
-      const response = await apiRequest("PUT", "/api/maintenance-defaults", data);
+      const response = await apiRequest("PUT", `/api/maintenance-defaults/${selectedCategory}`, data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/maintenance-defaults"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/maintenance-defaults", selectedCategory] });
       toast({
         title: "Sukces",
         description: "Domyślne wartości zostały zaktualizowane",
@@ -1351,6 +1352,19 @@ function MaintenanceDefaultsCard() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Category Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-foreground mb-2">Kategoria sprzętu</label>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Agregaty prądotwórcze">Agregaty prądotwórcze</SelectItem>
+              <SelectItem value="Maszty oświetleniowe">Maszty oświetleniowe</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Filtry */}

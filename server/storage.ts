@@ -75,8 +75,9 @@ export interface IStorage {
   getQuoteItems(quoteId: number): Promise<QuoteItem[]>;
 
   // Maintenance defaults
-  getMaintenanceDefaults(): Promise<MaintenanceDefaults | undefined>;
-  updateMaintenanceDefaults(defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
+  getMaintenanceDefaults(categoryName: string): Promise<MaintenanceDefaults | undefined>;
+  getAllMaintenanceDefaults(): Promise<MaintenanceDefaults[]>;
+  updateMaintenanceDefaults(categoryName: string, defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -431,14 +432,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Maintenance defaults operations
-  async getMaintenanceDefaults(): Promise<MaintenanceDefaults | undefined> {
-    const [defaults] = await db.select().from(maintenanceDefaults).limit(1);
+  async getMaintenanceDefaults(categoryName: string): Promise<MaintenanceDefaults | undefined> {
+    const [defaults] = await db
+      .select()
+      .from(maintenanceDefaults)
+      .where(eq(maintenanceDefaults.categoryName, categoryName))
+      .limit(1);
     return defaults;
   }
 
-  async updateMaintenanceDefaults(defaultsData: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults> {
-    // Check if record exists
-    const existing = await this.getMaintenanceDefaults();
+  async getAllMaintenanceDefaults(): Promise<MaintenanceDefaults[]> {
+    return await db.select().from(maintenanceDefaults);
+  }
+
+  async updateMaintenanceDefaults(categoryName: string, defaultsData: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults> {
+    // Check if record exists for this category
+    const existing = await this.getMaintenanceDefaults(categoryName);
     
     if (existing) {
       // Update existing record
@@ -452,10 +461,13 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return updated;
     } else {
-      // Create new record
+      // Create new record for this category
       const [created] = await db
         .insert(maintenanceDefaults)
-        .values(defaultsData)
+        .values({
+          ...defaultsData,
+          categoryName,
+        })
         .returning();
       return created;
     }

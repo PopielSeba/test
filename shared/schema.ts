@@ -110,6 +110,8 @@ export const quotes = pgTable("quotes", {
 // Maintenance cost defaults configuration
 export const maintenanceDefaults = pgTable("maintenance_defaults", {
   id: serial("id").primaryKey(),
+  // Equipment category for which these defaults apply
+  categoryName: varchar("category_name", { length: 50 }).notNull(), // 'Agregaty prądotwórcze' or 'Maszty oświetleniowe'
   // Filter costs
   fuelFilter1Name: varchar("fuel_filter_1_name").notNull().default("Filtr Paliwa 1"),
   fuelFilter1Cost: decimal("fuel_filter_1_cost", { precision: 8, scale: 2 }).notNull().default("49.00"),
