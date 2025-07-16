@@ -1584,48 +1584,50 @@ function MaintenanceDefaultsCard() {
               </div>
             </div>
 
-            {/* Olej / Czynnik */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">{selectedCategory === 'Klimatyzacje' ? 'Czynnik' : 'Olej'}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="oilCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Koszt {selectedCategory === 'Klimatyzacje' ? 'czynnika za gram' : 'oleju za litr'} (zł)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="oilQuantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ilość {selectedCategory === 'Klimatyzacje' ? 'czynnika (g)' : 'oleju (l)'}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step={selectedCategory === 'Klimatyzacje' ? '10' : '0.1'}
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            {/* Olej - tylko dla agregatów i masztów */}
+            {selectedCategory !== 'Klimatyzacje' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Olej</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="oilCost"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Koszt oleju za litr (zł)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="oilQuantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ilość oleju (l)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.1"
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Praca serwisanta */}
             <div className="space-y-4">
