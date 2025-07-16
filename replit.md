@@ -47,6 +47,17 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
   • Changed "koszty dojazdów serwisu" to "koszty montażu"
   • Changed "stawka za godzinę" to "stawka za usługę"
   • Updated all related interface labels and field names
+- Fixed admin pricing table functionality:
+  • Corrected day range sorting and display (1-2 dni, 3-7 dni, 8-18 dni, 19-29 dni, 30 dni i więcej)
+  • Implemented real-time discount calculations in editable pricing table
+  • Fixed quote calculation error where discount was applied twice
+  • Added "Create standard pricing tiers" button for equipment without pricing
+- Added complete air conditioner lineup (12 models) with full technical specifications:
+  • Dantherm AC M18 (17.5kW mobile unit)
+  • Lennox CMH series (standing units 24-69.5kW)
+  • Lennox BAH/BAC series (industrial units 49.9-85kW)
+  • All models include power ratings, dimensions, weight, and electrical specifications
+  • Standard pricing tiers: 220/190/160/130/100 PLN per day with appropriate discounts
 
 ## User Preferences
 
