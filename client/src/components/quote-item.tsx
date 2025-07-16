@@ -949,12 +949,13 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.1"
-                      value={item.serviceWorkHours ?? 0}
+                      value={item.includeMaintenanceCost ? (item.serviceWorkHours ?? 0) : 0}
                       onChange={(e) => {
                         const hours = parseFloat(e.target.value);
                         updateMaintenanceCost({ ...item, serviceWorkHours: isNaN(hours) ? 0 : hours });
                       }}
                       placeholder="0"
+                      disabled={!item.includeMaintenanceCost}
                     />
                   </div>
                   
@@ -965,12 +966,13 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.serviceWorkRatePerHour ?? 0}
+                      value={item.includeMaintenanceCost ? (item.serviceWorkRatePerHour ?? 0) : 0}
                       onChange={(e) => {
                         const rate = parseFloat(e.target.value);
                         updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? 0 : rate });
                       }}
                       placeholder="0.00"
+                      disabled={!item.includeMaintenanceCost}
                     />
                   </div>
                   
@@ -1050,7 +1052,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                       Koszt eksploatacji
                     </label>
                     <div className="text-lg font-bold text-primary bg-primary/10 p-3 rounded-lg border-2 border-primary/20">
-                      {formatCurrency(item.totalMaintenanceCost || 0)}
+                      {formatCurrency(item.includeMaintenanceCost ? (item.totalMaintenanceCost || 0) : 0)}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Za okres wynajmu
