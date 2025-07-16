@@ -106,9 +106,15 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       if (pricing) {
         const pricePerDay = parseFloat(pricing.pricePerDay);
         const discountPercent = parseFloat(pricing.discountPercent);
+        
+        if (isNaN(pricePerDay)) {
+          console.error("Invalid pricePerDay:", pricing.pricePerDay);
+          return;
+        }
+        
         const basePrice = pricePerDay * item.quantity * item.rentalPeriodDays;
         
-        // Calculate fuel cost for generators
+        // Calculate fuel cost for generators and lighting towers
         let fuelCost = 0;
         if (item.includeFuelCost && item.fuelConsumptionLH && item.fuelPricePerLiter && item.hoursPerDay) {
           const totalHours = item.rentalPeriodDays * item.hoursPerDay;
@@ -127,9 +133,23 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                              (selectedEquipment.airFilterCost || 0) + 
                              (selectedEquipment.fuelFilterCost || 0);
           maintenanceCost = maintenanceCycles * filterCosts * item.quantity;
+          
+          console.log('Maintenance calculation:', {
+            totalHours,
+            maintenanceInterval,
+            maintenanceCycles,
+            filterCosts,
+            maintenanceCost
+          });
         }
         
-        const totalPrice = basePrice + fuelCost + maintenanceCost;
+        // Calculate travel cost
+        let travelCost = 0;
+        if (item.includeTravelCost && item.travelDistanceKm && item.travelRatePerKm) {
+          travelCost = item.travelDistanceKm * item.travelRatePerKm * 2; // round trip
+        }
+        
+        const totalPrice = basePrice + fuelCost + maintenanceCost + travelCost;
 
         onUpdate({
           ...item,
@@ -138,10 +158,11 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           totalPrice,
           totalFuelCost: fuelCost,
           maintenanceCostPerPeriod: maintenanceCost,
+          totalTravelCost: travelCost,
         });
       }
     }
-  }, [item.equipmentId, item.quantity, item.rentalPeriodDays, item.includeFuelCost, item.fuelConsumptionLH, item.fuelPricePerLiter, item.hoursPerDay, item.includeMaintenanceCost]);
+  }, [item.equipmentId, item.quantity, item.rentalPeriodDays, item.includeFuelCost, item.fuelConsumptionLH, item.fuelPricePerLiter, item.hoursPerDay, item.includeMaintenanceCost, item.includeTravelCost, item.travelDistanceKm, item.travelRatePerKm, selectedEquipment]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
     // Find the appropriate pricing tier based on days
