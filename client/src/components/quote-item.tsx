@@ -811,7 +811,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           )}
         </div>
 
-        {/* Service Items Section (for heaters only) */}
+        {/* Service Items Enable Section (for heaters only) */}
         {selectedEquipment?.category?.name === 'Nagrzewnice' && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
@@ -843,92 +843,95 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                 }}
               />
               <label htmlFor="includeServiceItems" className="text-sm font-medium text-foreground">
-                Koszty serwisowe
+                Uwzględnij koszty serwisowe
               </label>
             </div>
-            
-            {item.includeServiceItems && (
-              <div className="space-y-4 bg-muted p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Settings className="w-4 h-4 text-muted-foreground" />
-                  <h4 className="font-medium text-foreground">Pozycje serwisowe</h4>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {maintenanceDefaults?.serviceItem1Name || 'Pozycja 1'}
-                    </label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={item.serviceItem1Cost || 0}
-                      onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 0;
-                        const totalCost = cost + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
-                        onUpdate({
-                          ...item,
-                          serviceItem1Cost: cost,
-                          totalServiceItemsCost: totalCost
-                        });
-                      }}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {maintenanceDefaults?.serviceItem2Name || 'Pozycja 2'}
-                    </label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={item.serviceItem2Cost || 0}
-                      onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 0;
-                        const totalCost = (item.serviceItem1Cost || 0) + cost + (item.serviceItem3Cost || 0);
-                        onUpdate({
-                          ...item,
-                          serviceItem2Cost: cost,
-                          totalServiceItemsCost: totalCost
-                        });
-                      }}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      {maintenanceDefaults?.serviceItem3Name || 'Pozycja 3'}
-                    </label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={item.serviceItem3Cost || 0}
-                      onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 0;
-                        const totalCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + cost;
-                        onUpdate({
-                          ...item,
-                          serviceItem3Cost: cost,
-                          totalServiceItemsCost: totalCost
-                        });
-                      }}
-                      placeholder="0.00"
-                    />
-                  </div>
+          </div>
+        )}
+
+        {/* Service Items Configuration Section (for heaters only) */}
+        {selectedEquipment?.category?.name === 'Nagrzewnice' && item.includeServiceItems && (
+          <div className="mt-4">
+            <div className="space-y-4 bg-muted p-4 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Settings className="w-4 h-4 text-muted-foreground" />
+                <h4 className="font-medium text-foreground">Koszty serwisowe</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    {maintenanceDefaults?.serviceItem1Name || 'Pozycja 1'}
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.serviceItem1Cost || 0}
+                    onChange={(e) => {
+                      const cost = parseFloat(e.target.value) || 0;
+                      const totalCost = cost + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
+                      onUpdate({
+                        ...item,
+                        serviceItem1Cost: cost,
+                        totalServiceItemsCost: totalCost
+                      });
+                    }}
+                    placeholder="0.00"
+                  />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Całkowity koszt serwisowy
+                    {maintenanceDefaults?.serviceItem2Name || 'Pozycja 2'}
                   </label>
-                  <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                    {formatCurrency(item.totalServiceItemsCost || 0)}
-                  </div>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.serviceItem2Cost || 0}
+                    onChange={(e) => {
+                      const cost = parseFloat(e.target.value) || 0;
+                      const totalCost = (item.serviceItem1Cost || 0) + cost + (item.serviceItem3Cost || 0);
+                      onUpdate({
+                        ...item,
+                        serviceItem2Cost: cost,
+                        totalServiceItemsCost: totalCost
+                      });
+                    }}
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    {maintenanceDefaults?.serviceItem3Name || 'Pozycja 3'}
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.serviceItem3Cost || 0}
+                    onChange={(e) => {
+                      const cost = parseFloat(e.target.value) || 0;
+                      const totalCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + cost;
+                      onUpdate({
+                        ...item,
+                        serviceItem3Cost: cost,
+                        totalServiceItemsCost: totalCost
+                      });
+                    }}
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
-            )}
+              
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Całkowity koszt serwisowy
+                </label>
+                <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                  {formatCurrency(item.totalServiceItemsCost || 0)}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
