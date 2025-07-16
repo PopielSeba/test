@@ -54,6 +54,18 @@ interface Equipment {
   power?: string;
   quantity: number;
   availableQuantity: number;
+  // Technical specifications for generators
+  fuelConsumption75?: number;
+  dimensions?: string;
+  weight?: string;
+  engine?: string;
+  alternator?: string;
+  fuelTankCapacity?: number;
+  // Service costs
+  oilFilterCost?: number;
+  airFilterCost?: number;
+  fuelFilterCost?: number;
+  maintenanceIntervalHours?: number;
   category: {
     id: number;
     name: string;
@@ -89,6 +101,18 @@ const equipmentSchema = z.object({
   quantity: z.number().min(0, "Ilość musi być nieujemna"),
   availableQuantity: z.number().min(0, "Dostępna ilość musi być nieujemna"),
   categoryId: z.number().min(1, "Kategoria jest wymagana"),
+  // Technical specifications for generators
+  fuelConsumption75: z.number().optional(),
+  dimensions: z.string().optional(),
+  weight: z.string().optional(),
+  engine: z.string().optional(),
+  alternator: z.string().optional(),
+  fuelTankCapacity: z.number().optional(),
+  // Service costs
+  oilFilterCost: z.number().optional(),
+  airFilterCost: z.number().optional(),
+  fuelFilterCost: z.number().optional(),
+  maintenanceIntervalHours: z.number().optional(),
 });
 
 const categorySchema = z.object({
@@ -350,6 +374,16 @@ export default function Admin() {
       quantity: equipment.quantity,
       availableQuantity: equipment.availableQuantity,
       categoryId: equipment.category.id,
+      fuelConsumption75: equipment.fuelConsumption75,
+      dimensions: equipment.dimensions || "",
+      weight: equipment.weight || "",
+      engine: equipment.engine || "",
+      alternator: equipment.alternator || "",
+      fuelTankCapacity: equipment.fuelTankCapacity,
+      oilFilterCost: equipment.oilFilterCost,
+      airFilterCost: equipment.airFilterCost,
+      fuelFilterCost: equipment.fuelFilterCost,
+      maintenanceIntervalHours: equipment.maintenanceIntervalHours,
     });
     setIsEquipmentDialogOpen(true);
   };
@@ -589,6 +623,179 @@ export default function Admin() {
                                 </FormItem>
                               )}
                             />
+
+                            {/* Technical specifications for generators */}
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-medium text-foreground">Parametry techniczne (agregaty)</h3>
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="fuelConsumption75"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Spalanie przy 75% obciążenia (l/h)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          step="0.1"
+                                          {...field} 
+                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="fuelTankCapacity"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Pojemność zbiornika paliwa (l)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          {...field} 
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="engine"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Silnik</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="np. VOLVO TAD734GE" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="alternator"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Alternator</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="np. LEROY SOMER" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="dimensions"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Wymiary (DxSxW mm)</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="np. 3600x1100x1800" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="weight"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Waga (kg)</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="np. 1850" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Service costs */}
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-medium text-foreground">Koszty serwisu</h3>
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="oilFilterCost"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Koszt filtra oleju (zł)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          step="0.01"
+                                          {...field} 
+                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="airFilterCost"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Koszt filtra powietrza (zł)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          step="0.01"
+                                          {...field} 
+                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="fuelFilterCost"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Koszt filtra paliwa (zł)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          step="0.01"
+                                          {...field} 
+                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={equipmentForm.control}
+                                  name="maintenanceIntervalHours"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Interwał serwisu (h)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          {...field} 
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                          placeholder="200"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
                             <div className="flex justify-end space-x-2">
                               <Button 
                                 type="button" 

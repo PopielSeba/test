@@ -41,6 +41,13 @@ interface QuoteItemData {
   includeMaintenanceCost?: boolean;
   maintenanceCostPerPeriod?: number;
   expectedMaintenanceHours?: number;
+  // Travel cost fields for service
+  includeTravelCost?: boolean;
+  travelDistanceKm?: number;
+  numberOfTechnicians?: number;
+  hourlyRatePerTechnician?: number;
+  travelRatePerKm?: number;
+  totalTravelCost?: number;
 }
 
 interface Equipment {
@@ -161,10 +168,19 @@ export default function CreateQuote() {
       totalPrice: 0,
       notes: "",
       fuelConsumptionLH: 0,
-      fuelPricePerLiter: 0,
+      fuelPricePerLiter: 6.50,
       hoursPerDay: 8,
       totalFuelCost: 0,
       includeFuelCost: false,
+      includeMaintenanceCost: false,
+      maintenanceCostPerPeriod: 0,
+      expectedMaintenanceHours: 0,
+      includeTravelCost: false,
+      travelDistanceKm: 0,
+      numberOfTechnicians: 1,
+      hourlyRatePerTechnician: 150,
+      travelRatePerKm: 1.15,
+      totalTravelCost: 0
     };
     setQuoteItems([...quoteItems, newItem]);
   };

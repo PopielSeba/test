@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Fuel, Settings } from "lucide-react";
+import { Trash2, Fuel, Settings, Car } from "lucide-react";
 
 interface QuoteItemData {
   id: string;
@@ -27,6 +27,13 @@ interface QuoteItemData {
   includeMaintenanceCost?: boolean;
   maintenanceCostPerPeriod?: number;
   expectedMaintenanceHours?: number;
+  // Travel cost fields for service
+  includeTravelCost?: boolean;
+  travelDistanceKm?: number;
+  numberOfTechnicians?: number;
+  hourlyRatePerTechnician?: number;
+  travelRatePerKm?: number;
+  totalTravelCost?: number;
 }
 
 interface Equipment {
@@ -460,6 +467,123 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
             )}
           </div>
         )}
+
+        {/* Service Travel Cost Section */}
+        <div className="mt-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <Checkbox 
+              id="includeTravelCost" 
+              checked={item.includeTravelCost || false}
+              onCheckedChange={(checked) => 
+                onUpdate({ 
+                  ...item, 
+                  includeTravelCost: checked as boolean,
+                  travelDistanceKm: checked ? (item.travelDistanceKm || 0) : 0,
+                  numberOfTechnicians: checked ? (item.numberOfTechnicians || 1) : 1,
+                  hourlyRatePerTechnician: checked ? (item.hourlyRatePerTechnician || 150) : 150,
+                  travelRatePerKm: checked ? (item.travelRatePerKm || 1.15) : 1.15,
+                  totalTravelCost: checked ? (item.totalTravelCost || 0) : 0
+                })
+              }
+            />
+            <label htmlFor="includeTravelCost" className="text-sm font-medium text-foreground flex items-center">
+              <Car className="w-4 h-4 mr-2" />
+              Uwzględnij koszty dojazdu serwisu
+            </label>
+          </div>
+          
+          {item.includeTravelCost && (
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Odległość (km)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={item.travelDistanceKm || ""}
+                    onChange={(e) => {
+                      const distance = parseFloat(e.target.value) || 0;
+                      const totalCost = distance * (item.travelRatePerKm || 1.15) * 2; // round trip
+                      onUpdate({
+                        ...item,
+                        travelDistanceKm: distance,
+                        totalTravelCost: totalCost
+                      });
+                    }}
+                    placeholder="np. 50"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Ilość techników
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.numberOfTechnicians || 1}
+                    onChange={(e) => onUpdate({
+                      ...item,
+                      numberOfTechnicians: parseInt(e.target.value) || 1
+                    })}
+                    placeholder="1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Stawka za godzinę (zł)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.hourlyRatePerTechnician || 150}
+                    onChange={(e) => onUpdate({
+                      ...item,
+                      hourlyRatePerTechnician: parseFloat(e.target.value) || 150
+                    })}
+                    placeholder="150.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Stawka za km (zł)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.travelRatePerKm || 1.15}
+                    onChange={(e) => {
+                      const rate = parseFloat(e.target.value) || 1.15;
+                      const totalCost = (item.travelDistanceKm || 0) * rate * 2; // round trip
+                      onUpdate({
+                        ...item,
+                        travelRatePerKm: rate,
+                        totalTravelCost: totalCost
+                      });
+                    }}
+                    placeholder="1.15"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Koszt dojazdu
+                  </label>
+                  <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                    {formatCurrency(item.totalTravelCost || 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    W obie strony
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-2">Uwagi</label>

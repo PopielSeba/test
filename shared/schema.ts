@@ -131,6 +131,13 @@ export const quoteItems = pgTable("quote_items", {
   includeMaintenanceCost: boolean("include_maintenance_cost").default(false),
   maintenanceCostPerPeriod: decimal("maintenance_cost_per_period", { precision: 10, scale: 2 }).default("0"),
   expectedMaintenanceHours: integer("expected_maintenance_hours"), // expected operating hours for the rental period
+  // Service travel cost fields
+  includeTravelCost: boolean("include_travel_cost").default(false),
+  travelDistanceKm: decimal("travel_distance_km", { precision: 8, scale: 2 }),
+  numberOfTechnicians: integer("number_of_technicians").default(1),
+  hourlyRatePerTechnician: decimal("hourly_rate_per_technician", { precision: 8, scale: 2 }).default("150"),
+  travelRatePerKm: decimal("travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
+  totalTravelCost: decimal("total_travel_cost", { precision: 10, scale: 2 }).default("0"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
