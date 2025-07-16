@@ -24,12 +24,12 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - Implemented automatic fuel consumption calculation based on 75% load capacity
 - Changed application branding from "REKORD" to "Sebastian Popiel" throughout the system
 - Enhanced equipment catalog with direct "Add to Quote" functionality via URL parameters
-- Added comprehensive service travel cost calculation system:
+- Added comprehensive installation cost calculation system:
   • Distance tracking (km) with round-trip calculation
   • Number of technicians configuration (default: 1)
-  • Hourly rate per technician (default: 150 PLN/h)  
+  • Service rate per technician (default: 150 PLN/service)  
   • Travel rate per km (default: 1.15 PLN/km)
-  • Automatic total travel cost calculation
+  • Automatic total installation cost calculation
 - Extended admin panel with full equipment parameter management:
   • Technical specifications (fuel consumption, dimensions, weight, engine, alternator)
   • Complete CRUD operations for all equipment attributes
@@ -42,7 +42,11 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **REMOVED**: Service cost system completely removed from the entire application
   • Eliminated all filter cost calculations and maintenance interval tracking
   • Removed related database columns and interface elements
-  • Simplified quote calculations to focus on base pricing, fuel costs, and travel costs only
+  • Simplified quote calculations to focus on base pricing, fuel costs, and installation costs only
+- **UPDATED**: Renamed "travel costs" to "installation costs" with updated terminology:
+  • Changed "koszty dojazdów serwisu" to "koszty montażu"
+  • Changed "stawka za godzinę" to "stawka za usługę"
+  • Updated all related interface labels and field names
 
 ## User Preferences
 

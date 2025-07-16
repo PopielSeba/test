@@ -38,13 +38,13 @@ interface QuoteItemData {
   totalFuelCost?: number;
   includeFuelCost?: boolean;
 
-  // Travel cost fields for service
-  includeTravelCost?: boolean;
-  travelDistanceKm?: number;
+  // Installation cost fields
+  includeInstallationCost?: boolean;
+  installationDistanceKm?: number;
   numberOfTechnicians?: number;
-  hourlyRatePerTechnician?: number;
+  serviceRatePerTechnician?: number;
   travelRatePerKm?: number;
-  totalTravelCost?: number;
+  totalInstallationCost?: number;
 }
 
 interface Equipment {
@@ -176,12 +176,12 @@ export default function CreateQuote() {
       totalFuelCost: 0,
       includeFuelCost: false,
 
-      includeTravelCost: false,
-      travelDistanceKm: 0,
+      includeInstallationCost: false,
+      installationDistanceKm: 0,
       numberOfTechnicians: 1,
-      hourlyRatePerTechnician: 150,
+      serviceRatePerTechnician: 150,
       travelRatePerKm: 1.15,
-      totalTravelCost: 0
+      totalInstallationCost: 0
     };
     setQuoteItems([...quoteItems, newItem]);
   };

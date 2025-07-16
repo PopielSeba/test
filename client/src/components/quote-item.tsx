@@ -24,13 +24,13 @@ interface QuoteItemData {
   totalFuelCost?: number;
   includeFuelCost?: boolean;
 
-  // Travel cost fields for service
-  includeTravelCost?: boolean;
-  travelDistanceKm?: number;
+  // Installation cost fields
+  includeInstallationCost?: boolean;
+  installationDistanceKm?: number;
   numberOfTechnicians?: number;
-  hourlyRatePerTechnician?: number;
+  serviceRatePerTechnician?: number;
   travelRatePerKm?: number;
-  totalTravelCost?: number;
+  totalInstallationCost?: number;
 }
 
 interface Equipment {
@@ -116,16 +116,16 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
 
         
-        // Calculate travel cost
-        let travelCost = 0;
-        if (item.includeTravelCost && item.travelDistanceKm && item.travelRatePerKm) {
-          travelCost = item.travelDistanceKm * item.travelRatePerKm * 2; // round trip
+        // Calculate installation cost
+        let installationCost = 0;
+        if (item.includeInstallationCost && item.installationDistanceKm && item.travelRatePerKm) {
+          installationCost = item.installationDistanceKm * item.travelRatePerKm * 2; // round trip
         }
         
         // Calculate discount
         const discountAmount = basePrice * (discountPercent / 100);
         const discountedBasePrice = basePrice - discountAmount;
-        const totalPrice = discountedBasePrice + fuelCost + travelCost;
+        const totalPrice = discountedBasePrice + fuelCost + installationCost;
         
 
 
@@ -135,7 +135,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           discountPercent,
           totalPrice,
           totalFuelCost: fuelCost,
-          totalTravelCost: travelCost,
+          totalInstallationCost: installationCost,
         });
       }
     }
@@ -148,11 +148,11 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     item.fuelPricePerLiter, 
     item.hoursPerDay, 
 
-    item.includeTravelCost, 
-    item.travelDistanceKm, 
+    item.includeInstallationCost, 
+    item.installationDistanceKm, 
     item.travelRatePerKm,
     item.numberOfTechnicians,
-    item.hourlyRatePerTechnician,
+    item.serviceRatePerTechnician,
     selectedEquipment
   ]);
 
@@ -443,31 +443,31 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
 
 
-        {/* Service Travel Cost Section */}
+        {/* Installation Cost Section */}
         <div className="mt-4">
           <div className="flex items-center space-x-2 mb-3">
             <Checkbox 
-              id="includeTravelCost" 
-              checked={item.includeTravelCost || false}
+              id="includeInstallationCost" 
+              checked={item.includeInstallationCost || false}
               onCheckedChange={(checked) => 
                 onUpdate({ 
                   ...item, 
-                  includeTravelCost: checked as boolean,
-                  travelDistanceKm: checked ? (item.travelDistanceKm || 0) : 0,
+                  includeInstallationCost: checked as boolean,
+                  installationDistanceKm: checked ? (item.installationDistanceKm || 0) : 0,
                   numberOfTechnicians: checked ? (item.numberOfTechnicians || 1) : 1,
-                  hourlyRatePerTechnician: checked ? (item.hourlyRatePerTechnician || 150) : 150,
+                  serviceRatePerTechnician: checked ? (item.serviceRatePerTechnician || 150) : 150,
                   travelRatePerKm: checked ? (item.travelRatePerKm || 1.15) : 1.15,
-                  totalTravelCost: checked ? (item.totalTravelCost || 0) : 0
+                  totalInstallationCost: checked ? (item.totalInstallationCost || 0) : 0
                 })
               }
             />
-            <label htmlFor="includeTravelCost" className="text-sm font-medium text-foreground flex items-center">
+            <label htmlFor="includeInstallationCost" className="text-sm font-medium text-foreground flex items-center">
               <Car className="w-4 h-4 mr-2" />
-              Uwzględnij koszty dojazdu serwisu
+              Uwzględnij koszty montażu
             </label>
           </div>
           
-          {item.includeTravelCost && (
+          {item.includeInstallationCost && (
             <div className="bg-muted/50 p-4 rounded-lg">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
@@ -477,14 +477,14 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   <Input
                     type="number"
                     step="0.1"
-                    value={item.travelDistanceKm || ""}
+                    value={item.installationDistanceKm || ""}
                     onChange={(e) => {
                       const distance = parseFloat(e.target.value) || 0;
                       const totalCost = distance * (item.travelRatePerKm || 1.15) * 2; // round trip
                       onUpdate({
                         ...item,
-                        travelDistanceKm: distance,
-                        totalTravelCost: totalCost
+                        installationDistanceKm: distance,
+                        totalInstallationCost: totalCost
                       });
                     }}
                     placeholder="np. 50"
@@ -509,15 +509,15 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Stawka za godzinę (zł)
+                    Stawka za usługę (zł)
                   </label>
                   <Input
                     type="number"
                     step="0.01"
-                    value={item.hourlyRatePerTechnician || 150}
+                    value={item.serviceRatePerTechnician || 150}
                     onChange={(e) => onUpdate({
                       ...item,
-                      hourlyRatePerTechnician: parseFloat(e.target.value) || 150
+                      serviceRatePerTechnician: parseFloat(e.target.value) || 150
                     })}
                     placeholder="150.00"
                   />
@@ -533,11 +533,11 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     value={item.travelRatePerKm || 1.15}
                     onChange={(e) => {
                       const rate = parseFloat(e.target.value) || 1.15;
-                      const totalCost = (item.travelDistanceKm || 0) * rate * 2; // round trip
+                      const totalCost = (item.installationDistanceKm || 0) * rate * 2; // round trip
                       onUpdate({
                         ...item,
                         travelRatePerKm: rate,
-                        totalTravelCost: totalCost
+                        totalInstallationCost: totalCost
                       });
                     }}
                     placeholder="1.15"
@@ -546,10 +546,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Koszt dojazdu
+                    Koszt montażu
                   </label>
                   <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                    {formatCurrency(item.totalTravelCost || 0)}
+                    {formatCurrency(item.totalInstallationCost || 0)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     W obie strony
