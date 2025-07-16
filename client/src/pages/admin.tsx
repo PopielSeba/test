@@ -994,22 +994,26 @@ export default function Admin() {
                               </td>
                             </tr>
                           ) : (
-                            selectedEquipmentForPricing.pricing.map((pricing, index) => {
-                              const basePrice = parseFloat(selectedEquipmentForPricing.pricing[0]?.pricePerDay || "0");
-                              const currentPrice = parseFloat(pricing.pricePerDay || "0");
-                              const discountAmount = basePrice - currentPrice;
-                              const discountPercent = basePrice > 0 ? ((discountAmount / basePrice) * 100).toFixed(2) : "0";
-                              
-                              const getPeriodText = (start: number, end?: number) => {
-                                if (start === 1 && end === 2) return "1 - 2 dni";
-                                if (start === 3 && end === 7) return "3 - 7 dni";
-                                if (start === 8 && end === 18) return "8 - 18 dni";
-                                if (start === 19 && end === 29) return "19 - 29 dni";
-                                if (start === 30 && !end) return "30 dni i więcej";
-                                return end ? `${start} - ${end} dni` : `${start} dni i więcej`;
-                              };
-                              
-                              const periodText = getPeriodText(pricing.periodStart, pricing.periodEnd);
+                            selectedEquipmentForPricing.pricing
+                              .sort((a, b) => a.periodStart - b.periodStart)
+                              .map((pricing, index) => {
+                                // Find the base price (first period, usually 1-2 days)
+                                const sortedPricing = selectedEquipmentForPricing.pricing.sort((a, b) => a.periodStart - b.periodStart);
+                                const basePrice = parseFloat(sortedPricing[0]?.pricePerDay || "0");
+                                const currentPrice = parseFloat(pricing.pricePerDay || "0");
+                                const discountAmount = basePrice - currentPrice;
+                                const discountPercent = basePrice > 0 ? ((discountAmount / basePrice) * 100).toFixed(2) : "0";
+                                
+                                const getPeriodText = (start: number, end?: number) => {
+                                  if (start === 1 && end === 2) return "1 - 2 dni";
+                                  if (start === 3 && end === 7) return "3 - 7 dni";
+                                  if (start === 8 && end === 18) return "8 - 18 dni";
+                                  if (start === 19 && end === 29) return "19 - 29 dni";
+                                  if (start === 30 && !end) return "30 dni i więcej";
+                                  return end ? `${start} - ${end} dni` : `${start} dni i więcej`;
+                                };
+                                
+                                const periodText = getPeriodText(pricing.periodStart, pricing.periodEnd);
 
                               return (
                                 <tr key={pricing.id}>
