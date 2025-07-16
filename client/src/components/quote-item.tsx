@@ -118,8 +118,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         
         // Calculate installation cost
         let installationCost = 0;
-        if (item.includeInstallationCost && item.installationDistanceKm && item.travelRatePerKm) {
-          installationCost = item.installationDistanceKm * item.travelRatePerKm * 2; // round trip
+        if (item.includeInstallationCost) {
+          // Travel cost (round trip)
+          const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+          // Service cost (per technician)
+          const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
+          installationCost = travelCost + serviceCost;
         }
         
         // Calculate discount
@@ -449,7 +453,13 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
             <Checkbox 
               id="includeInstallationCost" 
               checked={item.includeInstallationCost || false}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) => {
+                let totalCost = 0;
+                if (checked) {
+                  const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+                  const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
+                  totalCost = travelCost + serviceCost;
+                }
                 onUpdate({ 
                   ...item, 
                   includeInstallationCost: checked as boolean,
@@ -457,9 +467,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   numberOfTechnicians: checked ? (item.numberOfTechnicians || 1) : 1,
                   serviceRatePerTechnician: checked ? (item.serviceRatePerTechnician || 150) : 150,
                   travelRatePerKm: checked ? (item.travelRatePerKm || 1.15) : 1.15,
-                  totalInstallationCost: checked ? (item.totalInstallationCost || 0) : 0
-                })
-              }
+                  totalInstallationCost: totalCost
+                });
+              }}
             />
             <label htmlFor="includeInstallationCost" className="text-sm font-medium text-foreground flex items-center">
               <Car className="w-4 h-4 mr-2" />
@@ -480,7 +490,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     value={item.installationDistanceKm || ""}
                     onChange={(e) => {
                       const distance = parseFloat(e.target.value) || 0;
-                      const totalCost = distance * (item.travelRatePerKm || 1.15) * 2; // round trip
+                      const travelCost = distance * (item.travelRatePerKm || 1.15) * 2;
+                      const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
                       onUpdate({
                         ...item,
                         installationDistanceKm: distance,
@@ -499,10 +511,17 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     type="number"
                     min="1"
                     value={item.numberOfTechnicians || 1}
-                    onChange={(e) => onUpdate({
-                      ...item,
-                      numberOfTechnicians: parseInt(e.target.value) || 1
-                    })}
+                    onChange={(e) => {
+                      const technicians = parseInt(e.target.value) || 1;
+                      const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+                      const serviceCost = technicians * (item.serviceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        numberOfTechnicians: technicians,
+                        totalInstallationCost: totalCost
+                      });
+                    }}
                     placeholder="1"
                   />
                 </div>
@@ -515,10 +534,17 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     type="number"
                     step="0.01"
                     value={item.serviceRatePerTechnician || 150}
-                    onChange={(e) => onUpdate({
-                      ...item,
-                      serviceRatePerTechnician: parseFloat(e.target.value) || 150
-                    })}
+                    onChange={(e) => {
+                      const serviceRate = parseFloat(e.target.value) || 150;
+                      const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+                      const serviceCost = (item.numberOfTechnicians || 1) * serviceRate;
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        serviceRatePerTechnician: serviceRate,
+                        totalInstallationCost: totalCost
+                      });
+                    }}
                     placeholder="150.00"
                   />
                 </div>
@@ -533,7 +559,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     value={item.travelRatePerKm || 1.15}
                     onChange={(e) => {
                       const rate = parseFloat(e.target.value) || 1.15;
-                      const totalCost = (item.installationDistanceKm || 0) * rate * 2; // round trip
+                      const travelCost = (item.installationDistanceKm || 0) * rate * 2;
+                      const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
                       onUpdate({
                         ...item,
                         travelRatePerKm: rate,
