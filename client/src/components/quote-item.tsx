@@ -246,9 +246,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       // Set the category based on selected equipment
       setSelectedCategory(equipment.category.id);
       
-      // Auto-fill fuel consumption and maintenance costs for generators and lighting towers
+      // Auto-fill fuel consumption and maintenance costs for generators, lighting towers, and heaters
       let fuelData = {};
-      if (equipment.category.name === 'Agregaty prądotwórcze' || equipment.category.name === 'Maszty oświetleniowe') {
+      if (equipment.category.name === 'Agregaty prądotwórcze' || equipment.category.name === 'Maszty oświetleniowe' || equipment.category.name === 'Nagrzewnice') {
         fuelData = {
           includeFuelCost: true,
           fuelConsumptionLH: equipment.fuelConsumption75 || 0,
@@ -464,8 +464,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
         </div>
 
-        {/* Fuel Cost Calculation for Generators and Lighting Towers */}
-        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe') && (
+        {/* Fuel Cost Calculation for Generators, Lighting Towers, and Heaters */}
+        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Nagrzewnice') && (
           <div className="mt-4">
             <Separator className="my-4" />
             <div className="flex items-center space-x-2 mb-4">
