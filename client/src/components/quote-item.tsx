@@ -150,7 +150,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           installationCost = travelCost + serviceCost;
         }
 
-        // Calculate maintenance cost
+        // Calculate maintenance cost - only include if maintenance is enabled
         let maintenanceCost = 0;
         if (item.includeMaintenanceCost) {
           maintenanceCost = item.totalMaintenanceCost || 0;
@@ -709,10 +709,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                       (item.engineFilterCost || 150);
                     
                     // Calculate oil cost
-                    const oilTotalCost = (item.oilQuantityLiters || 14.7) * (item.oilCost || 162.44) / 14.7;
+                    const oilTotalCost = (item.oilQuantityLiters || 14.7) * (item.oilCost || 162.44);
                     
                     // Calculate service work cost
-                    const serviceWorkCost = (item.serviceWorkHours || 2) * (item.serviceWorkRatePerHour || 100);
+                    const serviceWorkCost = (item.serviceWorkHours || 0) * (item.serviceWorkRatePerHour || 0);
                     
                     // Calculate travel cost
                     const travelCost = (item.serviceTravelDistanceKm || 31) * (item.serviceTravelRatePerKm || 1.15) * 2;
@@ -737,8 +737,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     engineFilterCost: checked ? (item.engineFilterCost || 150) : 150,
                     oilCost: checked ? (item.oilCost || 162.44) : 162.44,
                     oilQuantityLiters: checked ? (item.oilQuantityLiters || 14.7) : 14.7,
-                    serviceWorkHours: checked ? (item.serviceWorkHours || 2) : 2,
-                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 100) : 100,
+                    serviceWorkHours: checked ? (item.serviceWorkHours || 0) : 0,
+                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 0) : 0,
                     serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm || 31) : 31,
                     serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm || 1.15) : 1.15,
                     maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || 500) : 500,
@@ -949,13 +949,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.1"
-                      value={item.includeMaintenanceCost ? (item.serviceWorkHours ?? 0) : 0}
+                      value={item.serviceWorkHours ?? 0}
                       onChange={(e) => {
                         const hours = parseFloat(e.target.value);
                         updateMaintenanceCost({ ...item, serviceWorkHours: isNaN(hours) ? 0 : hours });
                       }}
                       placeholder="0"
-                      disabled={!item.includeMaintenanceCost}
                     />
                   </div>
                   
@@ -966,13 +965,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.includeMaintenanceCost ? (item.serviceWorkRatePerHour ?? 0) : 0}
+                      value={item.serviceWorkRatePerHour ?? 0}
                       onChange={(e) => {
                         const rate = parseFloat(e.target.value);
                         updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? 0 : rate });
                       }}
                       placeholder="0.00"
-                      disabled={!item.includeMaintenanceCost}
                     />
                   </div>
                   
@@ -1052,7 +1050,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                       Koszt eksploatacji
                     </label>
                     <div className="text-lg font-bold text-primary bg-primary/10 p-3 rounded-lg border-2 border-primary/20">
-                      {formatCurrency(item.includeMaintenanceCost ? (item.totalMaintenanceCost || 0) : 0)}
+                      {formatCurrency(item.totalMaintenanceCost || 0)}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Za okres wynajmu
