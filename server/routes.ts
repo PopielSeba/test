@@ -302,6 +302,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate HTML content for the quote
+      console.log("Quote data for print:", {
+        id: quote.id,
+        itemsCount: quote.items?.length || 0,
+        items: quote.items
+      });
+      
       const htmlContent = generateQuoteHTML(quote);
       
       res.setHeader('Content-Type', 'text/html');
