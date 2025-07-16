@@ -1,8 +1,8 @@
-# REKORD - Equipment Rental Pricing System
+# Sebastian Popiel - Equipment Rental Pricing System
 
 ## Overview
 
-REKORD is a comprehensive equipment rental pricing system designed for construction equipment rental companies. The application provides automated quote generation with tiered discount pricing, equipment catalog management, client management, and admin controls. Built as a full-stack TypeScript application with a React frontend and Express backend.
+Sebastian Popiel is a comprehensive equipment rental pricing system designed for construction equipment rental companies. The application provides automated quote generation with tiered discount pricing, equipment catalog management, client management, and admin controls. Built as a full-stack TypeScript application with a React frontend and Express backend.
 
 ## Recent Changes
 
@@ -18,6 +18,13 @@ REKORD is a comprehensive equipment rental pricing system designed for construct
   - Agregat prądotwórczy 100kW (680 zł/day)
 - Added sample clients for testing quote creation
 - Fixed TypeScript error in dashboard stats route for null date handling
+
+### January 16, 2025
+- Added complete SDMO generator lineup (22 models) with technical specifications
+- Implemented automatic fuel consumption calculation based on 75% load capacity
+- Added comprehensive filter and service cost system for generators
+- Integrated maintenance interval tracking and automatic service cost calculations
+- Changed application branding from "REKORD" to "Sebastian Popiel" throughout the system
 
 ## User Preferences
 

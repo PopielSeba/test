@@ -11,7 +11,7 @@ export default function Landing() {
             <div className="bg-white/20 backdrop-blur-sm rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
               <Settings className="w-12 h-12 text-white" />
             </div>
-            <h1 className="text-5xl font-bold mb-4">REKORD</h1>
+            <h1 className="text-5xl font-bold mb-4">Sebastian Popiel</h1>
             <p className="text-xl opacity-90">System Wycen Sprzętu Budowlanego</p>
           </div>
           

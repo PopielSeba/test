@@ -199,7 +199,7 @@ export default function Settings() {
                 <div>
                   <Label>Wersja aplikacji</Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    REKORD v1.0.0
+                    Sebastian Popiel v1.0.0
                   </p>
                 </div>
                 <div>
