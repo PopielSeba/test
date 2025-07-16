@@ -108,9 +108,17 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         const discountPercent = parseFloat(pricing.discountPercent);
         
         if (isNaN(pricePerDay)) {
-          console.error("Invalid pricePerDay:", pricing.pricePerDay);
+          console.error("Invalid pricePerDay:", pricing.pricePerDay, "Equipment:", selectedEquipment.name);
           return;
         }
+        
+        console.log("Price calculation:", {
+          equipmentName: selectedEquipment.name,
+          days: item.rentalPeriodDays,
+          pricePerDay,
+          discountPercent,
+          basePrice: pricePerDay * item.quantity * item.rentalPeriodDays
+        });
         
         const basePrice = pricePerDay * item.quantity * item.rentalPeriodDays;
         
@@ -261,6 +269,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   };
 
   const formatCurrency = (amount: number) => {
+    if (isNaN(amount)) {
+      console.error("formatCurrency received NaN:", amount);
+      return "0,00 zł";
+    }
     return new Intl.NumberFormat('pl-PL', {
       style: 'currency',
       currency: 'PLN',
