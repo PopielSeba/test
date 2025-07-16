@@ -25,6 +25,17 @@ Sebastian Popiel is a comprehensive equipment rental pricing system designed for
 - Added comprehensive filter and service cost system for generators
 - Integrated maintenance interval tracking and automatic service cost calculations
 - Changed application branding from "REKORD" to "Sebastian Popiel" throughout the system
+- Enhanced equipment catalog with direct "Add to Quote" functionality via URL parameters
+- Added comprehensive service travel cost calculation system:
+  • Distance tracking (km) with round-trip calculation
+  • Number of technicians configuration (default: 1)
+  • Hourly rate per technician (default: 150 PLN/h)  
+  • Travel rate per km (default: 1.15 PLN/km)
+  • Automatic total travel cost calculation
+- Extended admin panel with full equipment parameter management:
+  • Technical specifications (fuel consumption, dimensions, weight, engine, alternator)
+  • Service cost configuration (oil, air, fuel filters, maintenance intervals)
+  • Complete CRUD operations for all equipment attributes
 
 ## User Preferences
 
