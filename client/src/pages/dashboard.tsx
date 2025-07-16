@@ -247,7 +247,16 @@ export default function Dashboard() {
                     <div 
                       key={categoryName}
                       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                      onClick={() => navigate("/equipment")}
+                      onClick={() => {
+                        navigate("/equipment");
+                        // Scroll to category after navigation
+                        setTimeout(() => {
+                          const element = document.getElementById(`category-${categoryName}`);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }}
                     >
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded-full ${colorClass} bg-opacity-20`}>
