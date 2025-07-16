@@ -58,6 +58,14 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
   • Lennox BAH/BAC series (industrial units 49.9-85kW)
   • All models include power ratings, dimensions, weight, and electrical specifications
   • Standard pricing tiers: 220/190/160/130/100 PLN per day with appropriate discounts
+- Added complete heater lineup (5 models) with full technical specifications:
+  • Arcotherm EC55 Master BV170E (55kW, fuel consumption 4.6 l/h)
+  • Arcotherm EC85 Master BV290E (85kW, fuel consumption 7.17 l/h)
+  • Master BV 691 S (up to 225kW, fuel consumption 21.44 l/h)
+  • Thermobile IMA 200 (200kW, fuel consumption 19.4 l/h)
+  • Biemmedue Jumbo 235 (235kW, fuel consumption 18.65 l/h)
+  • All models include power ratings, dimensions, weight, fuel consumption, and electrical specifications
+  • Standard pricing tiers: 450/385/320/255/190 PLN per day with appropriate discounts
 
 ## User Preferences
 
