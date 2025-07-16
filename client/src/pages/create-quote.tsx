@@ -88,6 +88,7 @@ export default function CreateQuote() {
     if (equipmentIdFromUrl && equipment.length > 0 && quoteItems.length === 0) {
       const selectedEquipment = equipment.find(eq => eq.id === parseInt(equipmentIdFromUrl));
       if (selectedEquipment) {
+        console.log('Auto-adding equipment:', selectedEquipment.name);
         const newItem: QuoteItemData = {
           id: Date.now().toString(),
           equipmentId: selectedEquipment.id,
@@ -104,12 +105,21 @@ export default function CreateQuote() {
           includeFuelCost: false,
           includeMaintenanceCost: false,
           maintenanceCostPerPeriod: 0,
+          expectedMaintenanceHours: 0,
+          includeTravelCost: false,
+          travelDistanceKm: 0,
+          numberOfTechnicians: 1,
+          hourlyRatePerTechnician: 150,
+          travelRatePerKm: 1.15,
+          totalTravelCost: 0
         };
         setQuoteItems([newItem]);
         
-        // Remove equipment param from URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
+        // Remove equipment param from URL after a delay to ensure state is updated
+        setTimeout(() => {
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        }, 100);
       }
     }
   }, [equipmentIdFromUrl, equipment, quoteItems.length]);
