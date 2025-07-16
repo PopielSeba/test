@@ -147,6 +147,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/equipment-pricing/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      const pricingData = insertEquipmentPricingSchema.partial().parse(req.body);
+      const pricing = await storage.updateEquipmentPricing(id, pricingData);
+      res.json(pricing);
+    } catch (error) {
+      console.error("Error updating pricing:", error);
+      res.status(500).json({ message: "Failed to update pricing" });
+    }
+  });
+
   // Clients
   app.get('/api/clients', isAuthenticated, async (req, res) => {
     try {

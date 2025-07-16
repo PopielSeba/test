@@ -61,11 +61,7 @@ interface Equipment {
   engine?: string;
   alternator?: string;
   fuelTankCapacity?: number;
-  // Service costs
-  oilFilterCost?: number;
-  airFilterCost?: number;
-  fuelFilterCost?: number;
-  maintenanceIntervalHours?: number;
+
   category: {
     id: number;
     name: string;
@@ -108,11 +104,7 @@ const equipmentSchema = z.object({
   engine: z.string().optional(),
   alternator: z.string().optional(),
   fuelTankCapacity: z.number().optional(),
-  // Service costs
-  oilFilterCost: z.number().optional(),
-  airFilterCost: z.number().optional(),
-  fuelFilterCost: z.number().optional(),
-  maintenanceIntervalHours: z.number().optional(),
+
 });
 
 const categorySchema = z.object({
@@ -137,6 +129,8 @@ export default function Admin() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
   const [editingPricing, setEditingPricing] = useState<any>(null);
+  const [selectedEquipmentForPricing, setSelectedEquipmentForPricing] = useState<Equipment | null>(null);
+  const [editingPricingTable, setEditingPricingTable] = useState<any>({});
 
   // Check if user is admin
   if (!authLoading && user?.role !== 'admin') {
@@ -364,6 +358,38 @@ export default function Admin() {
     },
   });
 
+  const updatePricingMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: number; pricePerDay?: string; discountPercent?: string }) => {
+      const response = await apiRequest("PATCH", `/api/equipment-pricing/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      toast({
+        title: "Sukces",
+        description: "Cennik został zaktualizowany",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować cennika",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditEquipment = (equipment: Equipment) => {
     setSelectedEquipment(equipment);
     equipmentForm.reset({
@@ -380,10 +406,7 @@ export default function Admin() {
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
       fuelTankCapacity: equipment.fuelTankCapacity,
-      oilFilterCost: equipment.oilFilterCost,
-      airFilterCost: equipment.airFilterCost,
-      fuelFilterCost: equipment.fuelFilterCost,
-      maintenanceIntervalHours: equipment.maintenanceIntervalHours,
+
     });
     setIsEquipmentDialogOpen(true);
   };
@@ -718,84 +741,7 @@ export default function Admin() {
                               </div>
                             </div>
 
-                            {/* Service costs */}
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-medium text-foreground">Koszty serwisu</h3>
-                              <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="oilFilterCost"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Koszt filtra oleju (zł)</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          step="0.01"
-                                          {...field} 
-                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="airFilterCost"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Koszt filtra powietrza (zł)</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          step="0.01"
-                                          {...field} 
-                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="fuelFilterCost"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Koszt filtra paliwa (zł)</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          step="0.01"
-                                          {...field} 
-                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="maintenanceIntervalHours"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Interwał serwisu (h)</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          {...field} 
-                                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                                          placeholder="200"
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            </div>
+
                             <div className="flex justify-end space-x-2">
                               <Button 
                                 type="button" 
@@ -973,6 +919,132 @@ export default function Admin() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Pricing Tables Section */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <DollarSign className="w-5 h-5" />
+                <span>Edycja cenników</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="flex flex-wrap gap-2">
+                  {equipment.map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={selectedEquipmentForPricing?.id === item.id ? "default" : "outline"}
+                      onClick={() => setSelectedEquipmentForPricing(item)}
+                      className="mb-2"
+                    >
+                      {item.name}
+                    </Button>
+                  ))}
+                </div>
+
+                {selectedEquipmentForPricing && (
+                  <div className="border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">
+                      {selectedEquipmentForPricing.name} - zasilane paliwem:
+                    </h3>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100 dark:bg-gray-800">
+                            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold">
+                              Okres wynajmu
+                            </th>
+                            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold">
+                              Cena netto / doba
+                            </th>
+                            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold">
+                              Obniżka kwotowa
+                            </th>
+                            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold">
+                              Procent zniżki
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedEquipmentForPricing.pricing.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-500">
+                                Brak cennika. Dodaj pierwszy przedział cenowy.
+                              </td>
+                            </tr>
+                          ) : (
+                            selectedEquipmentForPricing.pricing.map((pricing, index) => {
+                              const basePrice = parseFloat(selectedEquipmentForPricing.pricing[0]?.pricePerDay || "0");
+                              const currentPrice = parseFloat(pricing.pricePerDay || "0");
+                              const discountAmount = basePrice - currentPrice;
+                              const discountPercent = basePrice > 0 ? ((discountAmount / basePrice) * 100).toFixed(2) : "0";
+                              
+                              const periodText = index === 0 
+                                ? `${pricing.periodStart} - ${pricing.periodEnd || 2} dni`
+                                : index === 1
+                                ? `${pricing.periodStart} - ${pricing.periodEnd || 7} dni`
+                                : index === 2
+                                ? `${pricing.periodStart} - ${pricing.periodEnd || 18} dni`
+                                : index === 3
+                                ? `${pricing.periodStart} - ${pricing.periodEnd || 29} dni`
+                                : `${pricing.periodStart} dni i więcej`;
+
+                              return (
+                                <tr key={pricing.id}>
+                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium">
+                                    {periodText}
+                                  </td>
+                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={currentPrice}
+                                      onChange={(e) => {
+                                        const newPrice = parseFloat(e.target.value) || 0;
+                                        updatePricingMutation.mutate({
+                                          id: pricing.id,
+                                          pricePerDay: newPrice.toString()
+                                        });
+                                      }}
+                                      className="w-20 text-right"
+                                    />
+                                    <span className="ml-1">zł</span>
+                                  </td>
+                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right">
+                                    {discountAmount.toFixed(0)} zł
+                                  </td>
+                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right">
+                                    {discountPercent}%
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="mt-4 flex gap-2">
+                      <Button
+                        onClick={() => {
+                          pricingForm.setValue('equipmentId', selectedEquipmentForPricing.id);
+                          setIsPricingDialogOpen(true);
+                        }}
+                        size="sm"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Dodaj przedział
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Pricing Dialog */}
