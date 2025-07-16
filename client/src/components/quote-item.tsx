@@ -104,7 +104,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           return;
         }
         
-        const basePrice = pricePerDay * item.quantity * item.rentalPeriodDays;
+        // The pricePerDay from database is already the discounted price, not the base price
+        const totalEquipmentPrice = pricePerDay * item.quantity * item.rentalPeriodDays;
         
         // Calculate fuel cost for generators and lighting towers
         let fuelCost = 0;
@@ -114,8 +115,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
         }
 
-
-        
         // Calculate installation cost
         let installationCost = 0;
         if (item.includeInstallationCost) {
@@ -126,10 +125,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           installationCost = travelCost + serviceCost;
         }
         
-        // Calculate discount
-        const discountAmount = basePrice * (discountPercent / 100);
-        const discountedBasePrice = basePrice - discountAmount;
-        const totalPrice = discountedBasePrice + fuelCost + installationCost;
+        // Total price is just the sum of all components (no additional discount needed)
+        const totalPrice = totalEquipmentPrice + fuelCost + installationCost;
         
 
 
