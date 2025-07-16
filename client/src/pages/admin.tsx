@@ -131,6 +131,7 @@ export default function Admin() {
   const [editingPricing, setEditingPricing] = useState<any>(null);
   const [selectedEquipmentForPricing, setSelectedEquipmentForPricing] = useState<Equipment | null>(null);
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
+  const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
 
   // Check if user is admin
   if (!authLoading && user?.role !== 'admin') {
@@ -954,7 +955,10 @@ export default function Admin() {
                     <Button
                       key={item.id}
                       variant={selectedEquipmentForPricing?.id === item.id ? "default" : "outline"}
-                      onClick={() => setSelectedEquipmentForPricing(item)}
+                      onClick={() => {
+                        setSelectedEquipmentForPricing(item);
+                        setLocalPrices({});
+                      }}
                       className="mb-2"
                     >
                       {item.name}
@@ -962,7 +966,17 @@ export default function Admin() {
                   ))}
                 </div>
 
-                {selectedEquipmentForPricing && (
+                {selectedEquipmentForPricing && (() => {
+                  // Reset local prices when equipment changes
+                  if (Object.keys(localPrices).length === 0) {
+                    const initialPrices: Record<number, number> = {};
+                    selectedEquipmentForPricing.pricing.forEach(p => {
+                      initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+                    });
+                    setLocalPrices(initialPrices);
+                  }
+                  return true;
+                })() && (
                   <div className="border rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">
                       {selectedEquipmentForPricing.name} - zasilane paliwem:
@@ -999,8 +1013,8 @@ export default function Admin() {
                               .map((pricing, index) => {
                                 // Find the base price (first period, usually 1-2 days)
                                 const sortedPricing = selectedEquipmentForPricing.pricing.sort((a, b) => a.periodStart - b.periodStart);
-                                const basePrice = parseFloat(sortedPricing[0]?.pricePerDay || "0");
-                                const currentPrice = parseFloat(pricing.pricePerDay || "0");
+                                const basePrice = localPrices[sortedPricing[0]?.id] ?? parseFloat(sortedPricing[0]?.pricePerDay || "0");
+                                const currentPrice = localPrices[pricing.id] ?? parseFloat(pricing.pricePerDay || "0");
                                 const discountAmount = basePrice - currentPrice;
                                 const discountPercent = basePrice > 0 ? ((discountAmount / basePrice) * 100).toFixed(2) : "0";
                                 
@@ -1024,10 +1038,18 @@ export default function Admin() {
                                     <Input
                                       type="number"
                                       step="0.01"
-                                      defaultValue={currentPrice}
+                                      value={localPrices[pricing.id] ?? currentPrice}
+                                      onChange={(e) => {
+                                        const newPrice = parseFloat(e.target.value) || 0;
+                                        setLocalPrices(prev => ({
+                                          ...prev,
+                                          [pricing.id]: newPrice
+                                        }));
+                                      }}
                                       onBlur={(e) => {
                                         const newPrice = parseFloat(e.target.value) || 0;
-                                        if (newPrice !== currentPrice) {
+                                        const originalPrice = parseFloat(pricing.pricePerDay || "0");
+                                        if (newPrice !== originalPrice) {
                                           updatePricingMutation.mutate({
                                             id: pricing.id,
                                             pricePerDay: newPrice.toString()
@@ -1037,7 +1059,8 @@ export default function Admin() {
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                           const newPrice = parseFloat(e.currentTarget.value) || 0;
-                                          if (newPrice !== currentPrice) {
+                                          const originalPrice = parseFloat(pricing.pricePerDay || "0");
+                                          if (newPrice !== originalPrice) {
                                             updatePricingMutation.mutate({
                                               id: pricing.id,
                                               pricePerDay: newPrice.toString()
