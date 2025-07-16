@@ -3,10 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
-  FileText, 
-  Wrench, 
-  AlertTriangle, 
-  TrendingUp,
   Eye,
   Edit,
   Trash2
@@ -21,12 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface DashboardStats {
-  monthlyQuotes: number;
-  availableEquipment: number;
-  serviceEquipment: number;
-  monthlyRevenue: number;
-}
+
 
 interface Quote {
   id: number;
@@ -40,9 +31,7 @@ interface Quote {
 }
 
 export default function Dashboard() {
-  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats"],
-  });
+
 
   const { data: quotes, isLoading: quotesLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
@@ -81,17 +70,13 @@ export default function Dashboard() {
     );
   };
 
-  if (statsLoading || quotesLoading) {
+  if (quotesLoading) {
     return (
       <div className="min-h-screen p-4">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-muted rounded"></div>
-              ))}
-            </div>
+
             <div className="h-96 bg-muted rounded"></div>
           </div>
         </div>
@@ -107,66 +92,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-2">Przegląd aktywności systemu</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-primary text-white w-12 h-12 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Wyceny w tym miesiącu</p>
-                  <p className="text-2xl font-bold text-foreground">{stats?.monthlyQuotes || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-success text-white w-12 h-12 rounded-lg flex items-center justify-center">
-                  <Wrench className="w-6 h-6" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Dostępny sprzęt</p>
-                  <p className="text-2xl font-bold text-foreground">{stats?.availableEquipment || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-warning text-white w-12 h-12 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Sprzęt w serwisie</p>
-                  <p className="text-2xl font-bold text-foreground">{stats?.serviceEquipment || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="bg-secondary text-white w-12 h-12 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-muted-foreground">Przychód miesiąc</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(stats?.monthlyRevenue || 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
 
         {/* Recent Quotes */}
         <Card>

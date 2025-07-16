@@ -304,48 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard stats
-  app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      let quotes;
-      
-      if (user?.role === 'admin') {
-        quotes = await storage.getQuotes();
-      } else {
-        quotes = await storage.getQuotesByUser(req.user.claims.sub);
-      }
 
-      const equipment = await storage.getEquipment();
-      
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      
-      const monthlyQuotes = quotes.filter(quote => {
-        if (!quote.createdAt) return false;
-        const quoteDate = new Date(quote.createdAt);
-        return quoteDate.getMonth() === currentMonth && quoteDate.getFullYear() === currentYear;
-      });
-
-      const monthlyRevenue = monthlyQuotes
-        .filter(quote => quote.status === 'approved')
-        .reduce((total, quote) => total + parseFloat(quote.totalNet), 0);
-
-      const availableEquipment = equipment.reduce((total, item) => total + item.availableQuantity, 0);
-      const totalEquipment = equipment.reduce((total, item) => total + item.quantity, 0);
-      const serviceEquipment = totalEquipment - availableEquipment;
-
-      res.json({
-        monthlyQuotes: monthlyQuotes.length,
-        availableEquipment,
-        serviceEquipment,
-        monthlyRevenue,
-      });
-    } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
-      res.status(500).json({ message: "Failed to fetch dashboard stats" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
