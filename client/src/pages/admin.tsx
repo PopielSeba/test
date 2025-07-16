@@ -16,7 +16,10 @@ import {
   Settings,
   Users,
   Wrench,
-  DollarSign
+  DollarSign,
+  UserCheck,
+  UserX,
+  Shield
 } from "lucide-react";
 import {
   Table,
@@ -87,6 +90,8 @@ interface User {
   lastName?: string;
   email?: string;
   role: string;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 const equipmentSchema = z.object({
@@ -168,6 +173,11 @@ export default function Admin() {
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<EquipmentCategory[]>({
     queryKey: ["/api/equipment-categories"],
+    enabled: user?.role === 'admin',
+  });
+
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ["/api/users"],
     enabled: user?.role === 'admin',
   });
 
@@ -404,6 +414,70 @@ export default function Admin() {
     },
   });
 
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ id, role }: { id: string; role: string }) => {
+      const response = await apiRequest("PUT", `/api/users/${id}/role`, { role });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Rola użytkownika została zaktualizowana",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować roli użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleUserActiveMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("PUT", `/api/users/${id}/toggle-active`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Status aktywności użytkownika został zmieniony",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zmienić statusu aktywności użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditEquipment = (equipment: Equipment) => {
     setSelectedEquipment(equipment);
     equipmentForm.reset({
@@ -490,6 +564,100 @@ export default function Admin() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Panel Administratora</h1>
           <p className="text-muted-foreground mt-2">Zarządzaj sprzętem, cenami i ustawieniami systemu</p>
+        </div>
+
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                Zarządzanie użytkownikami
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Użytkownik</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Rola</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Akcje</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div>
+                              <div className="font-medium">
+                                {user.firstName && user.lastName 
+                                  ? `${user.firstName} ${user.lastName}`
+                                  : user.email?.split('@')[0] || 'Nieznany użytkownik'}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                ID: {user.id}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                              {user.role === 'admin' ? (
+                                <Shield className="w-3 h-3 mr-1" />
+                              ) : null}
+                              {user.role === 'admin' ? 'Admin' : 'Pracownik'}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={user.isActive ? 'default' : 'destructive'}>
+                            {user.isActive ? (
+                              <UserCheck className="w-3 h-3 mr-1" />
+                            ) : (
+                              <UserX className="w-3 h-3 mr-1" />
+                            )}
+                            {user.isActive ? 'Aktywny' : 'Nieaktywny'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Select 
+                              value={user.role} 
+                              onValueChange={(role) => updateUserRoleMutation.mutate({ id: user.id, role })}
+                            >
+                              <SelectTrigger className="w-24">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="employee">Pracownik</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleUserActiveMutation.mutate(user.id)}
+                            >
+                              {user.isActive ? (
+                                <UserX className="w-4 h-4" />
+                              ) : (
+                                <UserCheck className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

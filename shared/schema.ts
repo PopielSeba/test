@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").notNull().default("employee"), // admin, employee
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -97,7 +98,9 @@ export const quotes = pgTable("quotes", {
   id: serial("id").primaryKey(),
   quoteNumber: varchar("quote_number").notNull().unique(),
   clientId: integer("client_id").references(() => clients.id).notNull(),
-  createdById: varchar("created_by_id").references(() => users.id).notNull(),
+  createdById: varchar("created_by_id").references(() => users.id),
+  isGuestQuote: boolean("is_guest_quote").default(false).notNull(),
+  guestEmail: varchar("guest_email"),
   status: varchar("status").notNull().default("draft"), // draft, pending, approved, rejected
   totalNet: decimal("total_net", { precision: 12, scale: 2 }).notNull(),
   vatRate: decimal("vat_rate", { precision: 5, scale: 2 }).notNull().default("23"),

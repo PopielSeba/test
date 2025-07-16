@@ -16,6 +16,7 @@ import Admin from "@/pages/admin";
 import Profile from "@/pages/profile";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
+import GuestQuote from "@/pages/guest-quote";
 import Navbar from "@/components/navbar";
 
 function Router() {
@@ -33,6 +34,7 @@ function Router() {
     return (
       <Switch>
         <Route path="/" component={Landing} />
+        <Route path="/guest-quote" component={GuestQuote} />
         <Route component={NotFound} />
       </Switch>
     );

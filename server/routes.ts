@@ -29,6 +29,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User management routes (admin only)
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/users/:id/role', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { id } = req.params;
+      const { role } = req.body;
+      
+      if (!['admin', 'employee'].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      const updatedUser = await storage.updateUserRole(id, role);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  app.put('/api/users/:id/toggle-active', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { id } = req.params;
+      const updatedUser = await storage.toggleUserActive(id);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error toggling user active status:", error);
+      res.status(500).json({ message: "Failed to toggle user active status" });
+    }
+  });
+
   // Equipment Categories
   app.get('/api/equipment-categories', isAuthenticated, async (req, res) => {
     try {
@@ -239,6 +293,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating quote:", error);
       res.status(500).json({ message: "Failed to create quote" });
+    }
+  });
+
+  // Guest quote creation (no authentication required)
+  app.post('/api/quotes/guest', async (req: any, res) => {
+    try {
+      const { guestEmail, clientData, items, ...quoteBody } = req.body;
+      
+      // Create or find client
+      const client = await storage.createClient(clientData);
+      
+      // Create quote
+      const quoteData = insertQuoteSchema.parse({
+        ...quoteBody,
+        clientId: client.id,
+        isGuestQuote: true,
+        guestEmail,
+        createdById: null,
+        quoteNumber: `GUE-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+      });
+      const quote = await storage.createQuote(quoteData);
+      
+      // Create quote items
+      for (const item of items) {
+        await storage.createQuoteItem({
+          ...item,
+          quoteId: quote.id,
+        });
+      }
+      
+      res.json(quote);
+    } catch (error) {
+      console.error("Error creating guest quote:", error);
+      res.status(500).json({ message: "Failed to create guest quote" });
     }
   });
 
