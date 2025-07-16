@@ -73,7 +73,11 @@ const PERIOD_OPTIONS = [
 ];
 
 export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemove }: QuoteItemProps) {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  // Initialize selectedCategory based on current equipment
+  const currentEquipment = equipment.find(eq => eq.id === item.equipmentId);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(
+    currentEquipment ? currentEquipment.category.id : null
+  );
 
   // Get unique categories
   const categories = equipment.reduce((acc, eq) => {
@@ -87,6 +91,16 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   const categoryEquipment = selectedCategory 
     ? equipment.filter(eq => eq.category.id === selectedCategory)
     : [];
+
+  // Update selectedCategory when equipment changes from outside (auto-add from URL)
+  useEffect(() => {
+    if (item.equipmentId && equipment.length > 0) {
+      const currentEquipment = equipment.find(eq => eq.id === item.equipmentId);
+      if (currentEquipment && selectedCategory !== currentEquipment.category.id) {
+        setSelectedCategory(currentEquipment.category.id);
+      }
+    }
+  }, [item.equipmentId, equipment, selectedCategory]);
 
   // Get selected equipment
   const selectedEquipment = equipment.find(eq => eq.id === item.equipmentId);
