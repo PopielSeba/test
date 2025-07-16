@@ -64,13 +64,7 @@ interface QuoteItemProps {
   canRemove: boolean;
 }
 
-const PERIOD_OPTIONS = [
-  { value: 1, label: "1-2 dni", start: 1, end: 2 },
-  { value: 5, label: "3-7 dni", start: 3, end: 7 },
-  { value: 13, label: "8-18 dni", start: 8, end: 18 },
-  { value: 24, label: "19-29 dni", start: 19, end: 29 },
-  { value: 30, label: "30+ dni", start: 30, end: null },
-];
+
 
 export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemove }: QuoteItemProps) {
   // Initialize selectedCategory based on current equipment
@@ -223,11 +217,19 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   };
 
   const handlePeriodChange = (days: string) => {
-    const period = parseInt(days);
+    const period = parseInt(days) || 1;
     onUpdate({
       ...item,
       rentalPeriodDays: period,
     });
+  };
+
+  const getDiscountInfo = (days: number) => {
+    if (days >= 30) return "Rabat 57.14%";
+    if (days >= 19) return "Rabat 42.86%";
+    if (days >= 8) return "Rabat 28.57%";
+    if (days >= 3) return "Rabat 14.29%";
+    return "Bez rabatu";
   };
 
   const handleNotesChange = (notes: string) => {
@@ -296,19 +298,19 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Okres wynajmu</label>
-            <Select value={item.rentalPeriodDays.toString()} onValueChange={handlePeriodChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Wybierz okres" />
-              </SelectTrigger>
-              <SelectContent>
-                {PERIOD_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value.toString()}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <label className="block text-sm font-medium text-foreground mb-2">Okres wynajmu (dni)</label>
+            <Input
+              type="number"
+              min="1"
+              max="365"
+              value={item.rentalPeriodDays}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              placeholder="1"
+              className="text-center"
+            />
+            <div className="text-xs text-muted-foreground mt-1">
+              {getDiscountInfo(item.rentalPeriodDays)}
+            </div>
           </div>
 
           <div>
