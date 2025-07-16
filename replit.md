@@ -66,6 +66,11 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
   • Biemmedue Jumbo 235 (235kW, fuel consumption 18.65 l/h)
   • All models include power ratings, dimensions, weight, fuel consumption, and electrical specifications
   • Standard pricing tiers: 450/385/320/255/190 PLN per day with appropriate discounts
+- Transformed dashboard into navigation hub with quick action tiles:
+  • Removed statistics cards per user feedback
+  • Maintained quick access tiles for main functions (Create Quote, Equipment Catalog, Quote List, Admin Panel)
+  • Added recent quotes section and equipment categories overview
+  • Personalized greeting with user name
 
 ## User Preferences
 
