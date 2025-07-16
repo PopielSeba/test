@@ -301,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const htmlToPdf = require('html-pdf-node');
+      const htmlToPdf = await import('html-pdf-node');
       
       // Generate HTML content for the quote
       const htmlContent = generateQuoteHTML(quote);
@@ -318,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const file = { content: htmlContent };
-      const pdf = await htmlToPdf.generatePdf(file, options);
+      const pdf = await htmlToPdf.default.generatePdf(file, options);
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="Wycena_${quote.quoteNumber}.pdf"`);
