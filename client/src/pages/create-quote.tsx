@@ -202,7 +202,11 @@ export default function CreateQuote() {
   };
 
   const updateQuoteItem = (id: string, updatedItem: QuoteItemData) => {
-    console.log('updateQuoteItem called:', { id, updatedItem });
+    console.log('updateQuoteItem called:', { 
+      id, 
+      includeMaintenanceCost: updatedItem.includeMaintenanceCost,
+      equipmentId: updatedItem.equipmentId 
+    });
     setQuoteItems(quoteItems.map(item => 
       item.id === id ? updatedItem : item
     ));

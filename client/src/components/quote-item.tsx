@@ -101,6 +101,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
+    console.log('useEffect triggered:', {
+      equipmentId: item.equipmentId,
+      includeMaintenanceCost: item.includeMaintenanceCost,
+      selectedEquipment: selectedEquipment?.name
+    });
+    
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
       const pricing = getPricingForPeriod(selectedEquipment, item.rentalPeriodDays);
       if (pricing) {
