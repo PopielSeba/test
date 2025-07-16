@@ -1,8 +1,8 @@
-# Sebastian Popiel - Equipment Rental Pricing System
+# Ofertnik - Sebastian Popiel Equipment Rental System
 
 ## Overview
 
-Sebastian Popiel is a comprehensive equipment rental pricing system designed for construction equipment rental companies. The application provides automated quote generation with tiered discount pricing, equipment catalog management, client management, and admin controls. Built as a full-stack TypeScript application with a React frontend and Express backend.
+Ofertnik is a comprehensive equipment rental pricing system designed for Sebastian Popiel's construction equipment rental company. The application provides automated quote generation with tiered discount pricing, equipment catalog management, client management, and admin controls. Built as a full-stack TypeScript application with a React frontend and Express backend.
 
 ## Recent Changes
 
