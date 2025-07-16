@@ -323,8 +323,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
         </div>
 
-        {/* Fuel Cost Calculation for Generators */}
-        {selectedEquipment && selectedEquipment.category.name === 'Agregaty prądotwórcze' && (
+        {/* Fuel Cost Calculation for Generators and Lighting Towers */}
+        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe') && (
           <div className="mt-4">
             <Separator className="my-4" />
             <div className="flex items-center space-x-2 mb-4">
@@ -409,8 +409,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           </div>
         )}
 
-        {/* Maintenance costs section for generators */}
-        {selectedEquipment && selectedEquipment.category.name === 'Agregaty prądotwórcze' && (
+        {/* Maintenance costs section for generators and lighting towers */}
+        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe') && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
               <Checkbox 
