@@ -102,7 +102,7 @@ export default function CreateQuote() {
           fuelPricePerLiter: 6.50, // Default fuel price
           hoursPerDay: 8,
           totalFuelCost: 0,
-          includeFuelCost: false,
+          includeFuelCost: selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe',
           includeMaintenanceCost: false,
           maintenanceCostPerPeriod: 0,
           expectedMaintenanceHours: 0,

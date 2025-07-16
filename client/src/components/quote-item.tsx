@@ -116,9 +116,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
         }
 
-        // Calculate maintenance cost for generators
+        // Calculate maintenance cost for generators and lighting towers
         let maintenanceCost = 0;
-        if (item.includeMaintenanceCost && selectedEquipment.category.name === 'Agregaty prądotwórcze') {
+        if (item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')) {
           const totalHours = item.rentalPeriodDays * (item.hoursPerDay || 8);
           const maintenanceInterval = selectedEquipment.maintenanceIntervalHours || 200;
           const maintenanceCycles = Math.ceil(totalHours / maintenanceInterval);
@@ -174,9 +174,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       // Set the category based on selected equipment
       setSelectedCategory(equipment.category.id);
       
-      // Auto-fill fuel consumption and maintenance costs for generators
+      // Auto-fill fuel consumption and maintenance costs for generators and lighting towers
       let fuelData = {};
-      if (equipment.category.name === 'Agregaty prądotwórcze') {
+      if (equipment.category.name === 'Agregaty prądotwórcze' || equipment.category.name === 'Maszty oświetleniowe') {
         fuelData = {
           includeFuelCost: true,
           fuelConsumptionLH: equipment.fuelConsumption75 || 0,
