@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { Link } from "wouter";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { isUnauthorizedError } from "@/lib/authUtils";
 import {
   Table,
   TableBody,
@@ -56,6 +58,7 @@ interface Quote {
 export default function Quotes() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -77,6 +80,44 @@ export default function Quotes() {
     queryKey: ["/api/quotes"],
     enabled: isAuthenticated && user?.role === 'admin',
   });
+
+  const deleteQuoteMutation = useMutation({
+    mutationFn: async (quoteId: number) => {
+      const response = await apiRequest("DELETE", `/api/quotes/${quoteId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quotes"] });
+      toast({
+        title: "Sukces",
+        description: "Wycena została usunięta pomyślnie",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Brak autoryzacji",
+          description: "Sesja wygasła. Przekierowywanie do logowania...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć wyceny",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteQuote = (quoteId: number, quoteNumber: string) => {
+    if (confirm(`Czy na pewno chcesz usunąć wycenę ${quoteNumber}? Ta operacja jest nieodwracalna.`)) {
+      deleteQuoteMutation.mutate(quoteId);
+    }
+  };
 
   // Show loading while checking authentication
   if (authLoading) {
@@ -250,11 +291,8 @@ export default function Quotes() {
                                 size="sm" 
                                 className="text-red-600 hover:text-red-700"
                                 title="Usuń"
-                                onClick={() => {
-                                  if (confirm('Czy na pewno chcesz usunąć tę wycenę?')) {
-                                    // TODO: Implement delete functionality
-                                  }
-                                }}
+                                disabled={deleteQuoteMutation.isPending}
+                                onClick={() => handleDeleteQuote(quote.id, quote.quoteNumber)}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
