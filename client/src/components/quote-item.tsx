@@ -319,9 +319,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         // Reset all maintenance-related values
         serviceWorkHours: undefined,
         serviceWorkRatePerHour: undefined,
-        serviceTravelDistanceKm: undefined,
-        serviceTravelRatePerKm: undefined,
-        includeServiceTravelCost: false,
         fuelFilter1Cost: undefined,
         fuelFilter2Cost: undefined,
         oilFilterCost: undefined,
@@ -349,13 +346,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     // Calculate service work cost
     const serviceWorkCost = (updatedItem.serviceWorkHours ?? 0) * (updatedItem.serviceWorkRatePerHour ?? 0);
     
-    // Calculate travel cost - only if enabled
-    const travelCost = updatedItem.includeServiceTravelCost !== false 
-      ? (updatedItem.serviceTravelDistanceKm ?? 31) * (updatedItem.serviceTravelRatePerKm ?? 1.15) * 2
-      : 0;
+    // No travel cost for maintenance
     
     // Total maintenance cost for 500 hours
-    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost + travelCost;
+    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost;
     
     // Calculate how much of maintenance cost applies to rental period
     const expectedHours = updatedItem.expectedMaintenanceHours || (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
@@ -714,11 +708,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     // Calculate service work cost
                     const serviceWorkCost = (item.serviceWorkHours || 0) * (item.serviceWorkRatePerHour || 0);
                     
-                    // Calculate travel cost
-                    const travelCost = (item.serviceTravelDistanceKm || 31) * (item.serviceTravelRatePerKm || 1.15) * 2;
+                    // No travel cost for maintenance
                     
                     // Total maintenance cost for 500 hours
-                    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost + travelCost;
+                    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost;
                     
                     // Calculate how much of maintenance cost applies to rental period
                     const expectedHours = (item.expectedMaintenanceHours || 0);
@@ -739,9 +732,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     oilQuantityLiters: checked ? (item.oilQuantityLiters || 14.7) : undefined,
                     serviceWorkHours: checked ? (item.serviceWorkHours || 0) : undefined,
                     serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 0) : undefined,
-                    serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm || 31) : undefined,
-                    serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm || 1.15) : undefined,
-                    includeServiceTravelCost: checked ? (item.includeServiceTravelCost ?? true) : false,
+
                     maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || 500) : undefined,
                     expectedMaintenanceHours: checked ? (item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))) : undefined,
                     totalMaintenanceCost: checked ? totalCost : 0
@@ -917,30 +908,9 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
                 <Separator className="my-4" />
                 
-                <div className="mb-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Checkbox
-                      id="includeServiceTravelCost"
-                      checked={item.includeServiceTravelCost !== false}
-                      onCheckedChange={(checked) => {
-                        const updatedItem = { 
-                          ...item, 
-                          includeServiceTravelCost: checked,
-                          serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm ?? 31) : 0,
-                          serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm ?? 1.15) : 0
-                        };
-                        updateMaintenanceCost(updatedItem);
-                      }}
-                    />
-                    <label htmlFor="includeServiceTravelCost" className="text-sm font-medium text-foreground">
-                      Uwzględnij koszt dojazdu serwisanta
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="md:col-span-4">
-                    <h4 className="font-medium text-foreground mb-3">Koszt pracy i dojazdu serwisanta</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="md:col-span-2">
+                    <h4 className="font-medium text-foreground mb-3">Koszt pracy serwisanta</h4>
                   </div>
                   
                   <div>
@@ -972,40 +942,6 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                         updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? 0 : rate });
                       }}
                       placeholder="0.00"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Odległość dojazdu (km)
-                    </label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={item.includeServiceTravelCost === false ? 0 : (item.serviceTravelDistanceKm ?? 31)}
-                      onChange={(e) => {
-                        const distance = parseFloat(e.target.value);
-                        updateMaintenanceCost({ ...item, serviceTravelDistanceKm: isNaN(distance) ? 0 : distance });
-                      }}
-                      placeholder="31"
-                      disabled={item.includeServiceTravelCost === false}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Stawka za km (zł)
-                    </label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={item.includeServiceTravelCost === false ? 0 : (item.serviceTravelRatePerKm ?? 1.15)}
-                      onChange={(e) => {
-                        const rate = parseFloat(e.target.value);
-                        updateMaintenanceCost({ ...item, serviceTravelRatePerKm: isNaN(rate) ? 0 : rate });
-                      }}
-                      placeholder="1.15"
-                      disabled={item.includeServiceTravelCost === false}
                     />
                   </div>
                 </div>
