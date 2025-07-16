@@ -46,6 +46,7 @@ export default function Dashboard() {
 
   const { data: quotes = [], isLoading: quotesLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
+    enabled: !!user && user.role === 'admin', // Only fetch quotes for logged-in admins
   });
 
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery<Equipment[]>({
@@ -181,53 +182,55 @@ export default function Dashboard() {
 
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Quotes */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Ostatnie oferty</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => navigate("/quotes")}>
-                Zobacz wszystkie
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {recentQuotes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Brak utworzonych ofert</p>
-                  <Button 
-                    className="mt-4" 
-                    onClick={() => navigate("/create-quote")}
-                  >
-                    Utwórz pierwszą ofertę
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recentQuotes.map((quote) => (
-                    <div 
-                      key={quote.id}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                      onClick={() => navigate(`/quotes/${quote.id}`)}
+        <div className={`grid grid-cols-1 ${user && user.role === 'admin' ? 'lg:grid-cols-2' : ''} gap-8`}>
+          {/* Recent Quotes - Only for logged-in admins */}
+          {user && user.role === 'admin' && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Ostatnie oferty</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => navigate("/quotes")}>
+                  Zobacz wszystkie
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {recentQuotes.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Brak utworzonych ofert</p>
+                    <Button 
+                      className="mt-4" 
+                      onClick={() => navigate("/create-quote")}
                     >
-                      <div>
-                        <p className="font-medium">{quote.quoteNumber}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {quote.client.companyName}
-                        </p>
+                      Utwórz pierwszą ofertę
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentQuotes.map((quote) => (
+                      <div 
+                        key={quote.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                        onClick={() => navigate(`/quotes/${quote.id}`)}
+                      >
+                        <div>
+                          <p className="font-medium">{quote.quoteNumber}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {quote.client.companyName}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{formatCurrency(quote.totalNet)}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(quote.createdAt).toLocaleDateString('pl-PL')}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{formatCurrency(quote.totalNet)}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(quote.createdAt).toLocaleDateString('pl-PL')}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Equipment Categories */}
           <Card>
