@@ -433,6 +433,23 @@ export default function Admin() {
     createPricingMutation.mutate(data);
   };
 
+  const createStandardPricing = async (equipmentId: number) => {
+    const standardPricing = [
+      { periodStart: 1, periodEnd: 2, pricePerDay: "350", discountPercent: "0" },
+      { periodStart: 3, periodEnd: 7, pricePerDay: "300", discountPercent: "14.29" },
+      { periodStart: 8, periodEnd: 18, pricePerDay: "250", discountPercent: "28.57" },
+      { periodStart: 19, periodEnd: 29, pricePerDay: "200", discountPercent: "42.86" },
+      { periodStart: 30, periodEnd: undefined, pricePerDay: "150", discountPercent: "57.14" },
+    ];
+
+    for (const pricing of standardPricing) {
+      createPricingMutation.mutate({
+        equipmentId,
+        ...pricing
+      });
+    }
+  };
+
   const formatCurrency = (amount: string) => {
     return new Intl.NumberFormat('pl-PL', {
       style: 'currency',
@@ -983,15 +1000,16 @@ export default function Admin() {
                               const discountAmount = basePrice - currentPrice;
                               const discountPercent = basePrice > 0 ? ((discountAmount / basePrice) * 100).toFixed(2) : "0";
                               
-                              const periodText = index === 0 
-                                ? `${pricing.periodStart} - ${pricing.periodEnd || 2} dni`
-                                : index === 1
-                                ? `${pricing.periodStart} - ${pricing.periodEnd || 7} dni`
-                                : index === 2
-                                ? `${pricing.periodStart} - ${pricing.periodEnd || 18} dni`
-                                : index === 3
-                                ? `${pricing.periodStart} - ${pricing.periodEnd || 29} dni`
-                                : `${pricing.periodStart} dni i więcej`;
+                              const getPeriodText = (start: number, end?: number) => {
+                                if (start === 1 && end === 2) return "1 - 2 dni";
+                                if (start === 3 && end === 7) return "3 - 7 dni";
+                                if (start === 8 && end === 18) return "8 - 18 dni";
+                                if (start === 19 && end === 29) return "19 - 29 dni";
+                                if (start === 30 && !end) return "30 dni i więcej";
+                                return end ? `${start} - ${end} dni` : `${start} dni i więcej`;
+                              };
+                              
+                              const periodText = getPeriodText(pricing.periodStart, pricing.periodEnd);
 
                               return (
                                 <tr key={pricing.id}>
@@ -1052,6 +1070,16 @@ export default function Admin() {
                         <Plus className="w-4 h-4 mr-1" />
                         Dodaj przedział
                       </Button>
+                      
+                      {selectedEquipmentForPricing.pricing.length === 0 && (
+                        <Button
+                          onClick={() => createStandardPricing(selectedEquipmentForPricing.id)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          Utwórz standardowe progi
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )}
