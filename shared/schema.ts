@@ -60,6 +60,11 @@ export const equipment = pgTable("equipment", {
   engine: varchar("engine"), // engine manufacturer/model
   alternator: varchar("alternator"), // alternator info
   fuelTankCapacity: integer("fuel_tank_capacity"), // liters
+  // Maintenance and filter costs
+  oilFilterCost: decimal("oil_filter_cost", { precision: 8, scale: 2 }), // PLN per filter
+  airFilterCost: decimal("air_filter_cost", { precision: 8, scale: 2 }), // PLN per filter
+  fuelFilterCost: decimal("fuel_filter_cost", { precision: 8, scale: 2 }), // PLN per filter
+  maintenanceIntervalHours: integer("maintenance_interval_hours").default(200), // service interval in hours
   quantity: integer("quantity").notNull().default(0),
   availableQuantity: integer("available_quantity").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
@@ -122,6 +127,10 @@ export const quoteItems = pgTable("quote_items", {
   hoursPerDay: integer("hours_per_day").default(8), // operating hours per day
   totalFuelCost: decimal("total_fuel_cost", { precision: 12, scale: 2 }).default("0"),
   includeFuelCost: boolean("include_fuel_cost").default(false),
+  // Maintenance cost fields for generators
+  includeMaintenanceCost: boolean("include_maintenance_cost").default(false),
+  maintenanceCostPerPeriod: decimal("maintenance_cost_per_period", { precision: 10, scale: 2 }).default("0"),
+  expectedMaintenanceHours: integer("expected_maintenance_hours"), // expected operating hours for the rental period
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });

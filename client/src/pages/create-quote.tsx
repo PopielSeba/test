@@ -37,6 +37,10 @@ interface QuoteItemData {
   hoursPerDay?: number;
   totalFuelCost?: number;
   includeFuelCost?: boolean;
+  // Maintenance cost fields for generators
+  includeMaintenanceCost?: boolean;
+  maintenanceCostPerPeriod?: number;
+  expectedMaintenanceHours?: number;
 }
 
 interface Equipment {
@@ -53,6 +57,10 @@ interface Equipment {
     discountPercent: string;
   }>;
   fuelConsumption75?: number; // l/h at 75% load for generators
+  oilFilterCost?: number;
+  airFilterCost?: number;
+  fuelFilterCost?: number;
+  maintenanceIntervalHours?: number;
 }
 
 export default function CreateQuote() {

@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Fuel } from "lucide-react";
+import { Trash2, Fuel, Settings } from "lucide-react";
 
 interface QuoteItemData {
   id: string;
@@ -23,6 +23,10 @@ interface QuoteItemData {
   hoursPerDay?: number;
   totalFuelCost?: number;
   includeFuelCost?: boolean;
+  // Maintenance cost fields for generators
+  includeMaintenanceCost?: boolean;
+  maintenanceCostPerPeriod?: number;
+  expectedMaintenanceHours?: number;
 }
 
 interface Equipment {
@@ -39,6 +43,10 @@ interface Equipment {
     discountPercent: string;
   }>;
   fuelConsumption75?: number; // l/h at 75% load for generators
+  oilFilterCost?: number;
+  airFilterCost?: number;
+  fuelFilterCost?: number;
+  maintenanceIntervalHours?: number;
 }
 
 interface QuoteItemProps {
@@ -92,8 +100,21 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           const totalFuelNeeded = totalHours * item.fuelConsumptionLH * item.quantity;
           fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
         }
+
+        // Calculate maintenance cost for generators
+        let maintenanceCost = 0;
+        if (item.includeMaintenanceCost && selectedEquipment.category.name === 'Agregaty prądotwórcze') {
+          const totalHours = item.rentalPeriodDays * (item.hoursPerDay || 8);
+          const maintenanceInterval = selectedEquipment.maintenanceIntervalHours || 200;
+          const maintenanceCycles = Math.ceil(totalHours / maintenanceInterval);
+          
+          const filterCosts = (selectedEquipment.oilFilterCost || 0) + 
+                             (selectedEquipment.airFilterCost || 0) + 
+                             (selectedEquipment.fuelFilterCost || 0);
+          maintenanceCost = maintenanceCycles * filterCosts * item.quantity;
+        }
         
-        const totalPrice = basePrice + fuelCost;
+        const totalPrice = basePrice + fuelCost + maintenanceCost;
 
         onUpdate({
           ...item,
@@ -101,10 +122,11 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           discountPercent,
           totalPrice,
           totalFuelCost: fuelCost,
+          maintenanceCostPerPeriod: maintenanceCost,
         });
       }
     }
-  }, [item.equipmentId, item.quantity, item.rentalPeriodDays, item.includeFuelCost, item.fuelConsumptionLH, item.fuelPricePerLiter, item.hoursPerDay]);
+  }, [item.equipmentId, item.quantity, item.rentalPeriodDays, item.includeFuelCost, item.fuelConsumptionLH, item.fuelPricePerLiter, item.hoursPerDay, item.includeMaintenanceCost]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
     // Find the appropriate pricing tier based on days
@@ -137,7 +159,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       // Set the category based on selected equipment
       setSelectedCategory(equipment.category.id);
       
-      // Auto-fill fuel consumption for generators
+      // Auto-fill fuel consumption and maintenance costs for generators
       let fuelData = {};
       if (equipment.category.name === 'Agregaty prądotwórcze') {
         fuelData = {
@@ -145,7 +167,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           fuelConsumptionLH: equipment.fuelConsumption75 || 0,
           fuelPricePerLiter: 6.50, // Default fuel price PLN/liter
           hoursPerDay: 8,
-          totalFuelCost: 0
+          totalFuelCost: 0,
+          includeMaintenanceCost: false, // User can enable manually
+          maintenanceCostPerPeriod: 0,
+          expectedMaintenanceHours: 0
         };
       }
       
@@ -370,6 +395,65 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   </label>
                   <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
                     {formatCurrency(item.totalFuelCost || 0)}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Maintenance costs section for generators */}
+        {selectedEquipment && selectedEquipment.category.name === 'Agregaty prądotwórcze' && (
+          <div className="mt-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <Checkbox 
+                id="includeMaintenanceCost" 
+                checked={item.includeMaintenanceCost || false}
+                onCheckedChange={(checked) => 
+                  onUpdate({ 
+                    ...item, 
+                    includeMaintenanceCost: checked as boolean,
+                    maintenanceCostPerPeriod: checked ? item.maintenanceCostPerPeriod : 0
+                  })
+                }
+              />
+              <label htmlFor="includeMaintenanceCost" className="text-sm font-medium text-foreground flex items-center">
+                <Settings className="w-4 h-4 mr-2" />
+                Uwzględnij koszty serwisu/filtrów
+              </label>
+            </div>
+            
+            {item.includeMaintenanceCost && (
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground">Filtr oleju</label>
+                    <div className="text-sm font-medium">{formatCurrency(selectedEquipment.oilFilterCost || 0)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Filtr powietrza</label>
+                    <div className="text-sm font-medium">{formatCurrency(selectedEquipment.airFilterCost || 0)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Filtr paliwa</label>
+                    <div className="text-sm font-medium">{formatCurrency(selectedEquipment.fuelFilterCost || 0)}</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground">Interwał serwisu</label>
+                    <div className="text-sm font-medium">{selectedEquipment.maintenanceIntervalHours || 200}h</div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Łączne godziny pracy</label>
+                    <div className="text-sm font-medium">{item.rentalPeriodDays * (item.hoursPerDay || 8)}h</div>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">Koszt serwisu</label>
+                    <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                      {formatCurrency(item.maintenanceCostPerPeriod || 0)}
+                    </div>
                   </div>
                 </div>
               </div>
