@@ -341,7 +341,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost + travelCost;
     
     // Calculate how much of maintenance cost applies to rental period
-    const expectedHours = (updatedItem.expectedMaintenanceHours || 0);
+    const expectedHours = updatedItem.expectedMaintenanceHours || (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
     let totalCost = 0;
     if (expectedHours > 0) {
       totalCost = (maintenanceCostPer500h / (updatedItem.maintenanceIntervalHours || 500)) * expectedHours;
