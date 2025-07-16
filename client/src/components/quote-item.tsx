@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Fuel, Car, Wrench } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface QuoteItemData {
   id: string;
@@ -116,7 +117,15 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   const selectedEquipment = equipment.find(eq => eq.id === item.equipmentId);
   const isGenerator = selectedEquipment?.category.name === 'Agregaty prądotwórcze';
   const isLightingTower = selectedEquipment?.category.name === 'Maszty oświetleniowe';
-  const hasMaintenanceCosts = isGenerator || isLightingTower;
+  const isAirConditioner = selectedEquipment?.category.name === 'Klimatyzacje';
+  const hasMaintenanceCosts = isGenerator || isLightingTower || isAirConditioner;
+
+  // Query to get maintenance defaults for the current equipment category
+  const { data: maintenanceDefaults } = useQuery({
+    queryKey: ["/api/maintenance-defaults", selectedEquipment?.category.name],
+    enabled: !!selectedEquipment?.category.name && hasMaintenanceCosts,
+    retry: false,
+  });
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
@@ -332,20 +341,20 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       return;
     }
 
-    // Calculate total filters cost
+    // Calculate total filters cost using defaults from API
     const filtersCost = 
-      (updatedItem.fuelFilter1Cost || 49) +
-      (updatedItem.fuelFilter2Cost || 118) +
-      (updatedItem.oilFilterCost || 45) +
-      (updatedItem.airFilter1Cost || 105) +
-      (updatedItem.airFilter2Cost || 54) +
-      (updatedItem.engineFilterCost || 150);
+      (updatedItem.fuelFilter1Cost || parseFloat(maintenanceDefaults?.fuelFilter1Cost || "49")) +
+      (updatedItem.fuelFilter2Cost || parseFloat(maintenanceDefaults?.fuelFilter2Cost || "118")) +
+      (updatedItem.oilFilterCost || parseFloat(maintenanceDefaults?.oilFilterCost || "45")) +
+      (updatedItem.airFilter1Cost || parseFloat(maintenanceDefaults?.airFilter1Cost || "105")) +
+      (updatedItem.airFilter2Cost || parseFloat(maintenanceDefaults?.airFilter2Cost || "54")) +
+      (updatedItem.engineFilterCost || parseFloat(maintenanceDefaults?.engineFilterCost || "150"));
     
-    // Calculate oil cost
-    const oilTotalCost = (updatedItem.oilQuantityLiters || 14.7) * (updatedItem.oilCost || 162.44);
+    // Calculate oil cost using defaults from API
+    const oilTotalCost = (updatedItem.oilQuantityLiters || parseFloat(maintenanceDefaults?.oilQuantity || "14.7")) * (updatedItem.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44"));
     
-    // Calculate service work cost
-    const serviceWorkCost = (updatedItem.serviceWorkHours ?? 0) * (updatedItem.serviceWorkRatePerHour ?? 0);
+    // Calculate service work cost using defaults from API
+    const serviceWorkCost = (updatedItem.serviceWorkHours ?? parseFloat(maintenanceDefaults?.serviceWorkHours || "0")) * (updatedItem.serviceWorkRatePerHour ?? parseFloat(maintenanceDefaults?.serviceWorkRate || "0"));
     
     // No travel cost for maintenance
     
@@ -356,7 +365,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     const expectedHours = updatedItem.expectedMaintenanceHours || (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
     let totalCost = 0;
     if (expectedHours > 0) {
-      totalCost = (maintenanceCostPer500h / (updatedItem.maintenanceIntervalHours || 500)) * expectedHours;
+      totalCost = (maintenanceCostPer500h / (updatedItem.maintenanceIntervalHours || maintenanceDefaults?.maintenanceInterval || 500)) * expectedHours;
     }
 
     onUpdate({ ...updatedItem, totalMaintenanceCost: totalCost });
@@ -684,7 +693,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           )}
         </div>
 
-        {/* Maintenance/Exploitation Cost Section (for generators and lighting towers) */}
+        {/* Maintenance/Exploitation Cost Section (for generators, lighting towers, and air conditioners) */}
         {hasMaintenanceCosts && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
@@ -723,18 +732,18 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   onUpdate({ 
                     ...item, 
                     includeMaintenanceCost: checked as boolean,
-                    fuelFilter1Cost: checked ? (item.fuelFilter1Cost || 49) : undefined,
-                    fuelFilter2Cost: checked ? (item.fuelFilter2Cost || 118) : undefined,
-                    oilFilterCost: checked ? (item.oilFilterCost || 45) : undefined,
-                    airFilter1Cost: checked ? (item.airFilter1Cost || 105) : undefined,
-                    airFilter2Cost: checked ? (item.airFilter2Cost || 54) : undefined,
-                    engineFilterCost: checked ? (item.engineFilterCost || 150) : undefined,
-                    oilCost: checked ? (item.oilCost || 162.44) : undefined,
-                    oilQuantityLiters: checked ? (item.oilQuantityLiters || 14.7) : undefined,
-                    serviceWorkHours: checked ? (item.serviceWorkHours || 0) : undefined,
-                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 0) : undefined,
+                    fuelFilter1Cost: checked ? (item.fuelFilter1Cost || parseFloat(maintenanceDefaults?.fuelFilter1Cost || "49")) : undefined,
+                    fuelFilter2Cost: checked ? (item.fuelFilter2Cost || parseFloat(maintenanceDefaults?.fuelFilter2Cost || "118")) : undefined,
+                    oilFilterCost: checked ? (item.oilFilterCost || parseFloat(maintenanceDefaults?.oilFilterCost || "45")) : undefined,
+                    airFilter1Cost: checked ? (item.airFilter1Cost || parseFloat(maintenanceDefaults?.airFilter1Cost || "105")) : undefined,
+                    airFilter2Cost: checked ? (item.airFilter2Cost || parseFloat(maintenanceDefaults?.airFilter2Cost || "54")) : undefined,
+                    engineFilterCost: checked ? (item.engineFilterCost || parseFloat(maintenanceDefaults?.engineFilterCost || "150")) : undefined,
+                    oilCost: checked ? (item.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44")) : undefined,
+                    oilQuantityLiters: checked ? (item.oilQuantityLiters || parseFloat(maintenanceDefaults?.oilQuantity || "14.7")) : undefined,
+                    serviceWorkHours: checked ? (item.serviceWorkHours || parseFloat(maintenanceDefaults?.serviceWorkHours || "0")) : undefined,
+                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || parseFloat(maintenanceDefaults?.serviceWorkRate || "0")) : undefined,
 
-                    maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || 500) : undefined,
+                    maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || maintenanceDefaults?.maintenanceInterval || 500) : undefined,
                     expectedMaintenanceHours: checked ? (item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))) : undefined,
                     totalMaintenanceCost: checked ? totalCost : 0
                   });
@@ -742,7 +751,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
               />
               <label htmlFor="includeMaintenanceCost" className="text-sm font-medium text-foreground flex items-center">
                 <Wrench className="w-4 h-4 mr-2" />
-                Uwzględnij koszty eksploatacji (co 500 mth)
+                Uwzględnij koszty eksploatacji{isAirConditioner ? ' (wymiana filtrów)' : ' (co 500 mth)'}
               </label>
             </div>
             
@@ -761,12 +770,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.fuelFilter1Cost || 49}
+                      value={item.fuelFilter1Cost || parseFloat(maintenanceDefaults?.fuelFilter1Cost || "49")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 49;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.fuelFilter1Cost || "49");
                         updateMaintenanceCost({ ...item, fuelFilter1Cost: cost });
                       }}
-                      placeholder="49.00"
+                      placeholder={maintenanceDefaults?.fuelFilter1Cost || "49.00"}
                     />
                   </div>
                   
@@ -777,12 +786,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.fuelFilter2Cost || 118}
+                      value={item.fuelFilter2Cost || parseFloat(maintenanceDefaults?.fuelFilter2Cost || "118")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 118;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.fuelFilter2Cost || "118");
                         updateMaintenanceCost({ ...item, fuelFilter2Cost: cost });
                       }}
-                      placeholder="118.00"
+                      placeholder={maintenanceDefaults?.fuelFilter2Cost || "118.00"}
                     />
                   </div>
                   
@@ -793,12 +802,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.oilFilterCost || 45}
+                      value={item.oilFilterCost || parseFloat(maintenanceDefaults?.oilFilterCost || "45")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 45;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.oilFilterCost || "45");
                         updateMaintenanceCost({ ...item, oilFilterCost: cost });
                       }}
-                      placeholder="45.00"
+                      placeholder={maintenanceDefaults?.oilFilterCost || "45.00"}
                     />
                   </div>
                   
@@ -809,12 +818,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.airFilter1Cost || 105}
+                      value={item.airFilter1Cost || parseFloat(maintenanceDefaults?.airFilter1Cost || "105")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 105;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.airFilter1Cost || "105");
                         updateMaintenanceCost({ ...item, airFilter1Cost: cost });
                       }}
-                      placeholder="105.00"
+                      placeholder={maintenanceDefaults?.airFilter1Cost || "105.00"}
                     />
                   </div>
                   
@@ -825,12 +834,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.airFilter2Cost || 54}
+                      value={item.airFilter2Cost || parseFloat(maintenanceDefaults?.airFilter2Cost || "54")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 54;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.airFilter2Cost || "54");
                         updateMaintenanceCost({ ...item, airFilter2Cost: cost });
                       }}
-                      placeholder="54.00"
+                      placeholder={maintenanceDefaults?.airFilter2Cost || "54.00"}
                     />
                   </div>
                   
@@ -841,12 +850,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.engineFilterCost || 150}
+                      value={item.engineFilterCost || parseFloat(maintenanceDefaults?.engineFilterCost || "150")}
                       onChange={(e) => {
-                        const cost = parseFloat(e.target.value) || 150;
+                        const cost = parseFloat(e.target.value) || parseFloat(maintenanceDefaults?.engineFilterCost || "150");
                         updateMaintenanceCost({ ...item, engineFilterCost: cost });
                       }}
-                      placeholder="150.00"
+                      placeholder={maintenanceDefaults?.engineFilterCost || "150.00"}
                     />
                   </div>
                 </div>

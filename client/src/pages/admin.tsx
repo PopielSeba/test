@@ -1362,6 +1362,7 @@ function MaintenanceDefaultsCard() {
             <SelectContent>
               <SelectItem value="Agregaty prądotwórcze">Agregaty prądotwórcze</SelectItem>
               <SelectItem value="Maszty oświetleniowe">Maszty oświetleniowe</SelectItem>
+              <SelectItem value="Klimatyzacje">Klimatyzacje</SelectItem>
             </SelectContent>
           </Select>
         </div>
