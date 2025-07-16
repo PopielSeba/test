@@ -63,8 +63,40 @@ interface Equipment {
   fuelConsumption75?: number; // l/h at 75% load for generators
 }
 
-export default function CreateQuote() {
+interface CreateQuoteProps {
+  editingQuote?: any;
+}
+
+export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
   const [quoteItems, setQuoteItems] = useState<QuoteItemData[]>([]);
+  
+  // Initialize quote items when editing
+  useEffect(() => {
+    if (editingQuote && editingQuote.items && quoteItems.length === 0) {
+      const initialItems = editingQuote.items.map((item: any) => ({
+        id: item.id.toString(),
+        equipmentId: item.equipment.id,
+        quantity: item.quantity,
+        rentalPeriodDays: item.rentalPeriodDays,
+        pricePerDay: item.pricePerDay,
+        discountPercent: item.discountPercent,
+        totalPrice: item.totalPrice,
+        notes: item.notes || "",
+        fuelConsumptionLH: item.fuelConsumptionLH || 0,
+        fuelPricePerLiter: item.fuelPricePerLiter || 6.50,
+        hoursPerDay: item.hoursPerDay || 8,
+        totalFuelCost: item.totalFuelCost || 0,
+        includeFuelCost: item.includeFuelCost || false,
+        includeInstallationCost: item.includeInstallationCost || false,
+        installationDistanceKm: item.installationDistanceKm || 0,
+        numberOfTechnicians: item.numberOfTechnicians || 1,
+        serviceRatePerTechnician: item.serviceRatePerTechnician || 150,
+        travelRatePerKm: item.travelRatePerKm || 1.15,
+        totalInstallationCost: item.totalInstallationCost || 0,
+      }));
+      setQuoteItems(initialItems);
+    }
+  }, [editingQuote]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -117,12 +149,12 @@ export default function CreateQuote() {
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
-      companyName: "",
-      nip: "",
-      contactPerson: "",
-      phone: "",
-      email: "",
-      address: "",
+      companyName: editingQuote?.client?.companyName || "",
+      nip: editingQuote?.client?.nip || "",
+      contactPerson: editingQuote?.client?.contactPerson || "",
+      phone: editingQuote?.client?.phone || "",
+      email: editingQuote?.client?.email || "",
+      address: editingQuote?.client?.address || "",
     },
   });
 
@@ -135,23 +167,27 @@ export default function CreateQuote() {
 
   const createQuoteMutation = useMutation({
     mutationFn: async (quoteData: any) => {
-      const response = await apiRequest("POST", "/api/quotes", quoteData);
+      const method = editingQuote ? "PUT" : "POST";
+      const url = editingQuote ? `/api/quotes/${editingQuote.id}` : "/api/quotes";
+      const response = await apiRequest(method, url, quoteData);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quotes"] });
       toast({
         title: "Sukces",
-        description: "Wycena została utworzona pomyślnie",
+        description: editingQuote ? "Wycena została zaktualizowana pomyślnie" : "Wycena została utworzona pomyślnie",
       });
-      // Reset form
-      form.reset();
-      setQuoteItems([]);
+      if (!editingQuote) {
+        // Reset form only for new quotes
+        form.reset();
+        setQuoteItems([]);
+      }
     },
     onError: (error) => {
       toast({
         title: "Błąd",
-        description: "Nie udało się utworzyć wyceny",
+        description: editingQuote ? "Nie udało się zaktualizować wyceny" : "Nie udało się utworzyć wyceny",
         variant: "destructive",
       });
     },
@@ -262,8 +298,15 @@ export default function CreateQuote() {
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Tworzenie Nowej Wyceny</h1>
-          <p className="text-muted-foreground mt-2">Wypełnij poniższe informacje, aby utworzyć nową wycenę dla klienta</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            {editingQuote ? "Edycja Wyceny" : "Tworzenie Nowej Wyceny"}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {editingQuote 
+              ? "Edytuj poniższe informacje, aby zaktualizować wycenę"
+              : "Wypełnij poniższe informacje, aby utworzyć nową wycenę dla klienta"
+            }
+          </p>
         </div>
 
         <Form {...form}>
@@ -434,8 +477,8 @@ export default function CreateQuote() {
               >
                 <FileText className="w-4 h-4 mr-2" />
                 {createClientMutation.isPending || createQuoteMutation.isPending 
-                  ? "Tworzenie..." 
-                  : "Utwórz wycenę"
+                  ? (editingQuote ? "Zapisywanie..." : "Tworzenie...") 
+                  : (editingQuote ? "Zapisz zmiany" : "Utwórz wycenę")
                 }
               </Button>
             </div>

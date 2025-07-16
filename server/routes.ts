@@ -301,8 +301,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const puppeteer = require('puppeteer');
-      const browser = await puppeteer.launch({
+      const puppeteer = await import('puppeteer');
+      const browser = await puppeteer.default.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });

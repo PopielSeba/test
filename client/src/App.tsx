@@ -11,6 +11,7 @@ import Equipment from "@/pages/equipment";
 import Quotes from "@/pages/quotes";
 import QuoteDetail from "@/pages/quote-detail";
 import CreateQuote from "@/pages/create-quote";
+import EditQuote from "@/pages/edit-quote";
 import Admin from "@/pages/admin";
 import Profile from "@/pages/profile";
 import Settings from "@/pages/settings";
@@ -45,6 +46,7 @@ function Router() {
         <Route path="/equipment" component={Equipment} />
         <Route path="/quotes" component={Quotes} />
         <Route path="/quotes/:id" component={QuoteDetail} />
+        <Route path="/quotes/:id/edit" component={EditQuote} />
         <Route path="/create-quote" component={CreateQuote} />
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
