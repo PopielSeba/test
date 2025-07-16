@@ -133,6 +133,13 @@ export const maintenanceDefaults = pgTable("maintenance_defaults", {
   serviceWorkRate: decimal("service_work_rate", { precision: 8, scale: 2 }).notNull().default("0.00"),
   // Maintenance interval
   maintenanceInterval: integer("maintenance_interval").notNull().default(500),
+  // Service items for heaters
+  serviceItem1Name: varchar("service_item_1_name").default("Przegląd serwisowy"),
+  serviceItem1Cost: decimal("service_item_1_cost", { precision: 8, scale: 2 }).default("0.00"),
+  serviceItem2Name: varchar("service_item_2_name").default("Dojazd"),
+  serviceItem2Cost: decimal("service_item_2_cost", { precision: 8, scale: 2 }).default("0.00"),
+  serviceItem3Name: varchar("service_item_3_name").default("Wymiana palnika"),
+  serviceItem3Cost: decimal("service_item_3_cost", { precision: 8, scale: 2 }).default("0.00"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -182,6 +189,12 @@ export const quoteItems = pgTable("quote_items", {
   hourlyRatePerTechnician: decimal("hourly_rate_per_technician", { precision: 8, scale: 2 }).default("150"),
   travelRatePerKm: decimal("travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
   totalTravelCost: decimal("total_travel_cost", { precision: 10, scale: 2 }).default("0"),
+  // Service items for heaters
+  includeServiceItems: boolean("include_service_items").default(false),
+  serviceItem1Cost: decimal("service_item_1_cost", { precision: 8, scale: 2 }).default("0.00"),
+  serviceItem2Cost: decimal("service_item_2_cost", { precision: 8, scale: 2 }).default("0.00"),
+  serviceItem3Cost: decimal("service_item_3_cost", { precision: 8, scale: 2 }).default("0.00"),
+  totalServiceItemsCost: decimal("total_service_items_cost", { precision: 10, scale: 2 }).default("0.00"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
