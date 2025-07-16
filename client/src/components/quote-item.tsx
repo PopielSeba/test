@@ -132,6 +132,13 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
         // Calculate maintenance cost for generators and lighting towers
         let maintenanceCost = 0;
+        console.log('Maintenance cost check:', {
+          includeMaintenanceCost: item.includeMaintenanceCost,
+          categoryName: selectedEquipment.category.name,
+          isGenerator: selectedEquipment.category.name === 'Agregaty prądotwórcze',
+          isLightingTower: selectedEquipment.category.name === 'Maszty oświetleniowe'
+        });
+        
         if (item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')) {
           const totalHours = item.rentalPeriodDays * (item.hoursPerDay || 8);
           const maintenanceInterval = selectedEquipment.maintenanceIntervalHours || 200;
@@ -192,7 +199,22 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         });
       }
     }
-  }, [item.equipmentId, item.quantity, item.rentalPeriodDays, item.includeFuelCost, item.fuelConsumptionLH, item.fuelPricePerLiter, item.hoursPerDay, item.includeMaintenanceCost, item.includeTravelCost, item.travelDistanceKm, item.travelRatePerKm, selectedEquipment]);
+  }, [
+    item.equipmentId, 
+    item.quantity, 
+    item.rentalPeriodDays, 
+    item.includeFuelCost, 
+    item.fuelConsumptionLH, 
+    item.fuelPricePerLiter, 
+    item.hoursPerDay, 
+    item.includeMaintenanceCost,
+    item.includeTravelCost, 
+    item.travelDistanceKm, 
+    item.travelRatePerKm,
+    item.numberOfTechnicians,
+    item.hourlyRatePerTechnician,
+    selectedEquipment
+  ]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
     // Find the appropriate pricing tier based on days
