@@ -14,7 +14,9 @@ import {
   Download
 } from "lucide-react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -52,12 +54,39 @@ interface Quote {
 }
 
 export default function Quotes() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || user?.role !== 'admin')) {
+      toast({
+        title: "Brak uprawnień",
+        description: "Dostęp do wycen jest dostępny tylko dla administratorów.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    }
+  }, [isAuthenticated, user, authLoading, toast]);
+
   const { data: quotes = [], isLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
+    enabled: isAuthenticated && user?.role === 'admin',
   });
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <div className="flex justify-center items-center h-64">Sprawdzanie uprawnień...</div>;
+  }
+
+  // Don't render if user is not admin
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return null;
+  }
 
   const filteredQuotes = quotes.filter((quote) => {
     const matchesSearch = 
