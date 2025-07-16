@@ -729,21 +729,22 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   onUpdate({ 
                     ...item, 
                     includeMaintenanceCost: checked as boolean,
-                    fuelFilter1Cost: checked ? (item.fuelFilter1Cost || 49) : 49,
-                    fuelFilter2Cost: checked ? (item.fuelFilter2Cost || 118) : 118,
-                    oilFilterCost: checked ? (item.oilFilterCost || 45) : 45,
-                    airFilter1Cost: checked ? (item.airFilter1Cost || 105) : 105,
-                    airFilter2Cost: checked ? (item.airFilter2Cost || 54) : 54,
-                    engineFilterCost: checked ? (item.engineFilterCost || 150) : 150,
-                    oilCost: checked ? (item.oilCost || 162.44) : 162.44,
-                    oilQuantityLiters: checked ? (item.oilQuantityLiters || 14.7) : 14.7,
-                    serviceWorkHours: checked ? (item.serviceWorkHours || 0) : 0,
-                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 0) : 0,
-                    serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm || 31) : 31,
-                    serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm || 1.15) : 1.15,
-                    maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || 500) : 500,
-                    expectedMaintenanceHours: checked ? (item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))) : 0,
-                    totalMaintenanceCost: totalCost
+                    fuelFilter1Cost: checked ? (item.fuelFilter1Cost || 49) : undefined,
+                    fuelFilter2Cost: checked ? (item.fuelFilter2Cost || 118) : undefined,
+                    oilFilterCost: checked ? (item.oilFilterCost || 45) : undefined,
+                    airFilter1Cost: checked ? (item.airFilter1Cost || 105) : undefined,
+                    airFilter2Cost: checked ? (item.airFilter2Cost || 54) : undefined,
+                    engineFilterCost: checked ? (item.engineFilterCost || 150) : undefined,
+                    oilCost: checked ? (item.oilCost || 162.44) : undefined,
+                    oilQuantityLiters: checked ? (item.oilQuantityLiters || 14.7) : undefined,
+                    serviceWorkHours: checked ? (item.serviceWorkHours || 0) : undefined,
+                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || 0) : undefined,
+                    serviceTravelDistanceKm: checked ? (item.serviceTravelDistanceKm || 31) : undefined,
+                    serviceTravelRatePerKm: checked ? (item.serviceTravelRatePerKm || 1.15) : undefined,
+                    includeServiceTravelCost: checked ? (item.includeServiceTravelCost ?? true) : false,
+                    maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || 500) : undefined,
+                    expectedMaintenanceHours: checked ? (item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))) : undefined,
+                    totalMaintenanceCost: checked ? totalCost : 0
                   });
                 }}
               />
