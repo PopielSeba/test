@@ -837,6 +837,22 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     />
                   </div>
                 </div>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-foreground">Suma filtrów:</span>
+                    <span className="text-lg font-bold text-primary">
+                      {formatCurrency(
+                        (item.fuelFilter1Cost || 49) + 
+                        (item.fuelFilter2Cost || 118) + 
+                        (item.oilFilterCost || 45) + 
+                        (item.airFilter1Cost || 105) + 
+                        (item.airFilter2Cost || 54) + 
+                        (item.engineFilterCost || 150)
+                      )}
+                    </span>
+                  </div>
+                </div>
 
                 <Separator className="my-4" />
                 
