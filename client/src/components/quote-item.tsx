@@ -143,11 +143,17 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           maintenanceCost = maintenanceCycles * filterCosts * item.quantity;
           
           console.log('Maintenance calculation:', {
+            equipmentName: selectedEquipment.name,
+            category: selectedEquipment.category.name,
             totalHours,
             maintenanceInterval,
             maintenanceCycles,
             filterCosts,
-            maintenanceCost
+            oilFilterCost: selectedEquipment.oilFilterCost,
+            airFilterCost: selectedEquipment.airFilterCost,
+            fuelFilterCost: selectedEquipment.fuelFilterCost,
+            maintenanceCost,
+            quantity: item.quantity
           });
         }
         
