@@ -1239,6 +1239,12 @@ function MaintenanceDefaultsCard() {
     serviceWorkHours: z.number().min(0, "Godziny muszą być nieujemne"),
     serviceWorkRate: z.number().min(0, "Stawka musi być nieujemna"),
     maintenanceInterval: z.number().min(1, "Interwał musi być większy od 0"),
+    serviceItem1Name: z.string().optional(),
+    serviceItem1Cost: z.number().min(0, "Koszt musi być nieujemny").optional(),
+    serviceItem2Name: z.string().optional(),
+    serviceItem2Cost: z.number().min(0, "Koszt musi być nieujemny").optional(),
+    serviceItem3Name: z.string().optional(),
+    serviceItem3Cost: z.number().min(0, "Koszt musi być nieujemny").optional(),
   });
 
   // Hook formularza z domyślnymi wartościami
@@ -1286,6 +1292,12 @@ function MaintenanceDefaultsCard() {
         serviceWorkHours: parseFloat(maintenanceDefaults.serviceWorkHours),
         serviceWorkRate: parseFloat(maintenanceDefaults.serviceWorkRate),
         maintenanceInterval: maintenanceDefaults.maintenanceInterval,
+        serviceItem1Name: maintenanceDefaults.serviceItem1Name || '',
+        serviceItem1Cost: parseFloat(maintenanceDefaults.serviceItem1Cost) || 0,
+        serviceItem2Name: maintenanceDefaults.serviceItem2Name || '',
+        serviceItem2Cost: parseFloat(maintenanceDefaults.serviceItem2Cost) || 0,
+        serviceItem3Name: maintenanceDefaults.serviceItem3Name || '',
+        serviceItem3Cost: parseFloat(maintenanceDefaults.serviceItem3Cost) || 0,
       });
     }
   }, [maintenanceDefaults, form]);
@@ -1363,6 +1375,7 @@ function MaintenanceDefaultsCard() {
               <SelectItem value="Agregaty prądotwórcze">Agregaty prądotwórcze</SelectItem>
               <SelectItem value="Maszty oświetleniowe">Maszty oświetleniowe</SelectItem>
               <SelectItem value="Klimatyzacje">Klimatyzacje</SelectItem>
+              <SelectItem value="Nagrzewnice">Nagrzewnice</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1671,6 +1684,119 @@ function MaintenanceDefaultsCard() {
                 />
               </div>
             </div>
+
+            {/* Pozycje serwisowe - tylko dla nagrzewnic */}
+            {selectedCategory === 'Nagrzewnice' && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Pozycje serwisowe</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Pozycja 1 */}
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="serviceItem1Name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nazwa pozycji 1</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="serviceItem1Cost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Koszt (zł)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Pozycja 2 */}
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="serviceItem2Name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nazwa pozycji 2</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="serviceItem2Cost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Koszt (zł)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Pozycja 3 */}
+                  <div className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="serviceItem3Name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nazwa pozycji 3</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="serviceItem3Cost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Koszt (zł)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Interwał serwisowy */}
             <div className="space-y-4">
