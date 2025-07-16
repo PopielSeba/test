@@ -113,6 +113,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
   // Get selected equipment
   const selectedEquipment = equipment.find(eq => eq.id === item.equipmentId);
+  const isGenerator = selectedEquipment?.category.name === 'Agregaty prądotwórcze';
+  const isLightingTower = selectedEquipment?.category.name === 'Maszty oświetleniowe';
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
