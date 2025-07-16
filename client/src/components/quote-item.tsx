@@ -521,13 +521,14 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
               <Checkbox 
                 id="includeMaintenanceCost" 
                 checked={item.includeMaintenanceCost || false}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) => {
+                  console.log('Checkbox maintenance change:', { checked, type: typeof checked });
                   onUpdate({ 
                     ...item, 
                     includeMaintenanceCost: checked as boolean,
                     maintenanceCostPerPeriod: checked ? item.maintenanceCostPerPeriod : 0
-                  })
-                }
+                  });
+                }}
               />
               <label htmlFor="includeMaintenanceCost" className="text-sm font-medium text-foreground flex items-center">
                 <Settings className="w-4 h-4 mr-2" />
