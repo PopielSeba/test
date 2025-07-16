@@ -6,6 +6,7 @@ import {
   clients,
   quotes,
   quoteItems,
+  maintenanceDefaults,
   type User,
   type UpsertUser,
   type Equipment,
@@ -22,6 +23,8 @@ import {
   type InsertClient,
   type InsertQuote,
   type InsertQuoteItem,
+  type MaintenanceDefaults,
+  type InsertMaintenanceDefaults,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, and } from "drizzle-orm";
@@ -70,6 +73,10 @@ export interface IStorage {
   updateQuoteItem(id: number, item: Partial<InsertQuoteItem>): Promise<QuoteItem>;
   deleteQuoteItem(id: number): Promise<void>;
   getQuoteItems(quoteId: number): Promise<QuoteItem[]>;
+
+  // Maintenance defaults
+  getMaintenanceDefaults(): Promise<MaintenanceDefaults | undefined>;
+  updateMaintenanceDefaults(defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -421,6 +428,37 @@ export class DatabaseStorage implements IStorage {
 
   async getQuoteItems(quoteId: number): Promise<QuoteItem[]> {
     return await db.select().from(quoteItems).where(eq(quoteItems.quoteId, quoteId));
+  }
+
+  // Maintenance defaults operations
+  async getMaintenanceDefaults(): Promise<MaintenanceDefaults | undefined> {
+    const [defaults] = await db.select().from(maintenanceDefaults).limit(1);
+    return defaults;
+  }
+
+  async updateMaintenanceDefaults(defaultsData: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults> {
+    // Check if record exists
+    const existing = await this.getMaintenanceDefaults();
+    
+    if (existing) {
+      // Update existing record
+      const [updated] = await db
+        .update(maintenanceDefaults)
+        .set({
+          ...defaultsData,
+          updatedAt: new Date(),
+        })
+        .where(eq(maintenanceDefaults.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new record
+      const [created] = await db
+        .insert(maintenanceDefaults)
+        .values(defaultsData)
+        .returning();
+      return created;
+    }
   }
 }
 
