@@ -208,9 +208,15 @@ export default function CreateQuote() {
   };
 
   const calculateTotals = () => {
-    const totalNet = quoteItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const totalNet = quoteItems.reduce((sum, item) => {
+      const itemTotal = item.totalPrice || 0;
+      console.log('Item total calculation:', { itemId: item.id, totalPrice: item.totalPrice, itemTotal });
+      return sum + itemTotal;
+    }, 0);
     const vatAmount = totalNet * 0.23;
     const totalGross = totalNet + vatAmount;
+    
+    console.log('Summary calculation:', { totalNet, vatAmount, totalGross, quoteItemsLength: quoteItems.length });
     
     return {
       totalNet,
@@ -261,6 +267,10 @@ export default function CreateQuote() {
   };
 
   const formatCurrency = (amount: number) => {
+    if (isNaN(amount)) {
+      console.error("formatCurrency in create-quote received NaN:", amount);
+      return "0,00 zł";
+    }
     return new Intl.NumberFormat('pl-PL', {
       style: 'currency',
       currency: 'PLN',

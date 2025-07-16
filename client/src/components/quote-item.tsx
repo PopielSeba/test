@@ -163,7 +163,23 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           travelCost = item.travelDistanceKm * item.travelRatePerKm * 2; // round trip
         }
         
-        const totalPrice = basePrice + fuelCost + maintenanceCost + travelCost;
+        // Calculate discount
+        const discountAmount = basePrice * (discountPercent / 100);
+        const discountedBasePrice = basePrice - discountAmount;
+        const totalPrice = discountedBasePrice + fuelCost + maintenanceCost + travelCost;
+        
+        console.log('Final price calculation:', {
+          equipmentName: selectedEquipment.name,
+          basePrice,
+          discountPercent,
+          discountAmount,
+          discountedBasePrice,
+          fuelCost,
+          maintenanceCost,
+          travelCost,
+          totalPrice,
+          isNaN: isNaN(totalPrice)
+        });
 
         onUpdate({
           ...item,
