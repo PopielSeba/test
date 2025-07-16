@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clients
-  app.get('/api/clients', isAuthenticated, async (req, res) => {
+  app.get('/api/clients', async (req, res) => {
     try {
       const clients = await storage.getClients();
       res.json(clients);
@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/clients', isAuthenticated, async (req, res) => {
+  app.post('/api/clients', async (req, res) => {
     try {
       const clientData = insertClientSchema.parse(req.body);
       const client = await storage.createClient(clientData);
@@ -242,17 +242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quotes
-  app.get('/api/quotes', isAuthenticated, async (req: any, res) => {
+  app.get('/api/quotes', async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      let quotes;
-      
-      if (user?.role === 'admin') {
-        quotes = await storage.getQuotes();
-      } else {
-        quotes = await storage.getQuotesByUser(req.user.claims.sub);
-      }
-      
+      const quotes = await storage.getQuotes();
       res.json(quotes);
     } catch (error) {
       console.error("Error fetching quotes:", error);
@@ -260,18 +252,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/quotes/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
       
       if (!quote) {
         return res.status(404).json({ message: "Quote not found" });
-      }
-
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin' && quote.createdById !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       res.json(quote);
@@ -281,11 +268,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quotes', isAuthenticated, async (req: any, res) => {
+  app.post('/api/quotes', async (req: any, res) => {
     try {
       const quoteData = insertQuoteSchema.parse({
         ...req.body,
-        createdById: req.user.claims.sub,
+        createdById: req.user?.claims?.sub || null,
         quoteNumber: `WYC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
       });
       const quote = await storage.createQuote(quoteData);
@@ -330,18 +317,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/quotes/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
       
       if (!quote) {
         return res.status(404).json({ message: "Quote not found" });
-      }
-
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin' && quote.createdById !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       const quoteData = insertQuoteSchema.partial().parse(req.body);
@@ -353,18 +335,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/quotes/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
       
       if (!quote) {
         return res.status(404).json({ message: "Quote not found" });
-      }
-
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin' && quote.createdById !== req.user.claims.sub) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       await storage.deleteQuote(id);
@@ -407,7 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quote Items
-  app.post('/api/quote-items', isAuthenticated, async (req: any, res) => {
+  app.post('/api/quote-items', async (req: any, res) => {
     try {
       const itemData = insertQuoteItemSchema.parse(req.body);
       const item = await storage.createQuoteItem(itemData);
@@ -418,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/quote-items/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/quote-items/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const itemData = insertQuoteItemSchema.partial().parse(req.body);
@@ -430,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/quote-items/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/quote-items/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteQuoteItem(id);

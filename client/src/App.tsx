@@ -22,24 +22,6 @@ import Navbar from "@/components/navbar";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <Switch>
-        <Route path="/" component={Landing} />
-        <Route path="/guest-quote" component={GuestQuote} />
-        <Route component={NotFound} />
-      </Switch>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -53,6 +35,7 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />
+        <Route path="/guest-quote" component={GuestQuote} />
         <Route component={NotFound} />
       </Switch>
     </div>

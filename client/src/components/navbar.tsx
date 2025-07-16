@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Navbar() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
 
   const isActive = (path: string) => {
@@ -35,7 +35,7 @@ export default function Navbar() {
     { path: "/create-quote", label: "Nowa Wycena", icon: Plus },
   ];
 
-  if (user?.role === 'admin') {
+  if (isAuthenticated && user?.role === 'admin') {
     navItems.push({ path: "/admin", label: "Admin", icon: Settings });
   }
 
@@ -71,50 +71,61 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-              <Bell className="w-5 h-5" />
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 h-10">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user?.profileImageUrl || undefined} />
-                    <AvatarFallback className="bg-primary text-white">
-                      <User className="w-4 h-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-foreground">
-                    {user?.firstName && user?.lastName 
-                      ? `${user.firstName} ${user.lastName}`
-                      : user?.email?.split('@')[0] || 'Użytkownik'
-                    }
-                  </span>
+            {isAuthenticated ? (
+              <>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                  <Bell className="w-5 h-5" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    <User className="w-4 h-4 mr-2" />
-                    Profil
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Ustawienia
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => window.location.href = '/api/logout'}
-                  className="text-red-600"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Wyloguj się
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center space-x-2 h-10">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={user?.profileImageUrl || undefined} />
+                        <AvatarFallback className="bg-primary text-white">
+                          <User className="w-4 h-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-foreground">
+                        {user?.firstName && user?.lastName 
+                          ? `${user.firstName} ${user.lastName}`
+                          : user?.email?.split('@')[0] || 'Użytkownik'
+                        }
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="cursor-pointer">
+                        <User className="w-4 h-4 mr-2" />
+                        Profil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="cursor-pointer">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Ustawienia
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => window.location.href = '/api/logout'}
+                      className="text-red-600"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Wyloguj się
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Button 
+                onClick={() => window.location.href = '/api/login'}
+                variant="default"
+              >
+                Zaloguj się
+              </Button>
+            )}
           </div>
         </div>
 

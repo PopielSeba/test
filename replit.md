@@ -24,6 +24,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - Implemented comprehensive cost calculation system with fuel, installation, and maintenance costs
 - Resolved PDF generation compatibility issues for Replit environment
 - Replaced Puppeteer with browser-based printing solution
+- **Removed authentication requirement from main application** - users can now access all features without login
+- **Restricted admin panel access to authenticated administrators only**
+- **Added guest access to equipment, quotes, and client management**
 - Application ready for production deployment as ofertnik.replit.app
 
 
