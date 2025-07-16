@@ -569,10 +569,15 @@ export default function Admin() {
         <div className="mb-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Zarządzanie użytkownikami
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center">
+                  <Users className="w-5 h-5 mr-2" />
+                  Zarządzanie użytkownikami
+                </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Użytkownicy są automatycznie dodawani podczas pierwszego logowania
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -629,8 +634,9 @@ export default function Admin() {
                             <Select 
                               value={user.role} 
                               onValueChange={(role) => updateUserRoleMutation.mutate({ id: user.id, role })}
+                              disabled={updateUserRoleMutation.isPending}
                             >
-                              <SelectTrigger className="w-24">
+                              <SelectTrigger className="w-32">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -642,6 +648,8 @@ export default function Admin() {
                               variant="outline"
                               size="sm"
                               onClick={() => toggleUserActiveMutation.mutate(user.id)}
+                              disabled={toggleUserActiveMutation.isPending}
+                              title={user.isActive ? "Deaktywuj użytkownika" : "Aktywuj użytkownika"}
                             >
                               {user.isActive ? (
                                 <UserX className="w-4 h-4" />

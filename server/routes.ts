@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment Categories
-  app.get('/api/equipment-categories', isAuthenticated, async (req, res) => {
+  app.get('/api/equipment-categories', async (req, res) => {
     try {
       const categories = await storage.getEquipmentCategories();
       res.json(categories);
@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment
-  app.get('/api/equipment', isAuthenticated, async (req, res) => {
+  app.get('/api/equipment', async (req, res) => {
     try {
       const equipment = await storage.getEquipment();
       res.json(equipment);
