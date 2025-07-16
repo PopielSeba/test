@@ -107,8 +107,14 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         const pricePerDay = parseFloat(pricing.pricePerDay);
         const discountPercent = parseFloat(pricing.discountPercent);
         
-        if (isNaN(pricePerDay)) {
-          console.error("Invalid pricePerDay:", pricing.pricePerDay, "Equipment:", selectedEquipment.name);
+        if (isNaN(pricePerDay) || isNaN(discountPercent)) {
+          console.error("Invalid pricing data:", {
+            pricePerDay: pricing.pricePerDay,
+            discountPercent: pricing.discountPercent,
+            parsedPricePerDay: pricePerDay,
+            parsedDiscountPercent: discountPercent,
+            equipment: selectedEquipment.name
+          });
           return;
         }
         
@@ -117,7 +123,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           days: item.rentalPeriodDays,
           pricePerDay,
           discountPercent,
-          basePrice: pricePerDay * item.quantity * item.rentalPeriodDays
+          quantity: item.quantity,
+          basePrice: pricePerDay * item.quantity * item.rentalPeriodDays,
+          pricePerDayType: typeof pricePerDay,
+          quantityType: typeof item.quantity,
+          daysType: typeof item.rentalPeriodDays,
+          discountPercentType: typeof discountPercent
         });
         
         const basePrice = pricePerDay * item.quantity * item.rentalPeriodDays;
