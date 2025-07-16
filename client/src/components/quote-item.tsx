@@ -509,7 +509,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   <div>
                     <label className="text-sm text-muted-foreground">Koszt serwisu</label>
                     <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                      {formatCurrency(maintenanceCost)}
+                      {formatCurrency(item.maintenanceCostPerPeriod || 0)}
                     </div>
                   </div>
                 </div>
