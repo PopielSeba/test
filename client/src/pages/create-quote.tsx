@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,10 +67,45 @@ export default function CreateQuote() {
   const [quoteItems, setQuoteItems] = useState<QuoteItemData[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get equipment ID from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const equipmentIdFromUrl = urlParams.get('equipment');
 
   const { data: equipment = [] } = useQuery<Equipment[]>({
     queryKey: ["/api/equipment"],
   });
+  
+  // Auto-add equipment when coming from equipment page
+  useEffect(() => {
+    if (equipmentIdFromUrl && equipment.length > 0 && quoteItems.length === 0) {
+      const selectedEquipment = equipment.find(eq => eq.id === parseInt(equipmentIdFromUrl));
+      if (selectedEquipment) {
+        const newItem: QuoteItemData = {
+          id: Date.now().toString(),
+          equipmentId: selectedEquipment.id,
+          quantity: 1,
+          rentalPeriodDays: 1,
+          pricePerDay: 0,
+          discountPercent: 0,
+          totalPrice: 0,
+          notes: "",
+          fuelConsumptionLH: selectedEquipment.fuelConsumption75 || 0,
+          fuelPricePerLiter: 6.50, // Default fuel price
+          hoursPerDay: 8,
+          totalFuelCost: 0,
+          includeFuelCost: false,
+          includeMaintenanceCost: false,
+          maintenanceCostPerPeriod: 0,
+        };
+        setQuoteItems([newItem]);
+        
+        // Remove equipment param from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, [equipmentIdFromUrl, equipment, quoteItems.length]);
 
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),

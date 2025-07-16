@@ -194,7 +194,7 @@ export default function Equipment() {
                         variant="outline" 
                         className="w-full mt-4"
                         disabled={item.availableQuantity === 0}
-                        onClick={() => navigate('/create-quote')}
+                        onClick={() => navigate(`/create-quote?equipment=${item.id}`)}
                       >
                         {item.availableQuantity === 0 ? 'Niedostępny' : 'Dodaj do wyceny'}
                       </Button>
