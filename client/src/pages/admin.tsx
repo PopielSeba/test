@@ -1002,13 +1002,26 @@ export default function Admin() {
                                     <Input
                                       type="number"
                                       step="0.01"
-                                      value={currentPrice}
-                                      onChange={(e) => {
+                                      defaultValue={currentPrice}
+                                      onBlur={(e) => {
                                         const newPrice = parseFloat(e.target.value) || 0;
-                                        updatePricingMutation.mutate({
-                                          id: pricing.id,
-                                          pricePerDay: newPrice.toString()
-                                        });
+                                        if (newPrice !== currentPrice) {
+                                          updatePricingMutation.mutate({
+                                            id: pricing.id,
+                                            pricePerDay: newPrice.toString()
+                                          });
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          const newPrice = parseFloat(e.currentTarget.value) || 0;
+                                          if (newPrice !== currentPrice) {
+                                            updatePricingMutation.mutate({
+                                              id: pricing.id,
+                                              pricePerDay: newPrice.toString()
+                                            });
+                                          }
+                                        }
                                       }}
                                       className="w-20 text-right"
                                     />
