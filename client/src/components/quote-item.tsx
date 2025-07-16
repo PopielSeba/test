@@ -330,7 +330,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     const oilTotalCost = (updatedItem.oilQuantityLiters || 14.7) * (updatedItem.oilCost || 162.44) / 14.7;
     
     // Calculate service work cost
-    const serviceWorkCost = (updatedItem.serviceWorkHours || 2) * (updatedItem.serviceWorkRatePerHour || 100);
+    const serviceWorkCost = (updatedItem.serviceWorkHours ?? 2) * (updatedItem.serviceWorkRatePerHour ?? 100);
     
     // Calculate travel cost - only if enabled
     const travelCost = updatedItem.includeServiceTravelCost !== false 
@@ -932,10 +932,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.1"
-                      value={item.serviceWorkHours || 2}
+                      value={item.serviceWorkHours ?? 2}
                       onChange={(e) => {
-                        const hours = parseFloat(e.target.value) || 2;
-                        updateMaintenanceCost({ ...item, serviceWorkHours: hours });
+                        const hours = parseFloat(e.target.value);
+                        updateMaintenanceCost({ ...item, serviceWorkHours: isNaN(hours) ? 0 : hours });
                       }}
                       placeholder="2"
                     />
@@ -948,10 +948,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.serviceWorkRatePerHour || 100}
+                      value={item.serviceWorkRatePerHour ?? 100}
                       onChange={(e) => {
-                        const rate = parseFloat(e.target.value) || 100;
-                        updateMaintenanceCost({ ...item, serviceWorkRatePerHour: rate });
+                        const rate = parseFloat(e.target.value);
+                        updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? 0 : rate });
                       }}
                       placeholder="100.00"
                     />
