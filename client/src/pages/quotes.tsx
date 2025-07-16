@@ -211,8 +211,8 @@ export default function Quotes() {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                title="Pobierz PDF"
-                                onClick={() => window.open(`/api/quotes/${quote.id}/pdf`, '_blank')}
+                                title="Drukuj"
+                                onClick={() => window.open(`/api/quotes/${quote.id}/print`, '_blank')}
                               >
                                 <Download className="w-4 h-4" />
                               </Button>

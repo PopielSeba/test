@@ -225,10 +225,10 @@ export default function QuoteDetail() {
           <div className="flex space-x-2">
             <Button 
               variant="outline" 
-              onClick={() => window.open(`/api/quotes/${quote.id}/pdf`, '_blank')}
+              onClick={() => window.open(`/api/quotes/${quote.id}/print`, '_blank')}
             >
               <Download className="w-4 h-4 mr-2" />
-              Pobierz PDF
+              Drukuj
             </Button>
             <Link href={`/quotes/${quote.id}/edit`}>
               <Button>

@@ -287,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/quotes/:id/pdf', isAuthenticated, async (req: any, res) => {
+  app.get('/api/quotes/:id/print', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
@@ -301,31 +301,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const htmlToPdf = await import('html-pdf-node');
-      
       // Generate HTML content for the quote
       const htmlContent = generateQuoteHTML(quote);
       
-      const options = {
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm'
-        }
-      };
-      
-      const file = { content: htmlContent };
-      const pdf = await htmlToPdf.default.generatePdf(file, options);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="Wycena_${quote.quoteNumber}.pdf"`);
-      res.send(pdf);
+      res.setHeader('Content-Type', 'text/html');
+      res.send(htmlContent);
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
+      console.error("Error generating print view:", error);
+      res.status(500).json({ message: "Failed to generate print view" });
     }
   });
 
@@ -486,9 +469,16 @@ function generateQuoteHTML(quote: any) {
         td { padding: 10px; border-bottom: 1px solid #ddd; }
         .total-row { font-weight: bold; background-color: #f0f0f0; }
         .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+        @media print {
+          body { -webkit-print-color-adjust: exact; }
+          .no-print { display: none; }
+        }
+        .print-button { position: fixed; top: 20px; right: 20px; z-index: 1000; background: #0066cc; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .print-button:hover { background: #0052a3; }
       </style>
     </head>
     <body>
+      <button class="print-button no-print" onclick="window.print()">🖨️ Drukuj</button>
       <div class="header">
         <div class="company-logo">Sebastian Popiel</div>
         <div class="quote-title">Wycena sprzętu budowlanego</div>
