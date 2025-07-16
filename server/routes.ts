@@ -301,20 +301,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const puppeteer = await import('puppeteer');
-      const browser = await puppeteer.default.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      
-      const page = await browser.newPage();
+      const htmlToPdf = require('html-pdf-node');
       
       // Generate HTML content for the quote
       const htmlContent = generateQuoteHTML(quote);
       
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-      
-      const pdf = await page.pdf({
+      const options = {
         format: 'A4',
         printBackground: true,
         margin: {
@@ -323,9 +315,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bottom: '20mm',
           left: '20mm'
         }
-      });
+      };
       
-      await browser.close();
+      const file = { content: htmlContent };
+      const pdf = await htmlToPdf.generatePdf(file, options);
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="Wycena_${quote.quoteNumber}.pdf"`);
