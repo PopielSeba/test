@@ -278,7 +278,48 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
         notes: "",
       };
 
-      await createQuoteMutation.mutateAsync(quoteData);
+      const createdQuote = await createQuoteMutation.mutateAsync(quoteData);
+      
+      // Create quote items
+      for (const item of quoteItems) {
+        const itemData = {
+          quoteId: createdQuote.id,
+          equipmentId: item.equipmentId,
+          quantity: item.quantity,
+          rentalPeriodDays: item.rentalPeriodDays,
+          pricePerDay: item.pricePerDay,
+          discountPercent: item.discountPercent,
+          totalPrice: item.totalPrice,
+          notes: item.notes || "",
+          includeFuelCost: item.includeFuelCost,
+          fuelConsumptionLH: item.fuelConsumptionLH,
+          fuelPricePerLiter: item.fuelPricePerLiter,
+          hoursPerDay: item.hoursPerDay,
+          totalFuelCost: item.totalFuelCost,
+          includeInstallationCost: item.includeInstallationCost,
+          installationDistanceKm: item.installationDistanceKm,
+          numberOfTechnicians: item.numberOfTechnicians,
+          serviceRatePerTechnician: item.serviceRatePerTechnician,
+          travelRatePerKm: item.travelRatePerKm,
+          totalInstallationCost: item.totalInstallationCost,
+          includeMaintenanceCost: item.includeMaintenanceCost || false,
+          totalMaintenanceCost: item.totalMaintenanceCost || 0,
+          includeServiceItems: item.includeServiceItems || false,
+          serviceItem1Cost: item.serviceItem1Cost || 0,
+          serviceItem2Cost: item.serviceItem2Cost || 0,
+          serviceItem3Cost: item.serviceItem3Cost || 0,
+          totalServiceItemsCost: item.totalServiceItemsCost || 0,
+        };
+        
+        try {
+          await apiRequest("/api/quote-items", {
+            method: "POST",
+            body: JSON.stringify(itemData),
+          });
+        } catch (error) {
+          console.error("Error creating quote item:", error);
+        }
+      }
     } catch (error) {
       console.error("Error creating quote:", error);
     }
