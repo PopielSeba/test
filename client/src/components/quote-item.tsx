@@ -51,6 +51,7 @@ interface QuoteItemData {
   // Service travel cost
   serviceTravelDistanceKm?: number;
   serviceTravelRatePerKm?: number;
+  includeServiceTravelCost?: boolean;
   totalMaintenanceCost?: number;
   expectedMaintenanceHours?: number;
 }
@@ -331,8 +332,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     // Calculate service work cost
     const serviceWorkCost = (updatedItem.serviceWorkHours || 2) * (updatedItem.serviceWorkRatePerHour || 100);
     
-    // Calculate travel cost
-    const travelCost = (updatedItem.serviceTravelDistanceKm || 31) * (updatedItem.serviceTravelRatePerKm || 1.15) * 2;
+    // Calculate travel cost - only if enabled
+    const travelCost = updatedItem.includeServiceTravelCost !== false 
+      ? (updatedItem.serviceTravelDistanceKm || 31) * (updatedItem.serviceTravelRatePerKm || 1.15) * 2
+      : 0;
     
     // Total maintenance cost for 500 hours
     const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost + travelCost;
@@ -896,6 +899,21 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
 
                 <Separator className="my-4" />
                 
+                <div className="mb-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Checkbox
+                      id="includeServiceTravelCost"
+                      checked={item.includeServiceTravelCost !== false}
+                      onCheckedChange={(checked) => {
+                        updateMaintenanceCost({ ...item, includeServiceTravelCost: checked });
+                      }}
+                    />
+                    <label htmlFor="includeServiceTravelCost" className="text-sm font-medium text-foreground">
+                      Uwzględnij koszt dojazdu serwisanta
+                    </label>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                   <div className="md:col-span-4">
                     <h4 className="font-medium text-foreground mb-3">Koszt pracy i dojazdu serwisanta</h4>
@@ -946,6 +964,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                         updateMaintenanceCost({ ...item, serviceTravelDistanceKm: distance });
                       }}
                       placeholder="31"
+                      disabled={item.includeServiceTravelCost === false}
                     />
                   </div>
                   
@@ -962,6 +981,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                         updateMaintenanceCost({ ...item, serviceTravelRatePerKm: rate });
                       }}
                       placeholder="1.15"
+                      disabled={item.includeServiceTravelCost === false}
                     />
                   </div>
                 </div>
