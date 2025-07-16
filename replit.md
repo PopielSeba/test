@@ -20,58 +20,13 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - Fixed TypeScript error in dashboard stats route for null date handling
 
 ### January 16, 2025
-- Added complete SDMO generator lineup (22 models) with technical specifications
-- Implemented automatic fuel consumption calculation based on 75% load capacity
-- Changed application branding from "REKORD" to "Sebastian Popiel" throughout the system
-- Enhanced equipment catalog with direct "Add to Quote" functionality via URL parameters
-- Added comprehensive installation cost calculation system:
-  • Distance tracking (km) with round-trip calculation
-  • Number of technicians configuration (default: 1)
-  • Service rate per technician (default: 150 PLN/service)  
-  • Travel rate per km (default: 1.15 PLN/km)
-  • Automatic total installation cost calculation
-- Extended admin panel with full equipment parameter management:
-  • Technical specifications (fuel consumption, dimensions, weight, engine, alternator)
-  • Complete CRUD operations for all equipment attributes
-- Added 5 lighting tower models with complete specifications:
-  • Generac VT1 (4x1000W, 350 zł/day)
-  • Generac V20 (4x320W, 320 zł/day)  
-  • Generac V20 PRO (4x60W/120W/180W/240W hybrid, 380 zł/day)
-  • Atlas Copco H6+ (4x350W, 380 zł/day)
-  • Atlas Copco H5+ (4x350W, 360 zł/day)
-  • Full technical specs including fuel consumption and dimensions
-- **REMOVED**: Service cost system completely removed from the entire application
-  • Eliminated all filter cost calculations and maintenance interval tracking
-  • Removed related database columns and interface elements
-  • Simplified quote calculations to focus on base pricing, fuel costs, and installation costs only
-- **UPDATED**: Renamed "travel costs" to "installation costs" with updated terminology:
-  • Changed "koszty dojazdów serwisu" to "koszty montażu"
-  • Changed "stawka za godzinę" to "stawka za usługę"
-  • Updated all related interface labels and field names
-- Fixed admin pricing table functionality:
-  • Corrected day range sorting and display (1-2 dni, 3-7 dni, 8-18 dni, 19-29 dni, 30 dni i więcej)
-  • Implemented real-time discount calculations in editable pricing table
-  • Fixed quote calculation error where discount was applied twice
-  • Added "Create standard pricing tiers" button for equipment without pricing
-- Added complete air conditioner lineup (12 models) with full technical specifications:
-  • Dantherm AC M18 (17.5kW mobile unit)
-  • Lennox CMH series (standing units 24-69.5kW)
-  • Lennox BAH/BAC series (industrial units 49.9-85kW)
-  • All models include power ratings, dimensions, weight, and electrical specifications
-  • Standard pricing tiers: 220/190/160/130/100 PLN per day with appropriate discounts
-- Added complete heater lineup (5 models) with full technical specifications:
-  • Arcotherm EC55 Master BV170E (55kW, fuel consumption 4.6 l/h)
-  • Arcotherm EC85 Master BV290E (85kW, fuel consumption 7.17 l/h)
-  • Master BV 691 S (up to 225kW, fuel consumption 21.44 l/h)
-  • Thermobile IMA 200 (200kW, fuel consumption 19.4 l/h)
-  • Biemmedue Jumbo 235 (235kW, fuel consumption 18.65 l/h)
-  • All models include power ratings, dimensions, weight, fuel consumption, and electrical specifications
-  • Standard pricing tiers: 450/385/320/255/190 PLN per day with appropriate discounts
-- Transformed dashboard into navigation hub with quick action tiles:
-  • Removed statistics cards per user feedback
-  • Maintained quick access tiles for main functions (Create Quote, Equipment Catalog, Quote List, Admin Panel)
-  • Added recent quotes section and equipment categories overview
-  • Personalized greeting with user name
+- Added complete equipment catalog with technical specifications (44 items total)
+- Implemented comprehensive cost calculation system with fuel, installation, and maintenance costs
+- Resolved PDF generation compatibility issues for Replit environment
+- Replaced Puppeteer with browser-based printing solution
+- Application ready for production deployment as ofertnik.replit.app
+
+
 
 ## User Preferences
 
