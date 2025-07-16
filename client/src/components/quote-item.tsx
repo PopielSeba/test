@@ -136,7 +136,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           includeMaintenanceCost: item.includeMaintenanceCost,
           categoryName: selectedEquipment.category.name,
           isGenerator: selectedEquipment.category.name === 'Agregaty prądotwórcze',
-          isLightingTower: selectedEquipment.category.name === 'Maszty oświetleniowe'
+          isLightingTower: selectedEquipment.category.name === 'Maszty oświetleniowe',
+          willCalculate: item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')
         });
         
         if (item.includeMaintenanceCost && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe')) {
