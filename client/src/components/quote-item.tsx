@@ -990,7 +990,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Koszt eksploatacji
                     </label>
-                    <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                    <div className="text-lg font-bold text-primary bg-primary/10 p-3 rounded-lg border-2 border-primary/20">
                       {formatCurrency(item.totalMaintenanceCost || 0)}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
