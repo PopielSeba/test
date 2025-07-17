@@ -232,7 +232,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return Array.from(equipmentMap.values());
+    return Array.from(equipmentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getEquipment(): Promise<EquipmentWithCategory[]> {
@@ -273,7 +273,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return Array.from(equipmentMap.values());
+    return Array.from(equipmentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getEquipmentById(id: number): Promise<EquipmentWithCategory | undefined> {
@@ -324,7 +324,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return Array.from(equipmentMap.values());
+    return Array.from(equipmentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async createEquipment(equipmentData: InsertEquipment): Promise<Equipment> {
