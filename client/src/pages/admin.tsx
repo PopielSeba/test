@@ -844,10 +844,13 @@ export default function Admin() {
                           Kategoria
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent aria-describedby="category-dialog-description">
                         <DialogHeader>
                           <DialogTitle>Dodaj kategorię</DialogTitle>
                         </DialogHeader>
+                        <div id="category-dialog-description" className="sr-only">
+                          Formularz do dodawania nowej kategorii sprzętu
+                        </div>
                         <Form {...categoryForm}>
                           <form onSubmit={categoryForm.handleSubmit(onSubmitCategory)} className="space-y-4">
                             <FormField
@@ -897,12 +900,15 @@ export default function Admin() {
                           Sprzęt
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-2xl" aria-describedby="equipment-dialog-description">
                         <DialogHeader>
                           <DialogTitle>
                             {selectedEquipment ? "Edytuj sprzęt" : "Dodaj sprzęt"}
                           </DialogTitle>
                         </DialogHeader>
+                        <div id="equipment-dialog-description" className="sr-only">
+                          Formularz do {selectedEquipment ? "edycji" : "dodawania"} sprzętu budowlanego
+                        </div>
                         <Form {...equipmentForm}>
                           <form onSubmit={equipmentForm.handleSubmit(onSubmitEquipment)} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
@@ -1621,10 +1627,13 @@ export default function Admin() {
 
         {/* Pricing Dialog */}
         <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
-          <DialogContent>
+          <DialogContent aria-describedby="pricing-dialog-description">
             <DialogHeader>
               <DialogTitle>Dodaj cennik</DialogTitle>
             </DialogHeader>
+            <div id="pricing-dialog-description" className="sr-only">
+              Formularz do dodawania nowego przedziału cenowego dla sprzętu
+            </div>
             <Form {...pricingForm}>
               <form onSubmit={pricingForm.handleSubmit(onSubmitPricing)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
