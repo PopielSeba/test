@@ -14,13 +14,24 @@ import { apiRequest } from "@/lib/queryClient";
 import QuoteItem from "@/components/quote-item";
 
 const clientSchema = z.object({
-  companyName: z.string().min(1, "Nazwa firmy jest wymagana"),
+  companyName: z.string().optional(),
   nip: z.string().optional(),
-  contactPerson: z.string().min(1, "Osoba kontaktowa jest wymagana"),
-  phone: z.string().min(1, "Telefon jest wymagany"),
-  email: z.string().email("Nieprawidłowy format email"),
-  address: z.string().min(1, "Adres jest wymagany"),
-});
+  contactPerson: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional().refine((email) => !email || z.string().email().safeParse(email).success, {
+    message: "Nieprawidłowy format email",
+  }),
+  address: z.string().optional(),
+}).refine(
+  (data) => {
+    // Require at least one field to be filled
+    return data.companyName || data.contactPerson || data.phone || data.email;
+  },
+  {
+    message: "Wypełnij przynajmniej jedno pole: nazwę firmy, osobę kontaktową, telefon lub email",
+    path: ["companyName"],
+  }
+);
 
 interface QuoteItemData {
   id: string;
@@ -401,6 +412,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
             <Card>
               <CardHeader>
                 <CardTitle>Informacje o kliencie</CardTitle>
+                <p className="text-sm text-muted-foreground">Wypełnij przynajmniej jedno pole</p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
