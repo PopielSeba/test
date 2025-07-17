@@ -613,11 +613,36 @@ export default function Admin() {
     }
   };
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Wymagane logowanie",
+        description: "Przekierowuję do logowania...",
+        variant: "default",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 1000);
+    }
+  }, [authLoading, user, toast]);
+
   // Check if user is authenticated and has admin role
   if (!authLoading && !user) {
-    // User is not authenticated, redirect to login
-    window.location.href = "/api/login";
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Przekierowuję do logowania</h2>
+            <p className="text-muted-foreground">Proszę czekać, przekierowuję do systemu logowania Replit...</p>
+            <div className="mt-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!authLoading && user && user.role !== 'admin') {
