@@ -220,6 +220,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/equipment/:id/permanent', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.permanentlyDeleteEquipment(id);
+      res.json({ message: "Equipment permanently deleted successfully" });
+    } catch (error) {
+      console.error("Error permanently deleting equipment:", error);
+      res.status(500).json({ message: "Failed to permanently delete equipment" });
+    }
+  });
+
   // Equipment Pricing
   app.post('/api/equipment-pricing', isAuthenticated, async (req: any, res) => {
     try {

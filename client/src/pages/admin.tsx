@@ -322,6 +322,39 @@ export default function Admin() {
     },
   });
 
+  const permanentDeleteEquipmentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/equipment/${id}/permanent`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment/inactive"] });
+      toast({
+        title: "Sukces",
+        description: "Nieaktywny sprzęt został całkowicie usunięty wraz ze wszystkimi powiązanymi danymi",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się całkowicie usunąć nieaktywnego sprzętu",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof categorySchema>) => {
       const response = await apiRequest("POST", "/api/equipment-categories", data);
@@ -1254,12 +1287,12 @@ export default function Admin() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              if (confirm(`Czy na pewno chcesz usunąć nieaktywny sprzęt "${item.name}"? Ta operacja może się nie powieść jeśli sprzęt jest używany w wycenach.`)) {
-                                deleteEquipmentMutation.mutate(item.id);
+                              if (confirm(`Czy na pewno chcesz CAŁKOWICIE usunąć nieaktywny sprzęt "${item.name}"? Ta operacja usunie wszystkie powiązane dane włącznie z pozycjami w wycenach. Tej operacji nie można cofnąć!`)) {
+                                permanentDeleteEquipmentMutation.mutate(item.id);
                               }
                             }}
                             className="text-red-600 hover:text-red-700"
-                            disabled={deleteEquipmentMutation.isPending}
+                            disabled={permanentDeleteEquipmentMutation.isPending}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

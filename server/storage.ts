@@ -54,6 +54,7 @@ export interface IStorage {
   createEquipment(equipment: InsertEquipment): Promise<Equipment>;
   updateEquipment(id: number, equipment: Partial<InsertEquipment>): Promise<Equipment>;
   deleteEquipment(id: number): Promise<void>;
+  permanentlyDeleteEquipment(id: number): Promise<void>;
 
   // Equipment pricing
   createEquipmentPricing(pricing: InsertEquipmentPricing): Promise<EquipmentPricing>;
@@ -178,6 +179,8 @@ export class DatabaseStorage implements IStorage {
     
     // Delete related data for each inactive equipment
     for (const item of inactiveEquipment) {
+      // Delete quote items that reference this equipment
+      await db.delete(quoteItems).where(eq(quoteItems.equipmentId, item.id));
       // Delete pricing
       await db.delete(equipmentPricing).where(eq(equipmentPricing.equipmentId, item.id));
       // Delete additional equipment
@@ -372,6 +375,15 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEquipment(id: number): Promise<void> {
     await db.update(equipment).set({ isActive: false }).where(eq(equipment.id, id));
+  }
+
+  async permanentlyDeleteEquipment(id: number): Promise<void> {
+    // Delete all related data first
+    await db.delete(quoteItems).where(eq(quoteItems.equipmentId, id));
+    await db.delete(equipmentPricing).where(eq(equipmentPricing.equipmentId, id));
+    await db.delete(equipmentAdditional).where(eq(equipmentAdditional.equipmentId, id));
+    // Finally delete the equipment itself
+    await db.delete(equipment).where(eq(equipment.id, id));
   }
 
   // Equipment pricing
