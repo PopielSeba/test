@@ -454,8 +454,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quotes
-  app.get('/api/quotes', async (req: any, res) => {
+  // Quotes - accessible by authenticated users (admin and employee)
+  app.get('/api/quotes', isAuthenticated, async (req: any, res) => {
     try {
       const quotes = await storage.getQuotes();
       res.json(quotes);
@@ -465,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/quotes/:id', async (req: any, res) => {
+  app.get('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
@@ -481,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quotes', async (req: any, res) => {
+  app.post('/api/quotes', isAuthenticated, async (req: any, res) => {
     try {
       const quoteData = insertQuoteSchema.parse({
         ...req.body,
@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/quotes/:id', async (req: any, res) => {
+  app.put('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
@@ -579,8 +579,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Quote not found" });
       }
 
+      // Allow both admin and employee access to printing
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin' && quote.createdById !== req.user.claims.sub) {
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -601,8 +602,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quote Items
-  app.post('/api/quote-items', async (req: any, res) => {
+  // Quote Items - accessible by authenticated users (admin and employee)
+  app.post('/api/quote-items', isAuthenticated, async (req: any, res) => {
     try {
       const itemData = insertQuoteItemSchema.parse(req.body);
       const item = await storage.createQuoteItem(itemData);
@@ -613,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/quote-items/:id', async (req: any, res) => {
+  app.put('/api/quote-items/:id', isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const itemData = insertQuoteItemSchema.partial().parse(req.body);

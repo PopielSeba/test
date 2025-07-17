@@ -12,6 +12,8 @@ import { Plus, Trash2, Save, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import QuoteItem from "@/components/quote-item";
+import { useAuth } from "@/hooks/useAuth";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 const clientSchema = z.object({
   companyName: z.string().optional(),
@@ -104,6 +106,7 @@ interface CreateQuoteProps {
 }
 
 export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [quoteItems, setQuoteItems] = useState<QuoteItemData[]>([]);
   
   // Initialize quote items when editing
@@ -146,6 +149,21 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
   }, [editingQuote]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Brak uprawnień",
+        description: "Dostęp do tworzenia ofert wymaga zalogowania.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 1000);
+      return;
+    }
+  }, [isAuthenticated, authLoading, toast]);
   
   // Get equipment ID from URL params
   const urlParams = new URLSearchParams(window.location.search);

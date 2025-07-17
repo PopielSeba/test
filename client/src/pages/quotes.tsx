@@ -62,16 +62,16 @@ export default function Quotes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Redirect non-admin users
+  // Redirect unauthenticated users
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || user?.role !== 'admin')) {
+    if (!authLoading && !isAuthenticated) {
       toast({
         title: "Brak uprawnień",
-        description: "Dostęp do wycen jest dostępny tylko dla administratorów.",
+        description: "Dostęp do wycen wymaga zalogowania.",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/api/login";
       }, 1000);
     }
   }, [isAuthenticated, user, authLoading, toast]);
