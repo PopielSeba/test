@@ -59,6 +59,7 @@ interface Equipment {
   power?: string;
   quantity: number;
   availableQuantity: number;
+  imageUrl?: string;
   // Technical specifications for generators
   fuelConsumption75?: number;
   dimensions?: string;
@@ -633,6 +634,7 @@ export default function Admin() {
       quantity: equipment.quantity,
       availableQuantity: equipment.availableQuantity,
       categoryId: equipment.category.id,
+      imageUrl: equipment.imageUrl || "",
       fuelConsumption75: equipment.fuelConsumption75,
       dimensions: equipment.dimensions || "",
       weight: equipment.weight || "",
@@ -654,6 +656,7 @@ export default function Admin() {
       quantity: 0,
       availableQuantity: 0,
       categoryId: 0,
+      imageUrl: "",
       fuelConsumption75: undefined,
       dimensions: "",
       weight: "",
