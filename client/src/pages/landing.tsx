@@ -11,6 +11,7 @@ export default function Landing() {
               <Settings className="w-12 h-12 text-white" />
             </div>
             <h1 className="text-5xl font-bold mb-4">Sebastian Popiel</h1>
+            <p className="text-xl opacity-90">system wycen</p>
           </div>
           
 

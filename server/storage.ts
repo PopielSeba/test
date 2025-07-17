@@ -3,6 +3,7 @@ import {
   equipment,
   equipmentCategories,
   equipmentPricing,
+  equipmentAdditional,
   clients,
   quotes,
   quoteItems,
@@ -12,6 +13,8 @@ import {
   type Equipment,
   type EquipmentCategory,
   type EquipmentPricing,
+  type EquipmentAdditional,
+  type InsertEquipmentAdditional,
   type EquipmentWithCategory,
   type Client,
   type Quote,
@@ -55,6 +58,12 @@ export interface IStorage {
   createEquipmentPricing(pricing: InsertEquipmentPricing): Promise<EquipmentPricing>;
   updateEquipmentPricing(id: number, pricing: Partial<InsertEquipmentPricing>): Promise<EquipmentPricing>;
   deleteEquipmentPricing(id: number): Promise<void>;
+
+  // Equipment additional and accessories
+  getEquipmentAdditional(equipmentId: number): Promise<EquipmentAdditional[]>;
+  createEquipmentAdditional(additional: InsertEquipmentAdditional): Promise<EquipmentAdditional>;
+  updateEquipmentAdditional(id: number, additional: Partial<InsertEquipmentAdditional>): Promise<EquipmentAdditional>;
+  deleteEquipmentAdditional(id: number): Promise<void>;
 
   // Clients
   getClients(): Promise<Client[]>;
@@ -160,6 +169,7 @@ export class DatabaseStorage implements IStorage {
       .from(equipment)
       .leftJoin(equipmentCategories, eq(equipment.categoryId, equipmentCategories.id))
       .leftJoin(equipmentPricing, eq(equipment.id, equipmentPricing.equipmentId))
+      .leftJoin(equipmentAdditional, eq(equipment.id, equipmentAdditional.equipmentId))
       .where(eq(equipment.isActive, true));
 
     const equipmentMap = new Map<number, EquipmentWithCategory>();
@@ -170,11 +180,24 @@ export class DatabaseStorage implements IStorage {
           ...row.equipment,
           category: row.equipment_categories!,
           pricing: [],
+          additionalEquipment: [],
         });
       }
 
+      const equipmentItem = equipmentMap.get(row.equipment.id)!;
+
       if (row.equipment_pricing) {
-        equipmentMap.get(row.equipment.id)!.pricing.push(row.equipment_pricing);
+        const existingPricing = equipmentItem.pricing.find(p => p.id === row.equipment_pricing!.id);
+        if (!existingPricing) {
+          equipmentItem.pricing.push(row.equipment_pricing);
+        }
+      }
+
+      if (row.equipment_additional) {
+        const existingAdditional = equipmentItem.additionalEquipment.find(a => a.id === row.equipment_additional!.id);
+        if (!existingAdditional) {
+          equipmentItem.additionalEquipment.push(row.equipment_additional);
+        }
       }
     }
 
@@ -187,6 +210,7 @@ export class DatabaseStorage implements IStorage {
       .from(equipment)
       .leftJoin(equipmentCategories, eq(equipment.categoryId, equipmentCategories.id))
       .leftJoin(equipmentPricing, eq(equipment.id, equipmentPricing.equipmentId))
+      .leftJoin(equipmentAdditional, eq(equipment.id, equipmentAdditional.equipmentId))
       .where(eq(equipment.id, id));
 
     if (result.length === 0) return undefined;
@@ -194,11 +218,13 @@ export class DatabaseStorage implements IStorage {
     const equipmentData = result[0].equipment;
     const category = result[0].equipment_categories!;
     const pricing = result.map(row => row.equipment_pricing).filter(Boolean) as EquipmentPricing[];
+    const additionalEquipment = result.map(row => row.equipment_additional).filter(Boolean) as EquipmentAdditional[];
 
     return {
       ...equipmentData,
       category,
       pricing,
+      additionalEquipment,
     };
   }
 
@@ -288,6 +314,33 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEquipmentPricing(id: number): Promise<void> {
     await db.delete(equipmentPricing).where(eq(equipmentPricing.id, id));
+  }
+
+  // Equipment additional and accessories
+  async getEquipmentAdditional(equipmentId: number): Promise<EquipmentAdditional[]> {
+    return await db
+      .select()
+      .from(equipmentAdditional)
+      .where(eq(equipmentAdditional.equipmentId, equipmentId))
+      .orderBy(equipmentAdditional.type, equipmentAdditional.position);
+  }
+
+  async createEquipmentAdditional(additional: InsertEquipmentAdditional): Promise<EquipmentAdditional> {
+    const [result] = await db.insert(equipmentAdditional).values(additional).returning();
+    return result;
+  }
+
+  async updateEquipmentAdditional(id: number, additional: Partial<InsertEquipmentAdditional>): Promise<EquipmentAdditional> {
+    const [result] = await db
+      .update(equipmentAdditional)
+      .set({ ...additional, updatedAt: new Date() })
+      .where(eq(equipmentAdditional.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteEquipmentAdditional(id: number): Promise<void> {
+    await db.delete(equipmentAdditional).where(eq(equipmentAdditional.id, id));
   }
 
   // Clients

@@ -80,6 +80,18 @@ export const equipmentPricing = pgTable("equipment_pricing", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Equipment additional equipment and accessories
+export const equipmentAdditional = pgTable("equipment_additional", {
+  id: serial("id").primaryKey(),
+  equipmentId: integer("equipment_id").references(() => equipment.id).notNull(),
+  type: varchar("type").notNull(), // "additional" or "accessories"
+  name: varchar("name").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  position: integer("position").notNull().default(1), // 1-4 for ordering
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Clients/Customers
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
@@ -210,6 +222,14 @@ export const equipmentRelations = relations(equipment, ({ one, many }) => ({
   }),
   pricing: many(equipmentPricing),
   quoteItems: many(quoteItems),
+  additionalEquipment: many(equipmentAdditional),
+}));
+
+export const equipmentAdditionalRelations = relations(equipmentAdditional, ({ one }) => ({
+  equipment: one(equipment, {
+    fields: [equipmentAdditional.equipmentId],
+    references: [equipment.id],
+  }),
 }));
 
 export const equipmentCategoriesRelations = relations(equipmentCategories, ({ many }) => ({
@@ -263,6 +283,7 @@ export const insertClientSchema = createInsertSchema(clients);
 export const insertQuoteSchema = createInsertSchema(quotes);
 export const insertQuoteItemSchema = createInsertSchema(quoteItems);
 export const insertMaintenanceDefaultsSchema = createInsertSchema(maintenanceDefaults);
+export const insertEquipmentAdditionalSchema = createInsertSchema(equipmentAdditional);
 
 export const selectUserSchema = createSelectSchema(users);
 export const selectEquipmentCategorySchema = createSelectSchema(equipmentCategories);
@@ -272,6 +293,7 @@ export const selectClientSchema = createSelectSchema(clients);
 export const selectQuoteSchema = createSelectSchema(quotes);
 export const selectQuoteItemSchema = createSelectSchema(quoteItems);
 export const selectMaintenanceDefaultsSchema = createSelectSchema(maintenanceDefaults);
+export const selectEquipmentAdditionalSchema = createSelectSchema(equipmentAdditional);
 
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -290,11 +312,14 @@ export type InsertQuoteItem = z.infer<typeof insertQuoteItemSchema>;
 export type QuoteItem = z.infer<typeof selectQuoteItemSchema>;
 export type InsertMaintenanceDefaults = z.infer<typeof insertMaintenanceDefaultsSchema>;
 export type MaintenanceDefaults = z.infer<typeof selectMaintenanceDefaultsSchema>;
+export type InsertEquipmentAdditional = z.infer<typeof insertEquipmentAdditionalSchema>;
+export type EquipmentAdditional = z.infer<typeof selectEquipmentAdditionalSchema>;
 
 // Extended types for API responses
 export type EquipmentWithCategory = Equipment & {
   category: EquipmentCategory;
   pricing: EquipmentPricing[];
+  additionalEquipment: EquipmentAdditional[];
 };
 
 export type QuoteWithDetails = Quote & {

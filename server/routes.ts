@@ -7,6 +7,7 @@ import {
   insertEquipmentCategorySchema,
   insertEquipmentSchema,
   insertEquipmentPricingSchema,
+  insertEquipmentAdditionalSchema,
   insertClientSchema,
   insertQuoteSchema,
   insertQuoteItemSchema,
@@ -219,6 +220,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating pricing:", error);
       res.status(500).json({ message: "Failed to update pricing" });
+    }
+  });
+
+  // Equipment Additional and Accessories
+  app.get('/api/equipment/:id/additional', async (req, res) => {
+    try {
+      const equipmentId = parseInt(req.params.id);
+      const additional = await storage.getEquipmentAdditional(equipmentId);
+      res.json(additional);
+    } catch (error) {
+      console.error("Error fetching equipment additional:", error);
+      res.status(500).json({ message: "Failed to fetch equipment additional" });
+    }
+  });
+
+  app.post('/api/equipment-additional', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const additionalData = insertEquipmentAdditionalSchema.parse(req.body);
+      const additional = await storage.createEquipmentAdditional(additionalData);
+      res.json(additional);
+    } catch (error) {
+      console.error("Error creating equipment additional:", error);
+      res.status(500).json({ message: "Failed to create equipment additional" });
+    }
+  });
+
+  app.patch('/api/equipment-additional/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      const additionalData = insertEquipmentAdditionalSchema.partial().parse(req.body);
+      const additional = await storage.updateEquipmentAdditional(id, additionalData);
+      res.json(additional);
+    } catch (error) {
+      console.error("Error updating equipment additional:", error);
+      res.status(500).json({ message: "Failed to update equipment additional" });
+    }
+  });
+
+  app.delete('/api/equipment-additional/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteEquipmentAdditional(id);
+      res.json({ message: "Equipment additional deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting equipment additional:", error);
+      res.status(500).json({ message: "Failed to delete equipment additional" });
     }
   });
 

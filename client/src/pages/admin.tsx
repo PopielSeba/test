@@ -48,6 +48,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import EquipmentAdditionalManager from "@/components/equipment-additional-manager";
 
 interface Equipment {
   id: number;
@@ -1061,6 +1062,27 @@ export default function Admin() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Equipment Additional and Accessories Management */}
+            {equipment.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Wyposażenie dodatkowe i akcesoria
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {equipment.map((item) => (
+                    <EquipmentAdditionalManager
+                      key={item.id}
+                      equipmentId={item.id}
+                      equipmentName={item.name}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Settings and Users */}
