@@ -169,6 +169,23 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Nie można usunąć kategorii. Kategoria ma przypisany aktywny sprzęt (${activeEquipmentInCategory.length} pozycji). Najpierw dezaktywuj lub usuń sprzęt z tej kategorii.`);
     }
     
+    // Get all inactive equipment in this category
+    const inactiveEquipment = await db
+      .select()
+      .from(equipment)
+      .where(and(eq(equipment.categoryId, id), eq(equipment.isActive, false)));
+    
+    // Delete related data for each inactive equipment
+    for (const item of inactiveEquipment) {
+      // Delete pricing
+      await db.delete(equipmentPricing).where(eq(equipmentPricing.equipmentId, item.id));
+      // Delete additional equipment
+      await db.delete(equipmentAdditional).where(eq(equipmentAdditional.equipmentId, item.id));
+    }
+    
+    // Delete all inactive equipment in this category
+    await db.delete(equipment).where(and(eq(equipment.categoryId, id), eq(equipment.isActive, false)));
+    
     await db.delete(equipmentCategories).where(eq(equipmentCategories.id, id));
   }
 
