@@ -938,7 +938,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   {/* Filter costs - 6 filters */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Filtr Paliwa 1 (zł)
+                      Filtr 1 (zł)
                     </label>
                     <Input
                       type="number"
@@ -954,7 +954,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Filtr Paliwa 2 (zł)
+                      Filtr 2 (zł)
                     </label>
                     <Input
                       type="number"
@@ -970,7 +970,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Filtr Olejowy (zł)
+                      Filtr 3 (zł)
                     </label>
                     <Input
                       type="number"
@@ -986,7 +986,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Filtr Powietrza 1 (zł)
+                      Filtr 4 (zł)
                     </label>
                     <Input
                       type="number"
@@ -1002,7 +1002,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Filtr Powietrza 2 (zł)
+                      Filtr 5 (zł)
                     </label>
                     <Input
                       type="number"
@@ -1018,7 +1018,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Filtr dołmu (zł)
+                      Filtr 6 (zł)
                     </label>
                     <Input
                       type="number"

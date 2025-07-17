@@ -34,6 +34,13 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed database integrity** - quote deletion now properly removes associated quote items
 - Application ready for production deployment as ofertnik.replit.app
 
+### January 17, 2025
+- **Fixed critical maintenance cost calculation bug** - oil costs were incorrectly multiplied by quantity when the field already represents total cost
+- **Simplified filter naming convention** - changed from technical names (Filtr Paliwa 1, Filtr Olejowy, etc.) to simple names (Filtr 1, Filtr 2, Filtr 3, Filtr 4, Filtr 5, Filtr 6)
+- **Enhanced employee permissions** - employees now have full CRUD access to quotes except deletion (admin-only)
+- **Added equipment copying functionality** - administrators can duplicate equipment with "(kopia)" suffix
+- **Improved dashboard** - gracefully handles non-authenticated users without display errors
+
 
 
 ## User Preferences
