@@ -225,8 +225,7 @@ export default function Admin() {
         title: "Sukces",
         description: data.message || "Sprzęt został dodany pomyślnie",
       });
-      setIsEquipmentDialogOpen(false);
-      equipmentForm.reset();
+      handleCloseEquipmentDialog();
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -259,9 +258,7 @@ export default function Admin() {
         title: "Sukces",
         description: "Sprzęt został zaktualizowany pomyślnie",
       });
-      setIsEquipmentDialogOpen(false);
-      setSelectedEquipment(null);
-      equipmentForm.reset();
+      handleCloseEquipmentDialog();
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -495,9 +492,28 @@ export default function Admin() {
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
       fuelTankCapacity: equipment.fuelTankCapacity,
-
     });
     setIsEquipmentDialogOpen(true);
+  };
+
+  const handleCloseEquipmentDialog = () => {
+    setIsEquipmentDialogOpen(false);
+    setSelectedEquipment(null);
+    equipmentForm.reset({
+      name: "",
+      description: "",
+      model: "",
+      power: "",
+      quantity: 0,
+      availableQuantity: 0,
+      categoryId: 0,
+      fuelConsumption75: undefined,
+      dimensions: "",
+      weight: "",
+      engine: "",
+      alternator: "",
+      fuelTankCapacity: undefined,
+    });
   };
 
   const handleDeleteEquipment = (id: number) => {
@@ -727,7 +743,7 @@ export default function Admin() {
                       </DialogContent>
                     </Dialog>
 
-                    <Dialog open={isEquipmentDialogOpen} onOpenChange={setIsEquipmentDialogOpen}>
+                    <Dialog open={isEquipmentDialogOpen} onOpenChange={handleCloseEquipmentDialog}>
                       <DialogTrigger asChild>
                         <Button size="sm">
                           <Plus className="w-4 h-4 mr-2" />
@@ -762,7 +778,7 @@ export default function Admin() {
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Kategoria</FormLabel>
-                                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
+                                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value > 0 ? field.value.toString() : ""}>
                                       <FormControl>
                                         <SelectTrigger>
                                           <SelectValue placeholder="Wybierz kategorię" />
