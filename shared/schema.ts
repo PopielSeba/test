@@ -61,6 +61,7 @@ export const equipment = pgTable("equipment", {
   engine: varchar("engine"), // engine manufacturer/model
   alternator: varchar("alternator"), // alternator info
   fuelTankCapacity: integer("fuel_tank_capacity"), // liters
+  imageUrl: varchar("image_url"), // path to equipment image
 
   quantity: integer("quantity").notNull().default(0),
   availableQuantity: integer("available_quantity").notNull().default(0),

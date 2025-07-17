@@ -111,7 +111,7 @@ const equipmentSchema = z.object({
   engine: z.string().optional(),
   alternator: z.string().optional(),
   fuelTankCapacity: z.number().optional(),
-
+  imageUrl: z.string().optional(),
 });
 
 const categorySchema = z.object({
@@ -139,6 +139,7 @@ export default function Admin() {
   const [selectedEquipmentForPricing, setSelectedEquipmentForPricing] = useState<Equipment | null>(null);
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Initialize local prices when equipment is selected
   useEffect(() => {
@@ -205,6 +206,32 @@ export default function Admin() {
   const selectedCategoryId = equipmentForm.watch("categoryId");
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name?.toLowerCase() || "";
+
+  // Function to handle image upload
+  const handleImageUpload = async (file: File): Promise<string> => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const data = await response.json();
+      return data.imageUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
@@ -983,6 +1010,60 @@ export default function Admin() {
                                 )}
                               />
                             </div>
+                            
+                            {/* Image upload field */}
+                            <FormField
+                              control={equipmentForm.control}
+                              name="imageUrl"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Zdjęcie sprzętu</FormLabel>
+                                  <FormControl>
+                                    <div className="space-y-2">
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            try {
+                                              const imageUrl = await handleImageUpload(file);
+                                              field.onChange(imageUrl);
+                                              toast({
+                                                title: "Sukces",
+                                                description: "Zdjęcie zostało przesłane pomyślnie",
+                                              });
+                                            } catch (error) {
+                                              toast({
+                                                title: "Błąd",
+                                                description: "Nie udało się przesłać zdjęcia",
+                                                variant: "destructive",
+                                              });
+                                            }
+                                          }
+                                        }}
+                                        disabled={uploadingImage}
+                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                      />
+                                      {uploadingImage && (
+                                        <p className="text-sm text-blue-600">Przesyłanie zdjęcia...</p>
+                                      )}
+                                      {field.value && (
+                                        <div className="mt-2">
+                                          <img 
+                                            src={field.value} 
+                                            alt="Podgląd sprzętu" 
+                                            className="max-w-xs max-h-48 object-cover rounded border"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
                             <FormField
                               control={equipmentForm.control}
                               name="description"

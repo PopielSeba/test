@@ -1,8 +1,12 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import {
   insertEquipmentCategorySchema,
   insertEquipmentSchema,
@@ -14,7 +18,43 @@ import {
   insertMaintenanceDefaultsSchema,
 } from "@shared/schema";
 
+// Configure multer for file uploads
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `equipment-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage_config,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Tylko pliki obrazów są dozwolone (JPEG, PNG, GIF, WebP)'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  
   // Auth middleware
   await setupAuth(app);
 
@@ -233,6 +273,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error permanently deleting equipment:", error);
       res.status(500).json({ message: "Failed to permanently delete equipment" });
+    }
+  });
+
+  // File upload endpoint for equipment images
+  app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ message: "Failed to upload image" });
     }
   });
 
