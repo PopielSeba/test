@@ -129,6 +129,7 @@ const pricingSchema = z.object({
 });
 
 export default function Admin() {
+  // All hooks must be at the top, before any conditional returns
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -141,34 +142,6 @@ export default function Admin() {
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
   const [uploadingImage, setUploadingImage] = useState(false);
-
-  // Initialize local prices when equipment is selected
-  useEffect(() => {
-    if (selectedEquipmentForPricing) {
-      const initialPrices: Record<number, number> = {};
-      selectedEquipmentForPricing.pricing.forEach(p => {
-        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
-      });
-      setLocalPrices(initialPrices);
-    } else {
-      setLocalPrices({});
-    }
-  }, [selectedEquipmentForPricing?.id]);
-
-  // Check if user is admin
-  if (!authLoading && user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
-            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery<Equipment[]>({
     queryKey: ["/api/equipment"],
@@ -203,37 +176,6 @@ export default function Admin() {
     },
   });
 
-  // Watch selected category to show relevant fields
-  const selectedCategoryId = equipmentForm.watch("categoryId");
-  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-  const selectedCategoryName = selectedCategory?.name?.toLowerCase() || "";
-
-  // Function to handle image upload
-  const handleImageUpload = async (file: File): Promise<string> => {
-    setUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-      
-      const data = await response.json();
-      return data.imageUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
@@ -252,6 +194,24 @@ export default function Admin() {
       discountPercent: "0",
     },
   });
+
+  // Initialize local prices when equipment is selected
+  useEffect(() => {
+    if (selectedEquipmentForPricing) {
+      const initialPrices: Record<number, number> = {};
+      selectedEquipmentForPricing.pricing.forEach(p => {
+        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+      });
+      setLocalPrices(initialPrices);
+    } else {
+      setLocalPrices({});
+    }
+  }, [selectedEquipmentForPricing?.id]);
+
+  // Watch selected category to show relevant fields
+  const selectedCategoryId = equipmentForm.watch("categoryId");
+  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+  const selectedCategoryName = selectedCategory?.name?.toLowerCase() || "";
 
   const createEquipmentMutation = useMutation({
     mutationFn: async (data: z.infer<typeof equipmentSchema>) => {
@@ -291,10 +251,12 @@ export default function Admin() {
 
   const updateEquipmentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<z.infer<typeof equipmentSchema>> }) => {
+      console.log("Updating equipment with ID:", id, "and data:", data);
       const response = await apiRequest("PUT", `/api/equipment/${id}`, data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Equipment update successful:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
       toast({
         title: "Sukces",
@@ -303,6 +265,7 @@ export default function Admin() {
       handleCloseEquipmentDialog();
     },
     onError: (error) => {
+      console.error("Equipment update error:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -316,7 +279,7 @@ export default function Admin() {
       }
       toast({
         title: "Błąd",
-        description: "Nie udało się zaktualizować sprzętu",
+        description: `Nie udało się zaktualizować sprzętu: ${error.message || 'Nieznany błąd'}`,
         variant: "destructive",
       });
     },
@@ -623,6 +586,47 @@ export default function Admin() {
       });
     },
   });
+
+  // Function to handle image upload
+  const handleImageUpload = async (file: File): Promise<string> => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const data = await response.json();
+      return data.imageUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Check if user is admin - early return if not authorized
+  if (!authLoading && user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
+            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleEditEquipment = (equipment: Equipment) => {
     setSelectedEquipment(equipment);

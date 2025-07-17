@@ -235,12 +235,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
+      console.log("Updating equipment ID:", id, "with data:", req.body);
+      
       const equipmentData = insertEquipmentSchema.partial().parse(req.body);
+      console.log("Parsed equipment data:", equipmentData);
+      
       const equipment = await storage.updateEquipment(id, equipmentData);
+      console.log("Updated equipment result:", equipment);
+      
       res.json(equipment);
     } catch (error) {
       console.error("Error updating equipment:", error);
-      res.status(500).json({ message: "Failed to update equipment" });
+      res.status(500).json({ message: "Failed to update equipment", error: error.message });
     }
   });
 
