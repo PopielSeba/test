@@ -59,7 +59,6 @@ interface Equipment {
   power?: string;
   quantity: number;
   availableQuantity: number;
-  imageUrl?: string;
   // Technical specifications for generators
   fuelConsumption75?: number;
   dimensions?: string;
@@ -112,7 +111,7 @@ const equipmentSchema = z.object({
   engine: z.string().optional(),
   alternator: z.string().optional(),
   fuelTankCapacity: z.number().optional(),
-  imageUrl: z.string().optional(),
+
 });
 
 const categorySchema = z.object({
@@ -129,20 +128,7 @@ const pricingSchema = z.object({
 });
 
 export default function Admin() {
-  // All hooks must be at the top, before any conditional returns
   const { user, isLoading: authLoading } = useAuth();
-  
-  // Debug logging for authentication state
-  useEffect(() => {
-    console.log("Auth debug:", { 
-      user, 
-      authLoading, 
-      userExists: !!user,
-      userIsNull: user === null,
-      userIsUndefined: user === undefined,
-      shouldRedirect: !authLoading && (!user || user === null)
-    });
-  }, [user, authLoading]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
@@ -153,7 +139,34 @@ export default function Admin() {
   const [selectedEquipmentForPricing, setSelectedEquipmentForPricing] = useState<Equipment | null>(null);
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
-  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Initialize local prices when equipment is selected
+  useEffect(() => {
+    if (selectedEquipmentForPricing) {
+      const initialPrices: Record<number, number> = {};
+      selectedEquipmentForPricing.pricing.forEach(p => {
+        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+      });
+      setLocalPrices(initialPrices);
+    } else {
+      setLocalPrices({});
+    }
+  }, [selectedEquipmentForPricing?.id]);
+
+  // Check if user is admin
+  if (!authLoading && user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
+            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery<Equipment[]>({
     queryKey: ["/api/equipment"],
@@ -188,6 +201,11 @@ export default function Admin() {
     },
   });
 
+  // Watch selected category to show relevant fields
+  const selectedCategoryId = equipmentForm.watch("categoryId");
+  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+  const selectedCategoryName = selectedCategory?.name?.toLowerCase() || "";
+
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
@@ -206,24 +224,6 @@ export default function Admin() {
       discountPercent: "0",
     },
   });
-
-  // Initialize local prices when equipment is selected
-  useEffect(() => {
-    if (selectedEquipmentForPricing) {
-      const initialPrices: Record<number, number> = {};
-      selectedEquipmentForPricing.pricing.forEach(p => {
-        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
-      });
-      setLocalPrices(initialPrices);
-    } else {
-      setLocalPrices({});
-    }
-  }, [selectedEquipmentForPricing?.id]);
-
-  // Watch selected category to show relevant fields
-  const selectedCategoryId = equipmentForm.watch("categoryId");
-  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
-  const selectedCategoryName = selectedCategory?.name?.toLowerCase() || "";
 
   const createEquipmentMutation = useMutation({
     mutationFn: async (data: z.infer<typeof equipmentSchema>) => {
@@ -263,18 +263,10 @@ export default function Admin() {
 
   const updateEquipmentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<z.infer<typeof equipmentSchema>> }) => {
-      console.log("Updating equipment with ID:", id, "and data:", data);
-      try {
-        const response = await apiRequest("PUT", `/api/equipment/${id}`, data);
-        console.log("API request successful, response:", response);
-        return response.json();
-      } catch (error) {
-        console.error("API request failed:", error);
-        throw error;
-      }
+      const response = await apiRequest("PUT", `/api/equipment/${id}`, data);
+      return response.json();
     },
-    onSuccess: (data) => {
-      console.log("Equipment update successful:", data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
       toast({
         title: "Sukces",
@@ -283,7 +275,6 @@ export default function Admin() {
       handleCloseEquipmentDialog();
     },
     onError: (error) => {
-      console.error("Equipment update error:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -297,7 +288,7 @@ export default function Admin() {
       }
       toast({
         title: "Błąd",
-        description: `Nie udało się zaktualizować sprzętu: ${error.message || 'Nieznany błąd'}`,
+        description: "Nie udało się zaktualizować sprzętu",
         variant: "destructive",
       });
     },
@@ -605,112 +596,6 @@ export default function Admin() {
     },
   });
 
-  // Function to handle image upload
-  const handleImageUpload = async (file: File): Promise<string> => {
-    setUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-      
-      const data = await response.json();
-      return data.imageUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && (!user || user === null)) {
-      toast({
-        title: "Wymagane logowanie",
-        description: "Przekierowuję do logowania Replit...",
-        variant: "default",
-      });
-      
-      // Countdown animation
-      let countdown = 3;
-      const countdownElement = document.getElementById('countdown');
-      const timer = setInterval(() => {
-        countdown--;
-        if (countdownElement) {
-          countdownElement.textContent = countdown.toString();
-        }
-        if (countdown <= 0) {
-          clearInterval(timer);
-          window.location.href = "/api/login";
-        }
-      }, 1000);
-      
-      return () => clearInterval(timer);
-    }
-  }, [authLoading, user, toast]);
-
-  // Check if user is authenticated and has admin role
-  if (!authLoading && (!user || user === null)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Card className="w-full max-w-lg shadow-xl">
-          <CardContent className="pt-8 text-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Settings className="w-10 h-10 text-blue-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Panel Administratora</h2>
-            <p className="text-gray-600 mb-6">Aby uzyskać dostęp do panelu administratora, musisz się zalogować przez system Replit.</p>
-            
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center">
-                <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-amber-600 text-sm font-bold">!</span>
-                </div>
-                <p className="text-amber-800 text-sm font-medium">
-                  Przekierowuję do logowania Replit za <span id="countdown">3</span> sekund...
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-center space-x-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="text-gray-500">Ładowanie...</span>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-400">
-                Jeśli przekierowanie nie działa, <a href="/api/login" className="text-blue-600 hover:underline">kliknij tutaj</a>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!authLoading && user && user.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
-            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const handleEditEquipment = (equipment: Equipment) => {
     setSelectedEquipment(equipment);
     equipmentForm.reset({
@@ -721,7 +606,6 @@ export default function Admin() {
       quantity: equipment.quantity,
       availableQuantity: equipment.availableQuantity,
       categoryId: equipment.category.id,
-      imageUrl: equipment.imageUrl || "",
       fuelConsumption75: equipment.fuelConsumption75,
       dimensions: equipment.dimensions || "",
       weight: equipment.weight || "",
@@ -743,7 +627,6 @@ export default function Admin() {
       quantity: 0,
       availableQuantity: 0,
       categoryId: 0,
-      imageUrl: "",
       fuelConsumption75: undefined,
       dimensions: "",
       weight: "",
@@ -1100,60 +983,6 @@ export default function Admin() {
                                 )}
                               />
                             </div>
-                            
-                            {/* Image upload field */}
-                            <FormField
-                              control={equipmentForm.control}
-                              name="imageUrl"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Zdjęcie sprzętu</FormLabel>
-                                  <FormControl>
-                                    <div className="space-y-2">
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={async (e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            try {
-                                              const imageUrl = await handleImageUpload(file);
-                                              field.onChange(imageUrl);
-                                              toast({
-                                                title: "Sukces",
-                                                description: "Zdjęcie zostało przesłane pomyślnie",
-                                              });
-                                            } catch (error) {
-                                              toast({
-                                                title: "Błąd",
-                                                description: "Nie udało się przesłać zdjęcia",
-                                                variant: "destructive",
-                                              });
-                                            }
-                                          }
-                                        }}
-                                        disabled={uploadingImage}
-                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                      />
-                                      {uploadingImage && (
-                                        <p className="text-sm text-blue-600">Przesyłanie zdjęcia...</p>
-                                      )}
-                                      {field.value && (
-                                        <div className="mt-2">
-                                          <img 
-                                            src={field.value} 
-                                            alt="Podgląd sprzętu" 
-                                            className="max-w-xs max-h-48 object-cover rounded border"
-                                          />
-                                        </div>
-                                      )}
-                                    </div>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
                             <FormField
                               control={equipmentForm.control}
                               name="description"

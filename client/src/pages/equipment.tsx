@@ -22,7 +22,6 @@ interface Equipment {
   power?: string;
   quantity: number;
   availableQuantity: number;
-  imageUrl?: string;
   category: EquipmentCategory;
   pricing: Array<{
     periodStart: number;
@@ -202,16 +201,6 @@ export default function Equipment() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map((item) => (
                   <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                    {/* Image section */}
-                    {item.imageUrl && (
-                      <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                        <img 
-                          src={item.imageUrl} 
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>

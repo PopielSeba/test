@@ -1,12 +1,8 @@
 import type { Express } from "express";
-import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
 import {
   insertEquipmentCategorySchema,
   insertEquipmentSchema,
@@ -18,43 +14,7 @@ import {
   insertMaintenanceDefaultsSchema,
 } from "@shared/schema";
 
-// Configure multer for file uploads
-const storage_config = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `equipment-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
-
-const upload = multer({ 
-  storage: storage_config,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Tylko pliki obrazów są dozwolone (JPEG, PNG, GIF, WebP)'));
-    }
-  }
-});
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-  
   // Auth middleware
   await setupAuth(app);
 
@@ -235,18 +195,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      console.log("Updating equipment ID:", id, "with data:", req.body);
-      
       const equipmentData = insertEquipmentSchema.partial().parse(req.body);
-      console.log("Parsed equipment data:", equipmentData);
-      
       const equipment = await storage.updateEquipment(id, equipmentData);
-      console.log("Updated equipment result:", equipment);
-      
       res.json(equipment);
     } catch (error) {
       console.error("Error updating equipment:", error);
-      res.status(500).json({ message: "Failed to update equipment", error: error.message });
+      res.status(500).json({ message: "Failed to update equipment" });
     }
   });
 
@@ -279,26 +233,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error permanently deleting equipment:", error);
       res.status(500).json({ message: "Failed to permanently delete equipment" });
-    }
-  });
-
-  // File upload endpoint for equipment images
-  app.post('/api/upload-image', isAuthenticated, upload.single('image'), async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied. Admin role required." });
-      }
-
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      const imageUrl = `/uploads/${req.file.filename}`;
-      res.json({ imageUrl });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      res.status(500).json({ message: "Failed to upload image" });
     }
   });
 
@@ -460,8 +394,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quotes - accessible by authenticated users (admin and employee)
-  app.get('/api/quotes', isAuthenticated, async (req: any, res) => {
+  // Quotes
+  app.get('/api/quotes', async (req: any, res) => {
     try {
       const quotes = await storage.getQuotes();
       res.json(quotes);
@@ -471,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/quotes/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
@@ -487,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quotes', isAuthenticated, async (req: any, res) => {
+  app.post('/api/quotes', async (req: any, res) => {
     try {
       const quoteData = insertQuoteSchema.parse({
         ...req.body,
@@ -536,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/quotes/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
@@ -585,9 +519,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Quote not found" });
       }
 
-      // Allow both admin and employee access to printing
       const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin' && user?.role !== 'employee') {
+      if (user?.role !== 'admin' && quote.createdById !== req.user.claims.sub) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -608,8 +541,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quote Items - accessible by authenticated users (admin and employee)
-  app.post('/api/quote-items', isAuthenticated, async (req: any, res) => {
+  // Quote Items
+  app.post('/api/quote-items', async (req: any, res) => {
     try {
       const itemData = insertQuoteItemSchema.parse(req.body);
       const item = await storage.createQuoteItem(itemData);
@@ -620,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/quote-items/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/quote-items/:id', async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const itemData = insertQuoteItemSchema.partial().parse(req.body);

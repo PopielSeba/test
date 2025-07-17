@@ -34,19 +34,6 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed database integrity** - quote deletion now properly removes associated quote items
 - Application ready for production deployment as ofertnik.replit.app
 
-### January 17, 2025
-- **Expanded employee permissions for quote management**:
-  - Employees can now create, edit, and print quotes (previously admin-only)
-  - Both admin and employee roles have full access to quote functionality
-  - Updated navigation to show "Wyceny" (Quotes) for all authenticated users
-  - Added authentication requirements to quote creation and editing pages
-- **Implemented image upload functionality for equipment**:
-  - Added imageUrl field to equipment schema
-  - Configured multer for file uploads with 5MB limit
-  - Supports JPEG, PNG, GIF, and WebP formats
-  - Added image preview in equipment forms
-  - Static file serving for uploaded images at /uploads endpoint
-
 
 
 ## User Preferences

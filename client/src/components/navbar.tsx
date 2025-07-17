@@ -34,11 +34,9 @@ export default function Navbar() {
     { path: "/create-quote", label: "Nowa Wycena", icon: Plus },
   ];
 
-  if (isAuthenticated) {
+  if (isAuthenticated && user?.role === 'admin') {
     navItems.push({ path: "/quotes", label: "Wyceny", icon: FileText });
-    if (user?.role === 'admin') {
-      navItems.push({ path: "/admin", label: "Admin", icon: Settings });
-    }
+    navItems.push({ path: "/admin", label: "Admin", icon: Settings });
   }
 
   return (
