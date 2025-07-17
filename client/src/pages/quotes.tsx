@@ -64,10 +64,10 @@ export default function Quotes() {
 
   // Redirect non-admin users
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || user?.role !== 'admin')) {
+    if (!authLoading && (!isAuthenticated || (user?.role !== 'admin' && user?.role !== 'employee'))) {
       toast({
         title: "Brak uprawnień",
-        description: "Dostęp do wycen jest dostępny tylko dla administratorów.",
+        description: "Dostęp do wycen jest dostępny tylko dla pracowników i administratorów.",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -286,16 +286,18 @@ export default function Quotes() {
                               >
                                 <Download className="w-4 h-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="text-red-600 hover:text-red-700"
-                                title="Usuń"
-                                disabled={deleteQuoteMutation.isPending}
-                                onClick={() => handleDeleteQuote(quote.id, quote.quoteNumber)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              {user?.role === 'admin' && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-red-600 hover:text-red-700"
+                                  title="Usuń"
+                                  disabled={deleteQuoteMutation.isPending}
+                                  onClick={() => handleDeleteQuote(quote.id, quote.quoteNumber)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

@@ -92,22 +92,22 @@ interface QuoteDetail {
 export default function QuoteDetail() {
   const { id } = useParams();
   const { toast } = useToast();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Redirect to home if not authenticated
+  // Redirect if not authenticated or not admin/employee
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && (!isAuthenticated || (user?.role !== 'admin' && user?.role !== 'employee'))) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Brak uprawnień",
+        description: "Dostęp do wycen jest dostępny tylko dla pracowników i administratorów.",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
+        window.location.href = "/";
+      }, 1000);
       return;
     }
-  }, [isAuthenticated, authLoading, toast]);
+  }, [isAuthenticated, user, authLoading, toast]);
 
   const { data: quote, isLoading, error } = useQuery<QuoteDetail>({
     queryKey: ["/api/quotes", id],
