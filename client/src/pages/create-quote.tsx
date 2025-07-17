@@ -51,6 +51,15 @@ interface QuoteItemData {
   selectedAccessories?: number[]; // IDs of selected accessories
   additionalCost?: number;
   accessoriesCost?: number;
+  
+  // Maintenance and service costs
+  includeMaintenanceCost?: boolean;
+  totalMaintenanceCost?: number;
+  includeServiceItems?: boolean;
+  serviceItem1Cost?: number;
+  serviceItem2Cost?: number;
+  serviceItem3Cost?: number;
+  totalServiceItemsCost?: number;
 }
 
 interface EquipmentAdditional {
@@ -339,17 +348,25 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           totalServiceItemsCost: item.totalServiceItemsCost || 0,
         };
         
-        try {
-          await apiRequest("/api/quote-items", {
-            method: "POST",
-            body: JSON.stringify(itemData),
-          });
-        } catch (error) {
-          console.error("Error creating quote item:", error);
-        }
+        await apiRequest("POST", "/api/quote-items", itemData);
       }
+      
+      toast({
+        title: "Sukces",
+        description: "Wycena została utworzona pomyślnie",
+        variant: "default",
+      });
+      
+      // Navigate to the created quote
+      window.location.href = `/quotes/${createdQuote.id}`;
+      
     } catch (error) {
       console.error("Error creating quote:", error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się utworzyć wyceny",
+        variant: "destructive",
+      });
     }
   };
 
