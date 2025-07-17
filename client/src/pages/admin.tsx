@@ -131,6 +131,11 @@ const pricingSchema = z.object({
 export default function Admin() {
   // All hooks must be at the top, before any conditional returns
   const { user, isLoading: authLoading } = useAuth();
+  
+  // Debug logging for authentication state
+  useEffect(() => {
+    console.log("Auth debug:", { user, authLoading, userExists: !!user });
+  }, [user, authLoading]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
