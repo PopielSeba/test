@@ -624,26 +624,60 @@ export default function Admin() {
     if (!authLoading && !user) {
       toast({
         title: "Wymagane logowanie",
-        description: "Przekierowuję do logowania...",
+        description: "Przekierowuję do logowania Replit...",
         variant: "default",
       });
-      setTimeout(() => {
-        window.location.href = "/api/login";
+      
+      // Countdown animation
+      let countdown = 3;
+      const countdownElement = document.getElementById('countdown');
+      const timer = setInterval(() => {
+        countdown--;
+        if (countdownElement) {
+          countdownElement.textContent = countdown.toString();
+        }
+        if (countdown <= 0) {
+          clearInterval(timer);
+          window.location.href = "/api/login";
+        }
       }, 1000);
+      
+      return () => clearInterval(timer);
     }
   }, [authLoading, user, toast]);
 
   // Check if user is authenticated and has admin role
   if (!authLoading && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Przekierowuję do logowania</h2>
-            <p className="text-muted-foreground">Proszę czekać, przekierowuję do systemu logowania Replit...</p>
-            <div className="mt-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-lg shadow-xl">
+          <CardContent className="pt-8 text-center">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Settings className="w-10 h-10 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Panel Administratora</h2>
+            <p className="text-gray-600 mb-6">Aby uzyskać dostęp do panelu administratora, musisz się zalogować przez system Replit.</p>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-amber-600 text-sm font-bold">!</span>
+                </div>
+                <p className="text-amber-800 text-sm font-medium">
+                  Przekierowuję do logowania Replit za <span id="countdown">3</span> sekund...
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="text-gray-500">Ładowanie...</span>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-400">
+                Jeśli przekierowanie nie działa, <a href="/api/login" className="text-blue-600 hover:underline">kliknij tutaj</a>
+              </p>
             </div>
           </CardContent>
         </Card>
