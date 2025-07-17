@@ -397,8 +397,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       (updatedItem.airFilter2Cost || parseFloat(maintenanceDefaults?.airFilter2Cost || "54")) +
       (updatedItem.engineFilterCost || parseFloat(maintenanceDefaults?.engineFilterCost || "150"));
     
-    // Calculate oil cost using defaults from API
-    const oilTotalCost = (updatedItem.oilQuantityLiters || parseFloat(maintenanceDefaults?.oilQuantity || "14.7")) * (updatedItem.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44"));
+    // Calculate oil cost using defaults from API - oilCost is already total cost, not per liter
+    const oilTotalCost = updatedItem.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44");
     
     // Calculate service work cost using defaults from API
     const serviceWorkCost = (updatedItem.serviceWorkHours ?? parseFloat(maintenanceDefaults?.serviceWorkHours || "0")) * (updatedItem.serviceWorkRatePerHour ?? parseFloat(maintenanceDefaults?.serviceWorkRate || "0"));
@@ -417,16 +417,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
       totalCost = (maintenanceCostPer500h / intervalHours) * expectedHours;
     }
     
-    // Debug logging
-    console.log('Maintenance cost calculation:', {
-      filtersCost,
-      oilTotalCost,
-      serviceWorkCost,
-      maintenanceCostPer500h,
-      expectedHours,
-      intervalHours,
-      totalCost
-    });
+
 
     onUpdate({ ...updatedItem, totalMaintenanceCost: totalCost });
   };
