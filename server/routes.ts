@@ -129,6 +129,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment
+  app.get('/api/equipment/inactive', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const equipment = await storage.getInactiveEquipment();
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error fetching inactive equipment:", error);
+      res.status(500).json({ message: "Failed to fetch inactive equipment" });
+    }
+  });
+
   app.get('/api/equipment', async (req, res) => {
     try {
       const equipment = await storage.getEquipment();

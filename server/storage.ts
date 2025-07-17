@@ -48,6 +48,7 @@ export interface IStorage {
 
   // Equipment
   getEquipment(): Promise<EquipmentWithCategory[]>;
+  getInactiveEquipment(): Promise<EquipmentWithCategory[]>;
   getEquipmentById(id: number): Promise<EquipmentWithCategory | undefined>;
   getEquipmentByCategory(categoryId: number): Promise<EquipmentWithCategory[]>;
   createEquipment(equipment: InsertEquipment): Promise<Equipment>;
@@ -190,6 +191,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Equipment
+  async getInactiveEquipment(): Promise<EquipmentWithCategory[]> {
+    const result = await db
+      .select()
+      .from(equipment)
+      .leftJoin(equipmentCategories, eq(equipment.categoryId, equipmentCategories.id))
+      .leftJoin(equipmentPricing, eq(equipment.id, equipmentPricing.equipmentId))
+      .leftJoin(equipmentAdditional, eq(equipment.id, equipmentAdditional.equipmentId))
+      .where(eq(equipment.isActive, false));
+
+    const equipmentMap = new Map<number, EquipmentWithCategory>();
+
+    for (const row of result) {
+      if (!equipmentMap.has(row.equipment.id)) {
+        equipmentMap.set(row.equipment.id, {
+          ...row.equipment,
+          category: row.equipment_categories!,
+          pricing: [],
+          additionalEquipment: [],
+        });
+      }
+
+      const equipmentItem = equipmentMap.get(row.equipment.id)!;
+
+      if (row.equipment_pricing) {
+        const existingPricing = equipmentItem.pricing.find(p => p.id === row.equipment_pricing!.id);
+        if (!existingPricing) {
+          equipmentItem.pricing.push(row.equipment_pricing);
+        }
+      }
+
+      if (row.equipment_additional) {
+        const existingAdditional = equipmentItem.additionalEquipment.find(a => a.id === row.equipment_additional!.id);
+        if (!existingAdditional) {
+          equipmentItem.additionalEquipment.push(row.equipment_additional);
+        }
+      }
+    }
+
+    return Array.from(equipmentMap.values());
+  }
+
   async getEquipment(): Promise<EquipmentWithCategory[]> {
     const result = await db
       .select()

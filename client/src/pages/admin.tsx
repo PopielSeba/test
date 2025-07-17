@@ -19,7 +19,8 @@ import {
   DollarSign,
   UserCheck,
   UserX,
-  Shield
+  Shield,
+  AlertTriangle
 } from "lucide-react";
 import {
   Table,
@@ -172,6 +173,11 @@ export default function Admin() {
     enabled: user?.role === 'admin',
   });
 
+  const { data: inactiveEquipment = [], isLoading: inactiveEquipmentLoading } = useQuery<Equipment[]>({
+    queryKey: ["/api/equipment/inactive"],
+    enabled: user?.role === 'admin',
+  });
+
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<EquipmentCategory[]>({
     queryKey: ["/api/equipment-categories"],
     enabled: user?.role === 'admin',
@@ -290,6 +296,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment/inactive"] });
       toast({
         title: "Sukces",
         description: "Sprzęt został usunięty pomyślnie",
@@ -1219,6 +1226,50 @@ export default function Admin() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Inactive Equipment Management */}
+            {inactiveEquipment.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-orange-500" />
+                    Nieaktywny sprzęt
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Sprzęt oznaczony jako nieaktywny. Możesz go bezpiecznie usunąć jeśli nie jest używany w wycenach.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {inactiveEquipment.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div>
+                          <p className="font-medium text-foreground">{item.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.category?.name} • {item.model}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm(`Czy na pewno chcesz usunąć nieaktywny sprzęt "${item.name}"? Ta operacja może się nie powieść jeśli sprzęt jest używany w wycenach.`)) {
+                                deleteEquipmentMutation.mutate(item.id);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                            disabled={deleteEquipmentMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
