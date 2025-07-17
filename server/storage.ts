@@ -159,26 +159,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEquipmentCategory(id: number): Promise<void> {
-    // Check if category has any equipment assigned (both active and inactive)
-    const equipmentInCategory = await db
+    // Check if category has any ACTIVE equipment assigned
+    const activeEquipmentInCategory = await db
       .select()
       .from(equipment)
-      .where(eq(equipment.categoryId, id));
+      .where(and(eq(equipment.categoryId, id), eq(equipment.isActive, true)));
     
-    if (equipmentInCategory.length > 0) {
-      const activeCount = equipmentInCategory.filter(item => item.isActive).length;
-      const inactiveCount = equipmentInCategory.length - activeCount;
-      
-      let message = `Nie można usunąć kategorii. Kategoria ma przypisany sprzęt (${equipmentInCategory.length} pozycji`;
-      if (activeCount > 0 && inactiveCount > 0) {
-        message += `: ${activeCount} aktywnych, ${inactiveCount} nieaktywnych).`;
-      } else if (activeCount > 0) {
-        message += `: ${activeCount} aktywnych).`;
-      } else {
-        message += `: ${inactiveCount} nieaktywnych).`;
-      }
-      
-      throw new Error(message);
+    if (activeEquipmentInCategory.length > 0) {
+      throw new Error(`Nie można usunąć kategorii. Kategoria ma przypisany aktywny sprzęt (${activeEquipmentInCategory.length} pozycji). Najpierw dezaktywuj lub usuń sprzęt z tej kategorii.`);
     }
     
     await db.delete(equipmentCategories).where(eq(equipmentCategories.id, id));
