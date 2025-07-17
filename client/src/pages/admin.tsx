@@ -1165,6 +1165,12 @@ export default function Admin() {
                               <Button 
                                 type="submit" 
                                 disabled={createEquipmentMutation.isPending || updateEquipmentMutation.isPending}
+                                onClick={() => {
+                                  console.log('Submit button clicked');
+                                  console.log('Form errors:', equipmentForm.formState.errors);
+                                  console.log('Form values:', equipmentForm.getValues());
+                                  console.log('Form valid:', equipmentForm.formState.isValid);
+                                }}
                               >
                                 {selectedEquipment 
                                   ? (updateEquipmentMutation.isPending ? "Aktualizowanie..." : "Aktualizuj")
