@@ -219,11 +219,14 @@ export default function Admin() {
       const response = await apiRequest("POST", "/api/equipment", data);
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+    onSuccess: async (data) => {
+      // Invalidate and refetch equipment data to ensure new equipment is available
+      await queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/equipment"] });
+      
       toast({
         title: "Sukces",
-        description: data.message || "Sprzęt został dodany pomyślnie",
+        description: data.message || "Sprzęt został dodany pomyślnie. Standardowe progi cenowe zostały utworzone automatycznie.",
       });
       handleCloseEquipmentDialog();
     },

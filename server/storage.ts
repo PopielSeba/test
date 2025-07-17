@@ -280,6 +280,14 @@ export class DatabaseStorage implements IStorage {
         discountPercent: tier.discountPercent.toString()
       });
     }
+
+    // Create default additional equipment entry for immediate access
+    await db.insert(equipmentAdditional).values({
+      equipmentId: result.id,
+      type: "type1",
+      name: "Dodatkowe wyposażenie 1",
+      pricePerDay: "0.00"
+    });
     
     return result;
   }
