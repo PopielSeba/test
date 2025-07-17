@@ -1198,7 +1198,7 @@ export default function Admin() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm(`Czy na pewno chcesz usunąć kategorię "${category.name}"?`)) {
+                          if (confirm(`Czy na pewno chcesz usunąć kategorię "${category.name}"? Uwaga: nie można usunąć kategorii, która ma przypisany sprzęt.`)) {
                             deleteCategoryMutation.mutate(category.id);
                           }
                         }}

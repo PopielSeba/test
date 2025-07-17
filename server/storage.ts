@@ -159,6 +159,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEquipmentCategory(id: number): Promise<void> {
+    // Check if category has any equipment assigned
+    const equipmentInCategory = await db
+      .select()
+      .from(equipment)
+      .where(and(eq(equipment.categoryId, id), eq(equipment.isActive, true)));
+    
+    if (equipmentInCategory.length > 0) {
+      throw new Error(`Nie można usunąć kategorii. Kategoria ma przypisany sprzęt (${equipmentInCategory.length} pozycji).`);
+    }
+    
     await db.delete(equipmentCategories).where(eq(equipmentCategories.id, id));
   }
 
@@ -284,9 +294,9 @@ export class DatabaseStorage implements IStorage {
     // Create default additional equipment entry for immediate access
     await db.insert(equipmentAdditional).values({
       equipmentId: result.id,
-      type: "type1",
+      type: "additional",
       name: "Dodatkowe wyposażenie 1",
-      pricePerDay: "0.00"
+      price: "0.00"
     });
     
     return result;
