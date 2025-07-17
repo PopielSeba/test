@@ -166,7 +166,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(equipment.categoryId, id));
     
     if (equipmentInCategory.length > 0) {
-      const activeCount = equipmentInCategory.filter(eq => eq.isActive).length;
+      const activeCount = equipmentInCategory.filter(item => item.isActive).length;
       const inactiveCount = equipmentInCategory.length - activeCount;
       
       let message = `Nie można usunąć kategorii. Kategoria ma przypisany sprzęt (${equipmentInCategory.length} pozycji`;
