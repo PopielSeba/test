@@ -594,21 +594,10 @@ function generateQuoteHTML(quote: any) {
   };
 
   const itemsHTML = quote.items.map((item: any) => {
-    const additionalCosts = [];
-    if (item.includeFuelCost && item.totalFuelCost) {
-      additionalCosts.push(`Koszt paliwa: ${formatCurrency(item.totalFuelCost)}`);
-    }
-    if (item.includeInstallationCost && item.totalInstallationCost) {
-      additionalCosts.push(`Koszt montażu: ${formatCurrency(item.totalInstallationCost)}`);
-    }
-    if (item.includeMaintenanceCost && item.totalMaintenanceCost) {
-      additionalCosts.push(`Koszt eksploatacji: ${formatCurrency(item.totalMaintenanceCost)}`);
-    }
-    if (item.includeServiceItems && item.totalServiceItemsCost) {
-      additionalCosts.push(`Koszty serwisowe: ${formatCurrency(item.totalServiceItemsCost)}`);
-    }
-
-    return `
+    const detailsRows = [];
+    
+    // Podstawowe informacje o sprzęcie
+    detailsRows.push(`
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.equipment.name}</td>
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
@@ -617,21 +606,83 @@ function generateQuoteHTML(quote: any) {
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.discountPercent}%</td>
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.totalPrice)}</td>
       </tr>
-      ${additionalCosts.length > 0 ? `
+    `);
+
+    // Szczegółowe opcje paliwowe
+    if (item.includeFuelCost) {
+      detailsRows.push(`
         <tr>
-          <td colspan="6" style="padding: 5px 10px; border-bottom: 1px solid #ddd; background-color: #f9f9f9; font-size: 0.9em;">
-            ${additionalCosts.join(' | ')}
+          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f8f9ff; font-size: 0.9em;">
+            <strong>🛢️ Koszt paliwa:</strong> ${formatCurrency(item.totalFuelCost)}<br>
+            • Zużycie: ${item.fuelConsumptionLH} l/h<br>
+            • Cena paliwa: ${formatCurrency(item.fuelPricePerLiter)}/l<br>
+            • Godziny pracy dziennie: ${item.hoursPerDay} h<br>
+            • Całkowite zużycie: ${(parseFloat(item.fuelConsumptionLH) * item.hoursPerDay * item.rentalPeriodDays).toFixed(1)} l
           </td>
         </tr>
-      ` : ''}
-      ${item.notes ? `
+      `);
+    }
+
+    // Szczegółowe opcje montażu/dojazdu
+    if (item.includeTravelCost || item.totalTravelCost > 0) {
+      detailsRows.push(`
         <tr>
-          <td colspan="6" style="padding: 5px 10px; border-bottom: 1px solid #ddd; background-color: #f9f9f9; font-size: 0.9em;">
-            <strong>Uwagi:</strong> ${item.notes}
+          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0fff8; font-size: 0.9em;">
+            <strong>🚚 Koszt dojazdu/montażu:</strong> ${formatCurrency(item.totalTravelCost)}<br>
+            • Dystans: ${item.travelDistanceKm} km<br>
+            • Liczba techników: ${item.numberOfTechnicians}<br>
+            • Stawka za technika: ${formatCurrency(item.hourlyRatePerTechnician)}/h<br>
+            • Stawka za km: ${formatCurrency(item.travelRatePerKm)}/km
           </td>
         </tr>
-      ` : ''}
-    `;
+      `);
+    }
+
+    // Szczegółowe opcje eksploatacji/serwisu
+    if (item.includeMaintenanceCost) {
+      detailsRows.push(`
+        <tr>
+          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff8f0; font-size: 0.9em;">
+            <strong>🔧 Koszt eksploatacji:</strong> ${formatCurrency(item.totalMaintenanceCost)}<br>
+            • Interwał serwisowy: co ${item.maintenanceIntervalHours} mth<br>
+            • Filtry paliwowe: ${formatCurrency(item.fuelFilter1Cost)} + ${formatCurrency(item.fuelFilter2Cost)}<br>
+            • Filtr oleju: ${formatCurrency(item.oilFilterCost)}<br>
+            • Filtry powietrza: ${formatCurrency(item.airFilter1Cost)} + ${formatCurrency(item.airFilter2Cost)}<br>
+            • Filtr silnika: ${formatCurrency(item.engineFilterCost)}<br>
+            • Olej: ${formatCurrency(item.oilCost)} (${item.oilQuantityLiters}l)<br>
+            • Praca serwisowa: ${item.serviceWorkHours}h × ${formatCurrency(item.serviceWorkRatePerHour)}/h<br>
+            • Dojazd serwisu: ${item.serviceTravelDistanceKm}km × ${formatCurrency(item.serviceTravelRatePerKm)}/km
+          </td>
+        </tr>
+      `);
+    }
+
+    // Szczegółowe pozycje serwisowe (dla nagrzewnic)
+    if (item.includeServiceItems && (parseFloat(item.serviceItem1Cost) > 0 || parseFloat(item.serviceItem2Cost) > 0 || parseFloat(item.serviceItem3Cost) > 0)) {
+      detailsRows.push(`
+        <tr>
+          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff0f8; font-size: 0.9em;">
+            <strong>🛠️ Koszty serwisowe:</strong> ${formatCurrency(item.totalServiceItemsCost)}<br>
+            ${parseFloat(item.serviceItem1Cost) > 0 ? `• Przegląd serwisowy: ${formatCurrency(item.serviceItem1Cost)}<br>` : ''}
+            ${parseFloat(item.serviceItem2Cost) > 0 ? `• Dojazd: ${formatCurrency(item.serviceItem2Cost)}<br>` : ''}
+            ${parseFloat(item.serviceItem3Cost) > 0 ? `• Wymiana palnika: ${formatCurrency(item.serviceItem3Cost)}<br>` : ''}
+          </td>
+        </tr>
+      `);
+    }
+
+    // Uwagi
+    if (item.notes) {
+      detailsRows.push(`
+        <tr>
+          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f5f5f5; font-size: 0.9em;">
+            <strong>📝 Uwagi:</strong> ${item.notes}
+          </td>
+        </tr>
+      `);
+    }
+
+    return detailsRows.join('');
   }).join('');
 
   return `
@@ -667,7 +718,7 @@ function generateQuoteHTML(quote: any) {
       <button class="print-button no-print" onclick="window.print()">🖨️ Drukuj</button>
       <div class="header">
         <div class="company-logo">Sebastian Popiel</div>
-        <div class="quote-title">Wycena sprzętu budowlanego</div>
+        <div class="quote-title">Wycena sprzętu</div>
       </div>
 
       <div class="quote-info">
@@ -716,7 +767,7 @@ function generateQuoteHTML(quote: any) {
 
       <div class="footer">
         <p>Wycena wygenerowana: ${formatDate(new Date().toISOString())}</p>
-        <p>Sebastian Popiel - Wynajem sprzętu budowlanego</p>
+        <p>Sebastian Popiel - Wynajem sprzętu</p>
       </div>
     </body>
     </html>
