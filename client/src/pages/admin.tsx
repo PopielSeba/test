@@ -20,7 +20,8 @@ import {
   UserCheck,
   UserX,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  Copy
 } from "lucide-react";
 import {
   Table,
@@ -616,6 +617,26 @@ export default function Admin() {
     setIsEquipmentDialogOpen(true);
   };
 
+  const handleCopyEquipment = (equipment: Equipment) => {
+    setSelectedEquipment(null); // Clear selected to create new equipment
+    equipmentForm.reset({
+      name: `${equipment.name} (kopia)`,
+      description: equipment.description || "",
+      model: equipment.model || "",
+      power: equipment.power || "",
+      quantity: equipment.quantity,
+      availableQuantity: equipment.quantity, // Set available to same as quantity for new equipment
+      categoryId: equipment.category.id,
+      fuelConsumption75: equipment.fuelConsumption75,
+      dimensions: equipment.dimensions || "",
+      weight: equipment.weight || "",
+      engine: equipment.engine || "",
+      alternator: equipment.alternator || "",
+      fuelTankCapacity: equipment.fuelTankCapacity,
+    });
+    setIsEquipmentDialogOpen(true);
+  };
+
   const handleCloseEquipmentDialog = () => {
     setIsEquipmentDialogOpen(false);
     setSelectedEquipment(null);
@@ -1195,8 +1216,18 @@ export default function Admin() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleEditEquipment(item)}
+                                  title="Edytuj"
                                 >
                                   <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleCopyEquipment(item)}
+                                  title="Kopiuj"
+                                  className="text-blue-600 hover:text-blue-700"
+                                >
+                                  <Copy className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -1220,6 +1251,7 @@ export default function Admin() {
                                   size="sm"
                                   onClick={() => handleDeleteEquipment(item.id)}
                                   className="text-red-600 hover:text-red-700"
+                                  title="Usuń"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
