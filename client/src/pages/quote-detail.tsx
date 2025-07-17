@@ -14,7 +14,8 @@ import {
   User,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Plus
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -287,71 +288,85 @@ export default function QuoteDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {quote.items.map((item, index) => (
-                    <div key={item.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-semibold text-lg">{item.equipment.name}</h3>
-                          <p className="text-sm text-muted-foreground">{item.equipment.category.name}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold">{formatCurrency(item.totalPrice)}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {item.quantity} szt. × {getRentalPeriodText(item.rentalPeriodDays)}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Cena za dzień:</span>
-                          <p>{formatCurrency(item.pricePerDay)}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Rabat:</span>
-                          <p>{item.discountPercent}%</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Okres wynajmu:</span>
-                          <p>{getRentalPeriodText(item.rentalPeriodDays)}</p>
-                        </div>
-                      </div>
-
-                      {/* Additional costs */}
-                      <div className="mt-3 space-y-2">
-                        {item.includeFuelCost && item.totalFuelCost && (
-                          <div className="flex justify-between text-sm">
-                            <span>Koszt paliwa:</span>
-                            <span>{formatCurrency(item.totalFuelCost)}</span>
-                          </div>
-                        )}
-                        {item.includeInstallationCost && item.totalInstallationCost && (
-                          <div className="flex justify-between text-sm">
-                            <span>Koszt montażu:</span>
-                            <span>{formatCurrency(item.totalInstallationCost)}</span>
-                          </div>
-                        )}
-                        {item.includeMaintenanceCost && item.totalMaintenanceCost && (
-                          <div className="flex justify-between text-sm">
-                            <span>Koszt eksploatacji:</span>
-                            <span>{formatCurrency(item.totalMaintenanceCost)}</span>
-                          </div>
-                        )}
-                        {item.includeServiceItems && item.totalServiceItemsCost && (
-                          <div className="flex justify-between text-sm">
-                            <span>Koszty serwisowe:</span>
-                            <span>{formatCurrency(item.totalServiceItemsCost)}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {item.notes && (
-                        <div className="mt-3 p-3 bg-muted rounded">
-                          <p className="text-sm"><strong>Uwagi:</strong> {item.notes}</p>
-                        </div>
-                      )}
+                  {quote.items.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+                      <p className="text-lg mb-2">Brak pozycji w wycenie</p>
+                      <p className="text-sm mb-4">Dodaj sprzęt do wyceny, aby rozpocząć kalkulację kosztów.</p>
+                      <Link href={`/quotes/${quote.id}/edit`}>
+                        <Button>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Dodaj pierwszą pozycję
+                        </Button>
+                      </Link>
                     </div>
-                  ))}
+                  ) : (
+                    quote.items.map((item, index) => (
+                      <div key={item.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-lg">{item.equipment.name}</h3>
+                            <p className="text-sm text-muted-foreground">{item.equipment.category.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold">{formatCurrency(item.totalPrice)}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {item.quantity} szt. × {getRentalPeriodText(item.rentalPeriodDays)}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium">Cena za dzień:</span>
+                            <p>{formatCurrency(item.pricePerDay)}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Rabat:</span>
+                            <p>{item.discountPercent}%</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Okres wynajmu:</span>
+                            <p>{getRentalPeriodText(item.rentalPeriodDays)}</p>
+                          </div>
+                        </div>
+
+                        {/* Additional costs */}
+                        <div className="mt-3 space-y-2">
+                          {item.includeFuelCost && item.totalFuelCost && (
+                            <div className="flex justify-between text-sm">
+                              <span>Koszt paliwa:</span>
+                              <span>{formatCurrency(item.totalFuelCost)}</span>
+                            </div>
+                          )}
+                          {item.includeInstallationCost && item.totalInstallationCost && (
+                            <div className="flex justify-between text-sm">
+                              <span>Koszt montażu:</span>
+                              <span>{formatCurrency(item.totalInstallationCost)}</span>
+                            </div>
+                          )}
+                          {item.includeMaintenanceCost && item.totalMaintenanceCost && (
+                            <div className="flex justify-between text-sm">
+                              <span>Koszt eksploatacji:</span>
+                              <span>{formatCurrency(item.totalMaintenanceCost)}</span>
+                            </div>
+                          )}
+                          {item.includeServiceItems && item.totalServiceItemsCost && (
+                            <div className="flex justify-between text-sm">
+                              <span>Koszty serwisowe:</span>
+                              <span>{formatCurrency(item.totalServiceItemsCost)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {item.notes && (
+                          <div className="mt-3 p-3 bg-muted rounded">
+                            <p className="text-sm"><strong>Uwagi:</strong> {item.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
