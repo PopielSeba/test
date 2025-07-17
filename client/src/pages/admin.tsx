@@ -374,9 +374,16 @@ export default function Admin() {
         }, 500);
         return;
       }
+      
+      // Extract specific error message if available
+      let errorMessage = "Nie udało się usunąć kategorii";
+      if (error.message && error.message.includes("Nie można usunąć kategorii")) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Błąd",
-        description: "Nie udało się usunąć kategorii",
+        description: errorMessage,
         variant: "destructive",
       });
     },

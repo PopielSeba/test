@@ -259,7 +259,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/equipment/:id/additional', async (req, res) => {
     try {
       const equipmentId = parseInt(req.params.id);
-      const additional = await storage.getEquipmentAdditional(equipmentId);
+      let additional = await storage.getEquipmentAdditional(equipmentId);
+      
+      // If no additional equipment exists, create a default one
+      if (additional.length === 0) {
+        await storage.createEquipmentAdditional({
+          equipmentId: equipmentId,
+          type: "additional",
+          name: "Dodatkowe wyposażenie 1",
+          price: "0.00",
+          position: 1
+        });
+        additional = await storage.getEquipmentAdditional(equipmentId);
+      }
+      
       res.json(additional);
     } catch (error) {
       console.error("Error fetching equipment additional:", error);
