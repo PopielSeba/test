@@ -114,25 +114,32 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
         equipmentId: item.equipment.id,
         quantity: item.quantity,
         rentalPeriodDays: item.rentalPeriodDays,
-        pricePerDay: item.pricePerDay,
-        discountPercent: item.discountPercent,
-        totalPrice: item.totalPrice,
+        pricePerDay: parseFloat(item.pricePerDay),
+        discountPercent: parseFloat(item.discountPercent),
+        totalPrice: parseFloat(item.totalPrice),
         notes: item.notes || "",
-        fuelConsumptionLH: item.fuelConsumptionLH || 0,
-        fuelPricePerLiter: item.fuelPricePerLiter || 6.50,
+        fuelConsumptionLH: parseFloat(item.fuelConsumptionLH) || 0,
+        fuelPricePerLiter: parseFloat(item.fuelPricePerLiter) || 6.50,
         hoursPerDay: item.hoursPerDay || 8,
-        totalFuelCost: item.totalFuelCost || 0,
+        totalFuelCost: parseFloat(item.totalFuelCost) || 0,
         includeFuelCost: item.includeFuelCost || false,
-        includeInstallationCost: item.includeInstallationCost || false,
-        installationDistanceKm: item.installationDistanceKm || 0,
+        includeInstallationCost: item.includeTravelCost || false,
+        installationDistanceKm: parseFloat(item.travelDistanceKm) || 0,
         numberOfTechnicians: item.numberOfTechnicians || 1,
-        serviceRatePerTechnician: item.serviceRatePerTechnician || 150,
-        travelRatePerKm: item.travelRatePerKm || 1.15,
-        totalInstallationCost: item.totalInstallationCost || 0,
+        serviceRatePerTechnician: parseFloat(item.hourlyRatePerTechnician) || 150,
+        travelRatePerKm: parseFloat(item.travelRatePerKm) || 1.15,
+        totalInstallationCost: parseFloat(item.totalTravelCost) || 0,
         selectedAdditional: item.selectedAdditional || [],
         selectedAccessories: item.selectedAccessories || [],
         additionalCost: item.additionalCost || 0,
         accessoriesCost: item.accessoriesCost || 0,
+        includeMaintenanceCost: item.includeMaintenanceCost || false,
+        totalMaintenanceCost: parseFloat(item.totalMaintenanceCost) || 0,
+        includeServiceItems: item.includeServiceItems || false,
+        serviceItem1Cost: parseFloat(item.serviceItem1Cost) || 0,
+        serviceItem2Cost: parseFloat(item.serviceItem2Cost) || 0,
+        serviceItem3Cost: parseFloat(item.serviceItem3Cost) || 0,
+        totalServiceItemsCost: parseFloat(item.totalServiceItemsCost) || 0,
       }));
       setQuoteItems(initialItems);
     }
@@ -193,14 +200,28 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
   const form = useForm<z.infer<typeof clientSchema>>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
-      companyName: editingQuote?.client?.companyName || "",
-      nip: editingQuote?.client?.nip || "",
-      contactPerson: editingQuote?.client?.contactPerson || "",
-      phone: editingQuote?.client?.phone || "",
-      email: editingQuote?.client?.email || "",
-      address: editingQuote?.client?.address || "",
+      companyName: "",
+      nip: "",
+      contactPerson: "",
+      phone: "",
+      email: "",
+      address: "",
     },
   });
+
+  // Update form values when editing quote data is available
+  useEffect(() => {
+    if (editingQuote?.client) {
+      form.reset({
+        companyName: editingQuote.client.companyName || "",
+        nip: editingQuote.client.nip || "",
+        contactPerson: editingQuote.client.contactPerson || "",
+        phone: editingQuote.client.phone || "",
+        email: editingQuote.client.email || "",
+        address: editingQuote.client.address || "",
+      });
+    }
+  }, [editingQuote, form]);
 
   const createClientMutation = useMutation({
     mutationFn: async (clientData: z.infer<typeof clientSchema>) => {
@@ -313,12 +334,22 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
     }
 
     try {
-      // Create client
-      const client = await createClientMutation.mutateAsync(clientData);
+      let clientId: number;
       
-      // Create quote
+      if (editingQuote) {
+        // Update existing client data
+        const updateClientResponse = await apiRequest("PUT", `/api/clients/${editingQuote.client.id}`, clientData);
+        const updatedClient = await updateClientResponse.json();
+        clientId = updatedClient.id;
+      } else {
+        // Create new client
+        const client = await createClientMutation.mutateAsync(clientData);
+        clientId = client.id;
+      }
+      
+      // Create or update quote
       const quoteData = {
-        clientId: client.id,
+        clientId,
         status: "draft",
         totalNet: totalNet.toString(),
         vatRate: "23",
@@ -326,12 +357,19 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
         notes: "",
       };
 
-      const createdQuote = await createQuoteMutation.mutateAsync(quoteData);
+      const quote = await createQuoteMutation.mutateAsync(quoteData);
       
-      // Create quote items
+      if (editingQuote) {
+        // Delete existing quote items first
+        for (const existingItem of editingQuote.items) {
+          await apiRequest("DELETE", `/api/quote-items/${existingItem.id}`, null);
+        }
+      }
+      
+      // Create new quote items
       for (const item of quoteItems) {
         const itemData = {
-          quoteId: createdQuote.id,
+          quoteId: quote.id,
           equipmentId: item.equipmentId,
           quantity: item.quantity,
           rentalPeriodDays: item.rentalPeriodDays,
@@ -364,18 +402,18 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
       
       toast({
         title: "Sukces",
-        description: "Wycena została utworzona pomyślnie",
+        description: editingQuote ? "Wycena została zaktualizowana pomyślnie" : "Wycena została utworzona pomyślnie",
         variant: "default",
       });
       
-      // Navigate to the created quote
-      window.location.href = `/quotes/${createdQuote.id}`;
+      // Navigate to the quote
+      window.location.href = `/quotes/${quote.id}`;
       
     } catch (error) {
-      console.error("Error creating quote:", error);
+      console.error("Error saving quote:", error);
       toast({
         title: "Błąd",
-        description: "Nie udało się utworzyć wyceny",
+        description: editingQuote ? "Nie udało się zaktualizować wyceny" : "Nie udało się utworzyć wyceny",
         variant: "destructive",
       });
     }
