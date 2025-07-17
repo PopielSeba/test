@@ -62,6 +62,21 @@ interface QuoteItemData {
   includeServiceTravelCost?: boolean;
   totalMaintenanceCost?: number;
   expectedMaintenanceHours?: number;
+
+  // Additional equipment and accessories
+  selectedAdditional?: number[]; // IDs of selected additional equipment
+  selectedAccessories?: number[]; // IDs of selected accessories
+  additionalCost?: number;
+  accessoriesCost?: number;
+}
+
+interface EquipmentAdditional {
+  id: number;
+  equipmentId: number;
+  type: "additional" | "accessories";
+  name: string;
+  price: string;
+  position: number;
 }
 
 interface Equipment {
@@ -78,6 +93,7 @@ interface Equipment {
     discountPercent: string;
   }>;
   fuelConsumption75?: number; // l/h at 75% load for generators
+  additionalEquipment?: EquipmentAdditional[];
 }
 
 interface QuoteItemProps {
@@ -134,6 +150,12 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     retry: false,
   });
 
+  // Query to get additional equipment and accessories
+  const { data: additionalEquipment = [] } = useQuery<EquipmentAdditional[]>({
+    queryKey: ["/api/equipment", item.equipmentId, "additional"],
+    enabled: !!item.equipmentId && item.equipmentId > 0,
+  });
+
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
@@ -172,6 +194,10 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         if (item.includeMaintenanceCost) {
           maintenanceCost = item.totalMaintenanceCost || 0;
         }
+
+        // Calculate additional equipment and accessories cost
+        const additionalCost = item.additionalCost || 0;
+        const accessoriesCost = item.accessoriesCost || 0;
         
         // Calculate service items cost - only include if service items are enabled
         let serviceItemsCost = 0;
@@ -180,7 +206,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
         }
         
         // Total price is just the sum of all components (no additional discount needed)
-        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + maintenanceCost + serviceItemsCost;
+        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + maintenanceCost + serviceItemsCost + additionalCost + accessoriesCost;
         
 
 
@@ -193,6 +219,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
           totalInstallationCost: installationCost,
           totalMaintenanceCost: maintenanceCost,
           totalServiceItemsCost: serviceItemsCost,
+          additionalCost,
+          accessoriesCost,
         });
       }
     }
@@ -216,6 +244,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     
     item.includeServiceItems,
     item.totalServiceItemsCost,
+    item.additionalCost,
+    item.accessoriesCost,
     selectedEquipment
   ]);
 
@@ -1149,6 +1179,155 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Additional Equipment and Accessories */}
+        {additionalEquipment.length > 0 && (
+          <div className="space-y-4">
+            {additionalEquipment.filter(item => item.type === "additional").length > 0 && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={`additional-${item.id}`}
+                  checked={additionalEquipment.filter(item => item.type === "additional").some(add => item.selectedAdditional?.includes(add.id))}
+                  onCheckedChange={(checked) => {
+                    const additionalItems = additionalEquipment.filter(item => item.type === "additional");
+                    const allSelected = additionalItems.every(add => item.selectedAdditional?.includes(add.id));
+                    
+                    if (checked && !allSelected) {
+                      // Select all additional items
+                      const newSelected = [...(item.selectedAdditional || []), ...additionalItems.map(add => add.id)];
+                      const cost = additionalItems.reduce((sum, add) => sum + parseFloat(add.price), 0);
+                      onUpdate({
+                        ...item,
+                        selectedAdditional: newSelected,
+                        additionalCost: cost
+                      });
+                    } else {
+                      // Deselect all additional items
+                      const additionalIds = additionalItems.map(add => add.id);
+                      const newSelected = (item.selectedAdditional || []).filter(id => !additionalIds.includes(id));
+                      onUpdate({
+                        ...item,
+                        selectedAdditional: newSelected,
+                        additionalCost: 0
+                      });
+                    }
+                  }}
+                />
+                <label htmlFor={`additional-${item.id}`} className="text-lg font-semibold">
+                  Wyposażenie dodatkowe
+                </label>
+              </div>
+            )}
+
+            {additionalEquipment.filter(item => item.type === "additional").map((additional) => (
+              <div key={additional.id} className="ml-6 flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`additional-item-${additional.id}`}
+                    checked={item.selectedAdditional?.includes(additional.id) || false}
+                    onCheckedChange={(checked) => {
+                      const currentSelected = item.selectedAdditional || [];
+                      let newSelected;
+                      let newCost = item.additionalCost || 0;
+                      
+                      if (checked) {
+                        newSelected = [...currentSelected, additional.id];
+                        newCost += parseFloat(additional.price);
+                      } else {
+                        newSelected = currentSelected.filter(id => id !== additional.id);
+                        newCost -= parseFloat(additional.price);
+                      }
+                      
+                      onUpdate({
+                        ...item,
+                        selectedAdditional: newSelected,
+                        additionalCost: Math.max(0, newCost)
+                      });
+                    }}
+                  />
+                  <label htmlFor={`additional-item-${additional.id}`} className="font-medium">
+                    {additional.name}
+                  </label>
+                </div>
+                <div className="text-sm font-semibold">
+                  {parseFloat(additional.price).toFixed(2)} zł
+                </div>
+              </div>
+            ))}
+
+            {additionalEquipment.filter(item => item.type === "accessories").length > 0 && (
+              <div className="flex items-center space-x-2 mt-6">
+                <Checkbox
+                  id={`accessories-${item.id}`}
+                  checked={additionalEquipment.filter(item => item.type === "accessories").some(acc => item.selectedAccessories?.includes(acc.id))}
+                  onCheckedChange={(checked) => {
+                    const accessoryItems = additionalEquipment.filter(item => item.type === "accessories");
+                    const allSelected = accessoryItems.every(acc => item.selectedAccessories?.includes(acc.id));
+                    
+                    if (checked && !allSelected) {
+                      // Select all accessories
+                      const newSelected = [...(item.selectedAccessories || []), ...accessoryItems.map(acc => acc.id)];
+                      const cost = accessoryItems.reduce((sum, acc) => sum + parseFloat(acc.price), 0);
+                      onUpdate({
+                        ...item,
+                        selectedAccessories: newSelected,
+                        accessoriesCost: cost
+                      });
+                    } else {
+                      // Deselect all accessories
+                      const accessoryIds = accessoryItems.map(acc => acc.id);
+                      const newSelected = (item.selectedAccessories || []).filter(id => !accessoryIds.includes(id));
+                      onUpdate({
+                        ...item,
+                        selectedAccessories: newSelected,
+                        accessoriesCost: 0
+                      });
+                    }
+                  }}
+                />
+                <label htmlFor={`accessories-${item.id}`} className="text-lg font-semibold">
+                  Akcesoria
+                </label>
+              </div>
+            )}
+
+            {additionalEquipment.filter(item => item.type === "accessories").map((accessory) => (
+              <div key={accessory.id} className="ml-6 flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`accessory-item-${accessory.id}`}
+                    checked={item.selectedAccessories?.includes(accessory.id) || false}
+                    onCheckedChange={(checked) => {
+                      const currentSelected = item.selectedAccessories || [];
+                      let newSelected;
+                      let newCost = item.accessoriesCost || 0;
+                      
+                      if (checked) {
+                        newSelected = [...currentSelected, accessory.id];
+                        newCost += parseFloat(accessory.price);
+                      } else {
+                        newSelected = currentSelected.filter(id => id !== accessory.id);
+                        newCost -= parseFloat(accessory.price);
+                      }
+                      
+                      onUpdate({
+                        ...item,
+                        selectedAccessories: newSelected,
+                        accessoriesCost: Math.max(0, newCost)
+                      });
+                    }}
+                  />
+                  <label htmlFor={`accessory-item-${accessory.id}`} className="font-medium">
+                    {accessory.name}
+                  </label>
+                </div>
+                <div className="text-sm font-semibold">
+                  {parseFloat(accessory.price).toFixed(2)} zł
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

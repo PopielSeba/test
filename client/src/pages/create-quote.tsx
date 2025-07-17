@@ -45,6 +45,21 @@ interface QuoteItemData {
   serviceRatePerTechnician?: number;
   travelRatePerKm?: number;
   totalInstallationCost?: number;
+
+  // Additional equipment and accessories
+  selectedAdditional?: number[]; // IDs of selected additional equipment
+  selectedAccessories?: number[]; // IDs of selected accessories
+  additionalCost?: number;
+  accessoriesCost?: number;
+}
+
+interface EquipmentAdditional {
+  id: number;
+  equipmentId: number;
+  type: "additional" | "accessories";
+  name: string;
+  price: string;
+  position: number;
 }
 
 interface Equipment {
@@ -61,6 +76,7 @@ interface Equipment {
     discountPercent: string;
   }>;
   fuelConsumption75?: number; // l/h at 75% load for generators
+  additionalEquipment?: EquipmentAdditional[];
 }
 
 interface CreateQuoteProps {
@@ -93,6 +109,10 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
         serviceRatePerTechnician: item.serviceRatePerTechnician || 150,
         travelRatePerKm: item.travelRatePerKm || 1.15,
         totalInstallationCost: item.totalInstallationCost || 0,
+        selectedAdditional: item.selectedAdditional || [],
+        selectedAccessories: item.selectedAccessories || [],
+        additionalCost: item.additionalCost || 0,
+        accessoriesCost: item.accessoriesCost || 0,
       }));
       setQuoteItems(initialItems);
     }
@@ -133,7 +153,11 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           numberOfTechnicians: 1,
           serviceRatePerTechnician: 150,
           travelRatePerKm: 1.15,
-          totalInstallationCost: 0
+          totalInstallationCost: 0,
+          selectedAdditional: [],
+          selectedAccessories: [],
+          additionalCost: 0,
+          accessoriesCost: 0
         };
         setQuoteItems([newItem]);
         
@@ -214,7 +238,11 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
       numberOfTechnicians: 1,
       serviceRatePerTechnician: 150,
       travelRatePerKm: 1.15,
-      totalInstallationCost: 0
+      totalInstallationCost: 0,
+      selectedAdditional: [],
+      selectedAccessories: [],
+      additionalCost: 0,
+      accessoriesCost: 0
     };
     setQuoteItems([...quoteItems, newItem]);
   };
