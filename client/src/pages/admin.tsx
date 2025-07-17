@@ -252,8 +252,14 @@ export default function Admin() {
   const updateEquipmentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<z.infer<typeof equipmentSchema>> }) => {
       console.log("Updating equipment with ID:", id, "and data:", data);
-      const response = await apiRequest("PUT", `/api/equipment/${id}`, data);
-      return response.json();
+      try {
+        const response = await apiRequest("PUT", `/api/equipment/${id}`, data);
+        console.log("API request successful, response:", response);
+        return response.json();
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       console.log("Equipment update successful:", data);
