@@ -201,6 +201,11 @@ export default function Admin() {
     },
   });
 
+  // Watch selected category to show relevant fields
+  const selectedCategoryId = equipmentForm.watch("categoryId");
+  const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+  const selectedCategoryName = selectedCategory?.name?.toLowerCase() || "";
+
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
@@ -992,71 +997,100 @@ export default function Admin() {
                               )}
                             />
 
-                            {/* Technical specifications for generators */}
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-medium text-foreground">Parametry techniczne (agregaty)</h3>
+                            {/* Technical specifications - conditional based on category */}
+                            {selectedCategoryName && (
+                              <div className="space-y-4">
+                                <h3 className="text-lg font-medium text-foreground">
+                                  Parametry techniczne ({selectedCategory?.name})
+                                </h3>
                               <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="fuelConsumption75"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Spalanie przy 75% obciążenia (l/h)</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          step="0.1"
-                                          {...field} 
-                                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="fuelTankCapacity"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Pojemność zbiornika paliwa (l)</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          {...field} 
-                                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="engine"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Silnik</FormLabel>
-                                      <FormControl>
-                                        <Input {...field} placeholder="np. VOLVO TAD734GE" />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={equipmentForm.control}
-                                  name="alternator"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Alternator</FormLabel>
-                                      <FormControl>
-                                        <Input {...field} placeholder="np. LEROY SOMER" />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                {/* Show power field for equipment that has power (generators, heaters, AC units) */}
+                                {(selectedCategoryName.includes("agregat") || 
+                                  selectedCategoryName.includes("nagrzewnic") || 
+                                  selectedCategoryName.includes("klimat")) && (
+                                  <FormField
+                                    control={equipmentForm.control}
+                                    name="power"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Moc</FormLabel>
+                                        <FormControl>
+                                          <Input {...field} placeholder="np. 90.18 kW" />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                )}
+
+                                {/* Generator-specific fields */}
+                                {selectedCategoryName.includes("agregat") && (
+                                  <>
+                                    <FormField
+                                      control={equipmentForm.control}
+                                      name="fuelConsumption75"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Spalanie przy 75% obciążenia (l/h)</FormLabel>
+                                          <FormControl>
+                                            <Input 
+                                              type="number" 
+                                              step="0.1"
+                                              {...field} 
+                                              onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <FormField
+                                      control={equipmentForm.control}
+                                      name="fuelTankCapacity"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Pojemność zbiornika paliwa (l)</FormLabel>
+                                          <FormControl>
+                                            <Input 
+                                              type="number" 
+                                              {...field} 
+                                              onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <FormField
+                                      control={equipmentForm.control}
+                                      name="engine"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Silnik</FormLabel>
+                                          <FormControl>
+                                            <Input {...field} placeholder="np. VOLVO TAD734GE" />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <FormField
+                                      control={equipmentForm.control}
+                                      name="alternator"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Alternator</FormLabel>
+                                          <FormControl>
+                                            <Input {...field} placeholder="np. LEROY SOMER" />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </>
+                                )}
+
+                                {/* Common fields for all equipment types */}
                                 <FormField
                                   control={equipmentForm.control}
                                   name="dimensions"
@@ -1084,8 +1118,8 @@ export default function Admin() {
                                   )}
                                 />
                               </div>
-                            </div>
-
+                              </div>
+                            )}
 
                             <div className="flex justify-end space-x-2">
                               <Button 
