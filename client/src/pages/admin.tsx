@@ -134,7 +134,14 @@ export default function Admin() {
   
   // Debug logging for authentication state
   useEffect(() => {
-    console.log("Auth debug:", { user, authLoading, userExists: !!user });
+    console.log("Auth debug:", { 
+      user, 
+      authLoading, 
+      userExists: !!user,
+      userIsNull: user === null,
+      userIsUndefined: user === undefined,
+      shouldRedirect: !authLoading && (!user || user === null)
+    });
   }, [user, authLoading]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -626,7 +633,7 @@ export default function Admin() {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && (!user || user === null)) {
       toast({
         title: "Wymagane logowanie",
         description: "Przekierowuję do logowania Replit...",
@@ -652,7 +659,7 @@ export default function Admin() {
   }, [authLoading, user, toast]);
 
   // Check if user is authenticated and has admin role
-  if (!authLoading && !user) {
+  if (!authLoading && (!user || user === null)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <Card className="w-full max-w-lg shadow-xl">
