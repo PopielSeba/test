@@ -277,7 +277,16 @@ export const usersRelations = relations(users, ({ many }) => ({
 // Insert and select schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertEquipmentCategorySchema = createInsertSchema(equipmentCategories);
-export const insertEquipmentSchema = createInsertSchema(equipment);
+export const insertEquipmentSchema = createInsertSchema(equipment).extend({
+  fuelConsumption75: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined || val === null) return undefined;
+    return typeof val === 'number' ? val.toString() : val;
+  }),
+  fuelTankCapacity: z.union([z.string(), z.number()]).optional().transform((val) => {
+    if (val === undefined || val === null) return undefined;
+    return typeof val === 'number' ? val : parseInt(val?.toString() || '0') || undefined;
+  }),
+});
 export const insertEquipmentPricingSchema = createInsertSchema(equipmentPricing);
 export const insertClientSchema = createInsertSchema(clients);
 export const insertQuoteSchema = createInsertSchema(quotes);

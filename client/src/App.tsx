@@ -20,8 +20,6 @@ import GuestQuote from "@/pages/guest-quote";
 import Navbar from "@/components/navbar";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -36,6 +34,7 @@ function Router() {
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />
         <Route path="/guest-quote" component={GuestQuote} />
+        <Route path="/landing" component={Landing} />
         <Route component={NotFound} />
       </Switch>
     </div>
