@@ -618,9 +618,8 @@ export default function Admin() {
   };
 
   const handleCopyEquipment = (equipment: Equipment) => {
-    console.log('handleCopyEquipment called with equipment:', equipment);
     setSelectedEquipment(null); // Clear selected to create new equipment
-    const formData = {
+    equipmentForm.reset({
       name: `${equipment.name} (kopia)`,
       description: equipment.description || "",
       model: equipment.model || "",
@@ -634,9 +633,7 @@ export default function Admin() {
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
       fuelTankCapacity: equipment.fuelTankCapacity,
-    };
-    console.log('Setting form data:', formData);
-    equipmentForm.reset(formData);
+    });
     setIsEquipmentDialogOpen(true);
   };
 
@@ -667,14 +664,9 @@ export default function Admin() {
   };
 
   const onSubmitEquipment = (data: z.infer<typeof equipmentSchema>) => {
-    console.log('onSubmitEquipment called with data:', data);
-    console.log('selectedEquipment:', selectedEquipment);
-    
     if (selectedEquipment) {
-      console.log('Updating equipment with ID:', selectedEquipment.id);
       updateEquipmentMutation.mutate({ id: selectedEquipment.id, data });
     } else {
-      console.log('Creating new equipment');
       createEquipmentMutation.mutate(data);
     }
   };
@@ -1165,12 +1157,6 @@ export default function Admin() {
                               <Button 
                                 type="submit" 
                                 disabled={createEquipmentMutation.isPending || updateEquipmentMutation.isPending}
-                                onClick={() => {
-                                  console.log('Submit button clicked');
-                                  console.log('Form errors:', equipmentForm.formState.errors);
-                                  console.log('Form values:', equipmentForm.getValues());
-                                  console.log('Form valid:', equipmentForm.formState.isValid);
-                                }}
                               >
                                 {selectedEquipment 
                                   ? (updateEquipmentMutation.isPending ? "Aktualizowanie..." : "Aktualizuj")
