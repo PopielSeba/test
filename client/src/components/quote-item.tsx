@@ -410,10 +410,23 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     
     // Calculate how much of maintenance cost applies to rental period
     const expectedHours = updatedItem.expectedMaintenanceHours !== undefined ? updatedItem.expectedMaintenanceHours : (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
+    const intervalHours = updatedItem.maintenanceIntervalHours || maintenanceDefaults?.maintenanceInterval || 500;
+    
     let totalCost = 0;
     if (expectedHours > 0) {
-      totalCost = (maintenanceCostPer500h / (updatedItem.maintenanceIntervalHours || maintenanceDefaults?.maintenanceInterval || 500)) * expectedHours;
+      totalCost = (maintenanceCostPer500h / intervalHours) * expectedHours;
     }
+    
+    // Debug logging
+    console.log('Maintenance cost calculation:', {
+      filtersCost,
+      oilTotalCost,
+      serviceWorkCost,
+      maintenanceCostPer500h,
+      expectedHours,
+      intervalHours,
+      totalCost
+    });
 
     onUpdate({ ...updatedItem, totalMaintenanceCost: totalCost });
   };
