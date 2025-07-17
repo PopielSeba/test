@@ -112,6 +112,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/equipment-categories/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteEquipmentCategory(id);
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+
   // Equipment
   app.get('/api/equipment', async (req, res) => {
     try {
@@ -220,6 +236,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating pricing:", error);
       res.status(500).json({ message: "Failed to update pricing" });
+    }
+  });
+
+  app.delete('/api/equipment-pricing/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteEquipmentPricing(id);
+      res.json({ message: "Equipment pricing deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting pricing:", error);
+      res.status(500).json({ message: "Failed to delete pricing" });
     }
   });
 

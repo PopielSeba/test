@@ -346,6 +346,39 @@ export default function Admin() {
     },
   });
 
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/equipment-categories/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      toast({
+        title: "Sukces",
+        description: "Kategoria została usunięta pomyślnie",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć kategorii",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createPricingMutation = useMutation({
     mutationFn: async (data: z.infer<typeof pricingSchema>) => {
       const response = await apiRequest("POST", "/api/equipment-pricing", data);
@@ -407,6 +440,38 @@ export default function Admin() {
       toast({
         title: "Błąd",
         description: "Nie udało się zaktualizować cennika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePricingMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/equipment-pricing/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      toast({
+        title: "Sukces",
+        description: "Przedział cenowy został usunięty",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć przedziału cenowego",
         variant: "destructive",
       });
     },
@@ -743,7 +808,13 @@ export default function Admin() {
                       </DialogContent>
                     </Dialog>
 
-                    <Dialog open={isEquipmentDialogOpen} onOpenChange={handleCloseEquipmentDialog}>
+                    <Dialog open={isEquipmentDialogOpen} onOpenChange={(open) => {
+                      if (open) {
+                        setIsEquipmentDialogOpen(true);
+                      } else {
+                        handleCloseEquipmentDialog();
+                      }
+                    }}>
                       <DialogTrigger asChild>
                         <Button size="sm">
                           <Plus className="w-4 h-4 mr-2" />
@@ -1107,6 +1178,42 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Settings className="w-5 h-5 mr-2" />
+                  Kategorie sprzętu
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {categories.map((category) => (
+                    <div key={category.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div>
+                        <p className="font-medium text-foreground">{category.name}</p>
+                        {category.description && (
+                          <p className="text-sm text-muted-foreground">{category.description}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm(`Czy na pewno chcesz usunąć kategorię "${category.name}"?`)) {
+                            deleteCategoryMutation.mutate(category.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-700"
+                        disabled={deleteCategoryMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="w-5 h-5 mr-2" />
                   Ustawienia cenowe
                 </CardTitle>
               </CardHeader>
@@ -1217,12 +1324,15 @@ export default function Admin() {
                             <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold">
                               Procent zniżki
                             </th>
+                            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold">
+                              Akcje
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedEquipmentForPricing.pricing.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-500">
+                              <td colSpan={5} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-500">
                                 Brak cennika. Dodaj pierwszy przedział cenowy.
                               </td>
                             </tr>
@@ -1296,6 +1406,21 @@ export default function Admin() {
                                   </td>
                                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right">
                                     {discountPercent}%
+                                  </td>
+                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        if (confirm(`Czy na pewno chcesz usunąć przedział "${periodText}"?`)) {
+                                          deletePricingMutation.mutate(pricing.id);
+                                        }
+                                      }}
+                                      className="text-red-600 hover:text-red-700"
+                                      disabled={deletePricingMutation.isPending}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
                                   </td>
                                 </tr>
                               );
