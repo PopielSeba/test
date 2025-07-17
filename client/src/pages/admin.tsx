@@ -613,8 +613,14 @@ export default function Admin() {
     }
   };
 
-  // Check if user is admin - early return if not authorized
-  if (!authLoading && user?.role !== 'admin') {
+  // Check if user is authenticated and has admin role
+  if (!authLoading && !user) {
+    // User is not authenticated, redirect to login
+    window.location.href = "/api/login";
+    return null;
+  }
+
+  if (!authLoading && user && user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">
