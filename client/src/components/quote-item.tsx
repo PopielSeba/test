@@ -409,7 +409,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost;
     
     // Calculate how much of maintenance cost applies to rental period
-    const expectedHours = updatedItem.expectedMaintenanceHours || (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
+    const expectedHours = updatedItem.expectedMaintenanceHours !== undefined ? updatedItem.expectedMaintenanceHours : (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
     let totalCost = 0;
     if (expectedHours > 0) {
       totalCost = (maintenanceCostPer500h / (updatedItem.maintenanceIntervalHours || maintenanceDefaults?.maintenanceInterval || 500)) * expectedHours;
@@ -893,7 +893,7 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
                     const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost;
                     
                     // Calculate how much of maintenance cost applies to rental period
-                    const expectedHours = (item.expectedMaintenanceHours || 0);
+                    const expectedHours = item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8));
                     if (expectedHours > 0) {
                       totalCost = (maintenanceCostPer500h / 500) * expectedHours;
                     }
