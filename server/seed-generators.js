@@ -1,3 +1,6 @@
+import { db } from './db.ts';
+import { equipment, equipmentPricing } from '../shared/schema.ts';
+
 // Script to add SDMO generators from the provided specification table
 const generators = [
   {
@@ -244,5 +247,51 @@ const generators = [
   }
 ];
 
-console.log('SDMO Generators to be added:', generators.length);
-console.log(JSON.stringify(generators, null, 2));
+async function seedGenerators() {
+  console.log('Seeding generators...');
+  
+  const generatorsCategoryId = 26; // Agregaty prądotwórcze
+  
+  try {
+    for (const generator of generators) {
+      console.log(`Adding generator: ${generator.name}`);
+      
+      const [insertedGenerator] = await db
+        .insert(equipment)
+        .values({
+          ...generator,
+          categoryId: generatorsCategoryId,
+          isActive: true
+        })
+        .returning();
+      
+      console.log(`✓ Added generator: ${generator.name}`);
+      
+      // Add standard pricing tiers
+      const pricingTiers = [
+        { periodStart: 1, periodEnd: 2, pricePerDay: "450.00", discountPercent: "0.00" },
+        { periodStart: 3, periodEnd: 7, pricePerDay: "405.00", discountPercent: "10.00" },
+        { periodStart: 8, periodEnd: 18, pricePerDay: "360.00", discountPercent: "20.00" },
+        { periodStart: 19, periodEnd: 29, pricePerDay: "315.00", discountPercent: "30.00" },
+        { periodStart: 30, periodEnd: null, pricePerDay: "270.00", discountPercent: "40.00" }
+      ];
+      
+      for (const tier of pricingTiers) {
+        await db.insert(equipmentPricing).values({
+          equipmentId: insertedGenerator.id,
+          ...tier
+        });
+      }
+      
+      console.log(`Added pricing tiers for: ${generator.name}`);
+    }
+    
+    console.log('Generators seeding completed!');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error seeding generators:', error);
+    process.exit(1);
+  }
+}
+
+seedGenerators();
