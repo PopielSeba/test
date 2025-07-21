@@ -39,6 +39,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Resolved seed file discount values**: Updated all seed files to use correct discount percentages (10%, 20%, 30%, 40%)
 - **Fixed new equipment creation**: System now automatically creates equipment with proper discount tiers instead of 0% defaults
 - **Corrected pricing calculation**: New equipment gets standard discount structure (10% for 3-7 days, 20% for 8-18 days, 30% for 19-29 days, 40% for 30+ days)
+- **Enhanced quote printing**: Added "Wyposażenie dodatkowe i akcesoria" (Additional equipment and accessories) section to quote printouts
+- **Improved admin panel**: Added user deletion functionality and direct equipment quantity editing in admin tables
+- **Fixed price/discount synchronization**: Price and discount fields now update each other automatically in admin panel
 
 
 
