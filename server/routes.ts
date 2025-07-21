@@ -882,20 +882,32 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Wyposażenie dodatkowe i akcesoria
-    if (item.selectedAdditional && item.selectedAdditional.length > 0 && item.equipment.additionalEquipment) {
-      const selectedItems = item.equipment.additionalEquipment.filter((add: any) => 
-        item.selectedAdditional.includes(add.id)
-      );
+    // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
+    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
+      const additionalItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'additional');
+      const accessoryItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'accessories');
       
-      if (selectedItems.length > 0) {
+      if (additionalItems.length > 0 || accessoryItems.length > 0) {
+        let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
+        
+        if (additionalItems.length > 0) {
+          additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
+          additionalItems.forEach((add: any) => {
+            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
+          });
+        }
+        
+        if (accessoryItems.length > 0) {
+          additionalHTML += '<strong>Akcesoria:</strong><br>';
+          accessoryItems.forEach((add: any) => {
+            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
+          });
+        }
+        
         detailsRows.push(`
           <tr>
             <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0f8ff; font-size: 0.9em;">
-              <strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong> ${formatCurrency(item.additionalCost || 0)}<br>
-              ${selectedItems.map((add: any) => {
-                return `• ${add.name} - ${formatCurrency(add.price)}`;
-              }).join('<br>')}
+              ${additionalHTML}
             </td>
           </tr>
         `);
