@@ -8,6 +8,8 @@ import {
   quotes,
   quoteItems,
   maintenanceDefaults,
+  pricingSchemas,
+  pricingTiers,
   type User,
   type UpsertUser,
   type Equipment,
@@ -28,6 +30,10 @@ import {
   type InsertQuoteItem,
   type MaintenanceDefaults,
   type InsertMaintenanceDefaults,
+  type PricingSchema,
+  type PricingTier,
+  type InsertPricingSchema,
+  type InsertPricingTier,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, and } from "drizzle-orm";
@@ -92,6 +98,18 @@ export interface IStorage {
   getMaintenanceDefaults(categoryName: string): Promise<MaintenanceDefaults | undefined>;
   getAllMaintenanceDefaults(): Promise<MaintenanceDefaults[]>;
   updateMaintenanceDefaults(categoryName: string, defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
+
+  // Pricing schemas
+  getPricingSchemas(): Promise<(PricingSchema & { tiers: PricingTier[] })[]>;
+  getPricingSchemaById(id: number): Promise<(PricingSchema & { tiers: PricingTier[] }) | undefined>;
+  createPricingSchema(schema: InsertPricingSchema): Promise<PricingSchema>;
+  updatePricingSchema(id: number, schema: Partial<InsertPricingSchema>): Promise<PricingSchema>;
+  deletePricingSchema(id: number): Promise<void>;
+  
+  // Pricing tiers
+  createPricingTier(tier: InsertPricingTier): Promise<PricingTier>;
+  updatePricingTier(id: number, tier: Partial<InsertPricingTier>): Promise<PricingTier>;
+  deletePricingTier(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -316,6 +334,7 @@ export class DatabaseStorage implements IStorage {
           ...row.equipment,
           category: row.equipment_categories!,
           pricing: [],
+          additionalEquipment: [],
         });
       }
 
@@ -495,6 +514,7 @@ export class DatabaseStorage implements IStorage {
               ...row.equipment,
               category: row.equipment_categories,
               pricing: [], // Would need separate query for pricing
+              additionalEquipment: [],
             },
           });
         }
@@ -529,6 +549,7 @@ export class DatabaseStorage implements IStorage {
           ...row.equipment!,
           category: row.equipment_categories!,
           pricing: [], // Would need separate query for pricing
+          additionalEquipment: [],
         },
       }));
 
@@ -575,6 +596,7 @@ export class DatabaseStorage implements IStorage {
               ...row.equipment,
               category: row.equipment_categories,
               pricing: [],
+              additionalEquipment: [],
             },
           });
         }
@@ -668,6 +690,77 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Pricing schemas
+  async getPricingSchemas(): Promise<(PricingSchema & { tiers: PricingTier[] })[]> {
+    const schemas = await db.select().from(pricingSchemas).orderBy(pricingSchemas.name);
+    const result = [];
+    
+    for (const schema of schemas) {
+      const tiers = await db
+        .select()
+        .from(pricingTiers)
+        .where(eq(pricingTiers.schemaId, schema.id))
+        .orderBy(pricingTiers.tierNumber);
+      
+      result.push({ ...schema, tiers });
+    }
+    
+    return result;
+  }
+
+  async getPricingSchemaById(id: number): Promise<(PricingSchema & { tiers: PricingTier[] }) | undefined> {
+    const [schema] = await db.select().from(pricingSchemas).where(eq(pricingSchemas.id, id));
+    if (!schema) return undefined;
+
+    const tiers = await db
+      .select()
+      .from(pricingTiers)
+      .where(eq(pricingTiers.schemaId, id))
+      .orderBy(pricingTiers.tierNumber);
+
+    return { ...schema, tiers };
+  }
+
+  async createPricingSchema(schemaData: InsertPricingSchema): Promise<PricingSchema> {
+    const [schema] = await db.insert(pricingSchemas).values(schemaData).returning();
+    return schema;
+  }
+
+  async updatePricingSchema(id: number, schemaData: Partial<InsertPricingSchema>): Promise<PricingSchema> {
+    const [schema] = await db
+      .update(pricingSchemas)
+      .set({ ...schemaData, updatedAt: new Date() })
+      .where(eq(pricingSchemas.id, id))
+      .returning();
+    return schema;
+  }
+
+  async deletePricingSchema(id: number): Promise<void> {
+    // First delete all associated tiers
+    await db.delete(pricingTiers).where(eq(pricingTiers.schemaId, id));
+    // Then delete the schema
+    await db.delete(pricingSchemas).where(eq(pricingSchemas.id, id));
+  }
+
+  // Pricing tiers
+  async createPricingTier(tierData: InsertPricingTier): Promise<PricingTier> {
+    const [tier] = await db.insert(pricingTiers).values(tierData).returning();
+    return tier;
+  }
+
+  async updatePricingTier(id: number, tierData: Partial<InsertPricingTier>): Promise<PricingTier> {
+    const [tier] = await db
+      .update(pricingTiers)
+      .set(tierData)
+      .where(eq(pricingTiers.id, id))
+      .returning();
+    return tier;
+  }
+
+  async deletePricingTier(id: number): Promise<void> {
+    await db.delete(pricingTiers).where(eq(pricingTiers.id, id));
   }
 }
 

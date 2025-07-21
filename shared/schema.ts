@@ -61,6 +61,7 @@ export const equipment = pgTable("equipment", {
   engine: varchar("engine"), // engine manufacturer/model
   alternator: varchar("alternator"), // alternator info
   fuelTankCapacity: integer("fuel_tank_capacity"), // liters
+  imageUrl: varchar("image_url"), // equipment image URL
 
   quantity: integer("quantity").notNull().default(0),
   availableQuantity: integer("available_quantity").notNull().default(0),
@@ -105,6 +106,28 @@ export const clients = pgTable("clients", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Pricing tiers/schemas - define different pricing strategies
+export const pricingSchemas = pgTable("pricing_schemas", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull().unique(), // e.g., "Standard", "Business", "Promo"
+  description: text("description"),
+  isDefault: boolean("is_default").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Progressive pricing tiers for each pricing schema
+export const pricingTiers = pgTable("pricing_tiers", {
+  id: serial("id").primaryKey(),
+  schemaId: integer("schema_id").references(() => pricingSchemas.id).notNull(),
+  tierNumber: integer("tier_number").notNull(), // 1, 2, 3, 4, 5
+  dayStart: integer("day_start").notNull(), // starting day for this tier
+  dayEnd: integer("day_end"), // ending day for this tier (null for unlimited)
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Quotes
 export const quotes = pgTable("quotes", {
   id: serial("id").primaryKey(),
@@ -113,6 +136,7 @@ export const quotes = pgTable("quotes", {
   createdById: varchar("created_by_id").references(() => users.id),
   isGuestQuote: boolean("is_guest_quote").default(false).notNull(),
   guestEmail: varchar("guest_email"),
+  pricingSchemaId: integer("pricing_schema_id").references(() => pricingSchemas.id),
   status: varchar("status").notNull().default("draft"), // draft, pending, approved, rejected
   totalNet: decimal("total_net", { precision: 12, scale: 2 }).notNull(),
   vatRate: decimal("vat_rate", { precision: 5, scale: 2 }).notNull().default("23"),
@@ -148,13 +172,13 @@ export const maintenanceDefaults = pgTable("maintenance_defaults", {
   serviceWorkRate: decimal("service_work_rate", { precision: 8, scale: 2 }).notNull().default("0.00"),
   // Maintenance interval
   maintenanceInterval: integer("maintenance_interval").notNull().default(500),
-  // Service items for heaters
-  serviceItem1Name: varchar("service_item_1_name").default("Przegląd serwisowy"),
-  serviceItem1Cost: decimal("service_item_1_cost", { precision: 8, scale: 2 }).default("0.00"),
-  serviceItem2Name: varchar("service_item_2_name").default("Dojazd"),
-  serviceItem2Cost: decimal("service_item_2_cost", { precision: 8, scale: 2 }).default("0.00"),
-  serviceItem3Name: varchar("service_item_3_name").default("Wymiana palnika"),
-  serviceItem3Cost: decimal("service_item_3_cost", { precision: 8, scale: 2 }).default("0.00"),
+  // Service items for heaters (keeping original precision to avoid data loss)
+  serviceItem1Name: varchar("service_item_1_name", { length: 100 }).default("Przegląd serwisowy"),
+  serviceItem1Cost: decimal("service_item_1_cost", { precision: 10, scale: 2 }).default("0.00"),
+  serviceItem2Name: varchar("service_item_2_name", { length: 100 }).default("Dojazd"),
+  serviceItem2Cost: decimal("service_item_2_cost", { precision: 10, scale: 2 }).default("0.00"),
+  serviceItem3Name: varchar("service_item_3_name", { length: 100 }).default("Wymiana palnika"),
+  serviceItem3Cost: decimal("service_item_3_cost", { precision: 10, scale: 2 }).default("0.00"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -247,6 +271,18 @@ export const clientsRelations = relations(clients, ({ many }) => ({
   quotes: many(quotes),
 }));
 
+export const pricingSchemasRelations = relations(pricingSchemas, ({ many }) => ({
+  tiers: many(pricingTiers),
+  quotes: many(quotes),
+}));
+
+export const pricingTiersRelations = relations(pricingTiers, ({ one }) => ({
+  schema: one(pricingSchemas, {
+    fields: [pricingTiers.schemaId],
+    references: [pricingSchemas.id],
+  }),
+}));
+
 export const quotesRelations = relations(quotes, ({ one, many }) => ({
   client: one(clients, {
     fields: [quotes.clientId],
@@ -255,6 +291,10 @@ export const quotesRelations = relations(quotes, ({ one, many }) => ({
   createdBy: one(users, {
     fields: [quotes.createdById],
     references: [users.id],
+  }),
+  pricingSchema: one(pricingSchemas, {
+    fields: [quotes.pricingSchemaId],
+    references: [pricingSchemas.id],
   }),
   items: many(quoteItems),
 }));
@@ -293,6 +333,8 @@ export const insertQuoteSchema = createInsertSchema(quotes);
 export const insertQuoteItemSchema = createInsertSchema(quoteItems);
 export const insertMaintenanceDefaultsSchema = createInsertSchema(maintenanceDefaults);
 export const insertEquipmentAdditionalSchema = createInsertSchema(equipmentAdditional);
+export const insertPricingSchemaSchema = createInsertSchema(pricingSchemas);
+export const insertPricingTierSchema = createInsertSchema(pricingTiers);
 
 export const selectUserSchema = createSelectSchema(users);
 export const selectEquipmentCategorySchema = createSelectSchema(equipmentCategories);
@@ -303,6 +345,8 @@ export const selectQuoteSchema = createSelectSchema(quotes);
 export const selectQuoteItemSchema = createSelectSchema(quoteItems);
 export const selectMaintenanceDefaultsSchema = createSelectSchema(maintenanceDefaults);
 export const selectEquipmentAdditionalSchema = createSelectSchema(equipmentAdditional);
+export const selectPricingSchemaSchema = createSelectSchema(pricingSchemas);
+export const selectPricingTierSchema = createSelectSchema(pricingTiers);
 
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -323,6 +367,10 @@ export type InsertMaintenanceDefaults = z.infer<typeof insertMaintenanceDefaults
 export type MaintenanceDefaults = z.infer<typeof selectMaintenanceDefaultsSchema>;
 export type InsertEquipmentAdditional = z.infer<typeof insertEquipmentAdditionalSchema>;
 export type EquipmentAdditional = z.infer<typeof selectEquipmentAdditionalSchema>;
+export type InsertPricingSchema = z.infer<typeof insertPricingSchemaSchema>;
+export type PricingSchema = z.infer<typeof selectPricingSchemaSchema>;
+export type InsertPricingTier = z.infer<typeof insertPricingTierSchema>;
+export type PricingTier = z.infer<typeof selectPricingTierSchema>;
 
 // Extended types for API responses
 export type EquipmentWithCategory = Equipment & {

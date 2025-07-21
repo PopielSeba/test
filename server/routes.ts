@@ -12,6 +12,8 @@ import {
   insertQuoteSchema,
   insertQuoteItemSchema,
   insertMaintenanceDefaultsSchema,
+  insertPricingSchemaSchema,
+  insertPricingTierSchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -636,6 +638,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating maintenance defaults:", error);
       res.status(500).json({ message: "Failed to update maintenance defaults" });
+    }
+  });
+
+  // Pricing schemas routes
+  app.get('/api/pricing-schemas', async (req, res) => {
+    try {
+      const schemas = await storage.getPricingSchemas();
+      res.json(schemas);
+    } catch (error) {
+      console.error("Error fetching pricing schemas:", error);
+      res.status(500).json({ message: "Failed to fetch pricing schemas" });
+    }
+  });
+
+  app.get('/api/pricing-schemas/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const schema = await storage.getPricingSchemaById(parseInt(id));
+      if (!schema) {
+        return res.status(404).json({ message: "Pricing schema not found" });
+      }
+      res.json(schema);
+    } catch (error) {
+      console.error("Error fetching pricing schema:", error);
+      res.status(500).json({ message: "Failed to fetch pricing schema" });
+    }
+  });
+
+  app.post('/api/pricing-schemas', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const validatedData = insertPricingSchemaSchema.parse(req.body);
+      const schema = await storage.createPricingSchema(validatedData);
+      res.status(201).json(schema);
+    } catch (error) {
+      console.error("Error creating pricing schema:", error);
+      res.status(500).json({ message: "Failed to create pricing schema" });
+    }
+  });
+
+  app.put('/api/pricing-schemas/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { id } = req.params;
+      const validatedData = insertPricingSchemaSchema.partial().parse(req.body);
+      const schema = await storage.updatePricingSchema(parseInt(id), validatedData);
+      res.json(schema);
+    } catch (error) {
+      console.error("Error updating pricing schema:", error);
+      res.status(500).json({ message: "Failed to update pricing schema" });
+    }
+  });
+
+  app.delete('/api/pricing-schemas/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { id } = req.params;
+      await storage.deletePricingSchema(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting pricing schema:", error);
+      res.status(500).json({ message: "Failed to delete pricing schema" });
+    }
+  });
+
+  // Pricing tiers routes
+  app.post('/api/pricing-tiers', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const validatedData = insertPricingTierSchema.parse(req.body);
+      const tier = await storage.createPricingTier(validatedData);
+      res.status(201).json(tier);
+    } catch (error) {
+      console.error("Error creating pricing tier:", error);
+      res.status(500).json({ message: "Failed to create pricing tier" });
+    }
+  });
+
+  app.put('/api/pricing-tiers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { id } = req.params;
+      const validatedData = insertPricingTierSchema.partial().parse(req.body);
+      const tier = await storage.updatePricingTier(parseInt(id), validatedData);
+      res.json(tier);
+    } catch (error) {
+      console.error("Error updating pricing tier:", error);
+      res.status(500).json({ message: "Failed to update pricing tier" });
+    }
+  });
+
+  app.delete('/api/pricing-tiers/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { id } = req.params;
+      await storage.deletePricingTier(parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting pricing tier:", error);
+      res.status(500).json({ message: "Failed to delete pricing tier" });
     }
   });
 

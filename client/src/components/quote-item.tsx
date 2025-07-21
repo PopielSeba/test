@@ -96,9 +96,25 @@ interface Equipment {
   additionalEquipment?: EquipmentAdditional[];
 }
 
+interface PricingTier {
+  id: number;
+  dayStart: number;
+  dayEnd: number | null;
+  discountPercent: string;
+}
+
+interface PricingSchema {
+  id: number;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  tiers: PricingTier[];
+}
+
 interface QuoteItemProps {
   item: QuoteItemData;
   equipment: Equipment[];
+  pricingSchema?: PricingSchema;
   onUpdate: (item: QuoteItemData) => void;
   onRemove: () => void;
   canRemove: boolean;
@@ -106,7 +122,7 @@ interface QuoteItemProps {
 
 
 
-export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemove }: QuoteItemProps) {
+export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, onRemove, canRemove }: QuoteItemProps) {
   // Initialize selectedCategory based on current equipment
   const currentEquipment = equipment.find(eq => eq.id === item.equipmentId);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(
@@ -161,14 +177,33 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
       const pricing = getPricingForPeriod(selectedEquipment, item.rentalPeriodDays);
       if (pricing) {
-        const pricePerDay = parseFloat(pricing.pricePerDay);
-        const discountPercent = parseFloat(pricing.discountPercent);
+        let pricePerDay = parseFloat(pricing.pricePerDay);
+        let discountPercent = parseFloat(pricing.discountPercent);
+        
+        // If pricing schema is provided, use it to calculate discount from base price
+        if (pricingSchema && pricingSchema.tiers) {
+          const applicableTier = pricingSchema.tiers
+            .filter(tier => 
+              item.rentalPeriodDays >= tier.dayStart && 
+              (tier.dayEnd === null || item.rentalPeriodDays <= tier.dayEnd)
+            )
+            .sort((a, b) => a.dayStart - b.dayStart)[0];
+
+          if (applicableTier) {
+            // Find base price (period 1-2 days, 0% discount)
+            const basePricing = selectedEquipment.pricing.find(p => p.periodStart === 1);
+            if (basePricing) {
+              const basePrice = parseFloat(basePricing.pricePerDay);
+              discountPercent = parseFloat(applicableTier.discountPercent);
+              pricePerDay = basePrice * (1 - discountPercent / 100);
+            }
+          }
+        }
         
         if (isNaN(pricePerDay) || isNaN(discountPercent)) {
           return;
         }
         
-        // The pricePerDay from database is already the discounted price, not the base price
         const totalEquipmentPrice = pricePerDay * item.quantity * item.rentalPeriodDays;
         
         // Calculate fuel cost for generators and lighting towers
@@ -246,7 +281,8 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
     item.totalServiceItemsCost,
     item.additionalCost,
     item.accessoriesCost,
-    selectedEquipment
+    selectedEquipment,
+    pricingSchema
   ]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
@@ -344,11 +380,29 @@ export default function QuoteItem({ item, equipment, onUpdate, onRemove, canRemo
   };
 
   const getDiscountInfo = (days: number) => {
-    if (days >= 30) return "Rabat 57.14%";
-    if (days >= 19) return "Rabat 42.86%";
-    if (days >= 8) return "Rabat 28.57%";
-    if (days >= 3) return "Rabat 14.29%";
-    return "Bez rabatu";
+    if (!pricingSchema || !pricingSchema.tiers) {
+      // Fallback to standard pricing if no schema provided
+      if (days >= 30) return "Rabat 57.14%";
+      if (days >= 19) return "Rabat 42.86%";
+      if (days >= 8) return "Rabat 28.57%";
+      if (days >= 3) return "Rabat 14.29%";
+      return "Bez rabatu";
+    }
+
+    // Find the appropriate tier for the given number of days
+    const applicableTier = pricingSchema.tiers
+      .filter(tier => 
+        days >= tier.dayStart && 
+        (tier.dayEnd === null || days <= tier.dayEnd)
+      )
+      .sort((a, b) => a.dayStart - b.dayStart)[0];
+
+    if (!applicableTier) {
+      return "Bez rabatu";
+    }
+
+    const discount = parseFloat(applicableTier.discountPercent);
+    return discount > 0 ? `Rabat ${discount}%` : "Bez rabatu";
   };
 
   const handleNotesChange = (notes: string) => {

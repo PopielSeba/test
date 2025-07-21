@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Trash2, Save, FileText } from "lucide-react";
+import { Plus, Trash2, Save, FileText, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import QuoteItem from "@/components/quote-item";
@@ -99,12 +100,28 @@ interface Equipment {
   additionalEquipment?: EquipmentAdditional[];
 }
 
+interface PricingTier {
+  id: number;
+  dayStart: number;
+  dayEnd: number | null;
+  discountPercent: string;
+}
+
+interface PricingSchema {
+  id: number;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  tiers: PricingTier[];
+}
+
 interface CreateQuoteProps {
   editingQuote?: any;
 }
 
 export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
   const [quoteItems, setQuoteItems] = useState<QuoteItemData[]>([]);
+  const [selectedPricingSchemaId, setSelectedPricingSchemaId] = useState<number | null>(null);
   
   // Initialize quote items when editing
   useEffect(() => {
@@ -154,6 +171,18 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
   const { data: equipment = [] } = useQuery<Equipment[]>({
     queryKey: ["/api/equipment"],
   });
+
+  const { data: pricingSchemas = [] } = useQuery<PricingSchema[]>({
+    queryKey: ["/api/pricing-schemas"],
+  });
+
+  // Set default pricing schema when data loads
+  useEffect(() => {
+    if (pricingSchemas.length > 0 && selectedPricingSchemaId === null) {
+      const defaultSchema = pricingSchemas.find(schema => schema.isDefault) || pricingSchemas[0];
+      setSelectedPricingSchemaId(defaultSchema.id);
+    }
+  }, [pricingSchemas, selectedPricingSchemaId]);
   
   // Auto-add equipment when coming from equipment page
   useEffect(() => {
@@ -446,6 +475,66 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Pricing Schema Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  Schemat cenowy
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Wybierz schemat cenowy, który zostanie użyty do kalkulacji rabatów
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-foreground">Schemat rabatowy</label>
+                    <Select
+                      value={selectedPricingSchemaId?.toString() || ""}
+                      onValueChange={(value) => setSelectedPricingSchemaId(parseInt(value))}
+                    >
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder="Wybierz schemat cenowy" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pricingSchemas.map((schema) => (
+                          <SelectItem key={schema.id} value={schema.id.toString()}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{schema.name}</span>
+                              {schema.description && (
+                                <span className="text-sm text-muted-foreground">{schema.description}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {selectedPricingSchemaId && pricingSchemas.length > 0 && (
+                    <div className="mt-3 p-3 bg-muted rounded-lg">
+                      <h4 className="text-sm font-medium mb-2">Struktura rabatów:</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {pricingSchemas
+                          .find(schema => schema.id === selectedPricingSchemaId)
+                          ?.tiers.map((tier, index) => (
+                            <div key={tier.id} className="flex justify-between">
+                              <span>
+                                {tier.dayStart}-{tier.dayEnd || "∞"} dni:
+                              </span>
+                              <span className="font-medium">
+                                {parseFloat(tier.discountPercent)}% rabatu
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Client Information */}
             <Card>
               <CardHeader>
@@ -568,6 +657,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
                         key={item.id}
                         item={item}
                         equipment={equipment}
+                        pricingSchema={pricingSchemas.find(schema => schema.id === selectedPricingSchemaId)}
                         onUpdate={(updatedItem) => updateQuoteItem(item.id, updatedItem)}
                         onRemove={() => removeQuoteItem(item.id)}
                         canRemove={quoteItems.length > 1}
