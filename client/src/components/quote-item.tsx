@@ -182,14 +182,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             if (basePricing) {
               const basePrice = parseFloat(basePricing.pricePerDay);
               
-              // Find the highest discount available for this rental period
+              // Find the pricing tier that matches this rental period
               const applicablePricing = selectedEquipment.pricing
                 .filter(p => item.rentalPeriodDays >= p.periodStart && 
-                           (!p.periodEnd || item.rentalPeriodDays <= p.periodEnd))
-                .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
+                           (!p.periodEnd || item.rentalPeriodDays <= p.periodEnd))[0];
               
               if (applicablePricing && parseFloat(applicablePricing.discountPercent) > 0) {
-                // Apply the highest available discount to base price from day 1
+                // Apply the available discount to base price from day 1
                 discountPercent = parseFloat(applicablePricing.discountPercent);
                 pricePerDay = basePrice * (1 - discountPercent / 100);
               } else {
