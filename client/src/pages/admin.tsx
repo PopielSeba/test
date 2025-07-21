@@ -156,6 +156,7 @@ export default function Admin() {
   const [selectedEquipmentForPricing, setSelectedEquipmentForPricing] = useState<Equipment | null>(null);
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
+  const [localDiscounts, setLocalDiscounts] = useState<Record<number, number>>({});
   const [isPricingSchemaDialogOpen, setIsPricingSchemaDialogOpen] = useState(false);
   const [editingPricingSchema, setEditingPricingSchema] = useState<PricingSchema | null>(null);
 
@@ -193,12 +194,16 @@ export default function Admin() {
   useEffect(() => {
     if (selectedEquipmentForPricing) {
       const initialPrices: Record<number, number> = {};
+      const initialDiscounts: Record<number, number> = {};
       selectedEquipmentForPricing.pricing.forEach(p => {
         initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+        initialDiscounts[p.id] = parseFloat(p.discountPercent || "0");
       });
       setLocalPrices(initialPrices);
+      setLocalDiscounts(initialDiscounts);
     } else {
       setLocalPrices({});
+      setLocalDiscounts({});
     }
   }, [selectedEquipmentForPricing?.id]);
 
@@ -1955,45 +1960,43 @@ export default function Admin() {
                                     <Input
                                       type="number"
                                       step="0.01"
-                                      value={pricing.discountPercent}
+                                      value={localDiscounts[pricing.id] ?? parseFloat(pricing.discountPercent || "0")}
                                       onChange={(e) => {
                                         const newDiscountPercent = parseFloat(e.target.value) || 0;
-                                        // Calculate new price based on discount and base price
-                                        const newPrice = basePrice * (1 - newDiscountPercent / 100);
-                                        setLocalPrices(prev => ({
+                                        setLocalDiscounts(prev => ({
                                           ...prev,
-                                          [pricing.id]: newPrice
+                                          [pricing.id]: newDiscountPercent
                                         }));
                                       }}
                                       onBlur={(e) => {
-                                        const newDiscountPercent = parseFloat(e.target.value) || 0;
+                                        const newDiscountPercent = parseFloat(e.target.value.replace(',', '.')) || 0;
                                         const originalDiscountPercent = parseFloat(pricing.discountPercent || "0");
-                                        if (newDiscountPercent !== originalDiscountPercent) {
+                                        if (Math.abs(newDiscountPercent - originalDiscountPercent) > 0.01) {
                                           // Calculate new price based on discount
                                           const newPrice = basePrice * (1 - newDiscountPercent / 100);
                                           updatePricingMutation.mutate({
                                             id: pricing.id,
                                             pricePerDay: newPrice.toFixed(2),
-                                            discountPercent: newDiscountPercent.toString()
+                                            discountPercent: newDiscountPercent.toFixed(2)
                                           });
                                         }
                                       }}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
-                                          const newDiscountPercent = parseFloat(e.currentTarget.value) || 0;
+                                          const newDiscountPercent = parseFloat(e.currentTarget.value.replace(',', '.')) || 0;
                                           const originalDiscountPercent = parseFloat(pricing.discountPercent || "0");
-                                          if (newDiscountPercent !== originalDiscountPercent) {
+                                          if (Math.abs(newDiscountPercent - originalDiscountPercent) > 0.01) {
                                             // Calculate new price based on discount
                                             const newPrice = basePrice * (1 - newDiscountPercent / 100);
                                             updatePricingMutation.mutate({
                                               id: pricing.id,
                                               pricePerDay: newPrice.toFixed(2),
-                                              discountPercent: newDiscountPercent.toString()
+                                              discountPercent: newDiscountPercent.toFixed(2)
                                             });
                                           }
                                         }
                                       }}
-                                      className="w-16 text-right"
+                                      className="w-20 text-right"
                                     />
                                     <span className="ml-1">%</span>
                                   </td>
