@@ -42,6 +42,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Enhanced quote printing**: Added "Wyposażenie dodatkowe i akcesoria" (Additional equipment and accessories) section to quote printouts
 - **Improved admin panel**: Added user deletion functionality and direct equipment quantity editing in admin tables
 - **Fixed price/discount synchronization**: Price and discount fields now update each other automatically in admin panel
+- **Restored complete equipment database**: All 43 equipment items properly restored with correct category mappings
+- **Fixed service work hour calculations**: System now uses actual user-inputted service hours instead of hardcoded values for all equipment categories
+- **Unified maintenance cost system**: All equipment categories (klimatyzacje, nagrzewnice, agregaty, maszty, kurtyny, wyciągi) now have standardized service work defaults (2h @ 100 zł/h)
 
 
 
