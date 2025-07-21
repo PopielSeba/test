@@ -476,8 +476,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     // Calculate oil cost using defaults from API - oilCost is already total cost, not per liter
     const oilTotalCost = updatedItem.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44");
     
-    // Calculate service work cost using defaults from API
-    const serviceWorkCost = (updatedItem.serviceWorkHours ?? parseFloat(maintenanceDefaults?.serviceWorkHours || "0")) * (updatedItem.serviceWorkRatePerHour ?? parseFloat(maintenanceDefaults?.serviceWorkRate || "0"));
+    // Calculate service work cost using actual user input or defaults from API
+    const serviceWorkCost = (updatedItem.serviceWorkHours !== undefined ? updatedItem.serviceWorkHours : parseFloat(maintenanceDefaults?.serviceWorkHours || "2")) * (updatedItem.serviceWorkRatePerHour !== undefined ? updatedItem.serviceWorkRatePerHour : parseFloat(maintenanceDefaults?.serviceWorkRate || "100"));
     
     // No travel cost for maintenance
     
@@ -965,8 +965,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     // Calculate oil cost
                     const oilTotalCost = (item.oilQuantityLiters || 14.7) * (item.oilCost || 162.44);
                     
-                    // Calculate service work cost
-                    const serviceWorkCost = (item.serviceWorkHours || 0) * (item.serviceWorkRatePerHour || 0);
+                    // Calculate service work cost using actual values or defaults
+                    const serviceWorkCost = (item.serviceWorkHours !== undefined ? item.serviceWorkHours : parseFloat(maintenanceDefaults?.serviceWorkHours || "2")) * (item.serviceWorkRatePerHour !== undefined ? item.serviceWorkRatePerHour : parseFloat(maintenanceDefaults?.serviceWorkRate || "100"));
                     
                     // No travel cost for maintenance
                     
@@ -990,8 +990,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     engineFilterCost: checked ? (item.engineFilterCost || parseFloat(maintenanceDefaults?.engineFilterCost || "150")) : undefined,
                     oilCost: checked ? (item.oilCost || parseFloat(maintenanceDefaults?.oilCost || "162.44")) : undefined,
                     oilQuantityLiters: checked ? (item.oilQuantityLiters || parseFloat(maintenanceDefaults?.oilQuantity || "14.7")) : undefined,
-                    serviceWorkHours: checked ? (item.serviceWorkHours || parseFloat(maintenanceDefaults?.serviceWorkHours || "0")) : undefined,
-                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour || parseFloat(maintenanceDefaults?.serviceWorkRate || "0")) : undefined,
+                    serviceWorkHours: checked ? (item.serviceWorkHours !== undefined ? item.serviceWorkHours : parseFloat(maintenanceDefaults?.serviceWorkHours || "2")) : undefined,
+                    serviceWorkRatePerHour: checked ? (item.serviceWorkRatePerHour !== undefined ? item.serviceWorkRatePerHour : parseFloat(maintenanceDefaults?.serviceWorkRate || "100")) : undefined,
 
                     maintenanceIntervalHours: checked ? (item.maintenanceIntervalHours || maintenanceDefaults?.maintenanceInterval || 500) : undefined,
                     expectedMaintenanceHours: checked ? (item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))) : undefined,
@@ -1184,10 +1184,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     <Input
                       type="number"
                       step="0.1"
-                      value={item.serviceWorkHours ?? 0}
+                      value={item.serviceWorkHours ?? parseFloat(maintenanceDefaults?.serviceWorkHours || "2")}
                       onChange={(e) => {
                         const hours = parseFloat(e.target.value);
-                        updateMaintenanceCost({ ...item, serviceWorkHours: isNaN(hours) ? 0 : hours });
+                        updateMaintenanceCost({ ...item, serviceWorkHours: isNaN(hours) ? parseFloat(maintenanceDefaults?.serviceWorkHours || "2") : hours });
                       }}
                       placeholder="0"
                     />
@@ -1200,10 +1200,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     <Input
                       type="number"
                       step="0.01"
-                      value={item.serviceWorkRatePerHour ?? 0}
+                      value={item.serviceWorkRatePerHour ?? parseFloat(maintenanceDefaults?.serviceWorkRate || "100")}
                       onChange={(e) => {
                         const rate = parseFloat(e.target.value);
-                        updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? 0 : rate });
+                        updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? parseFloat(maintenanceDefaults?.serviceWorkRate || "100") : rate });
                       }}
                       placeholder="0.00"
                     />
