@@ -1920,9 +1920,12 @@ export default function Admin() {
                                         const newPrice = parseFloat(e.target.value) || 0;
                                         const originalPrice = parseFloat(pricing.pricePerDay || "0");
                                         if (newPrice !== originalPrice) {
+                                          // Calculate new discount percentage based on price change
+                                          const newDiscountPercent = basePrice > 0 ? ((basePrice - newPrice) / basePrice) * 100 : 0;
                                           updatePricingMutation.mutate({
                                             id: pricing.id,
-                                            pricePerDay: newPrice.toString()
+                                            pricePerDay: newPrice.toString(),
+                                            discountPercent: Math.max(0, newDiscountPercent).toFixed(2)
                                           });
                                         }
                                       }}
@@ -1931,9 +1934,12 @@ export default function Admin() {
                                           const newPrice = parseFloat(e.currentTarget.value) || 0;
                                           const originalPrice = parseFloat(pricing.pricePerDay || "0");
                                           if (newPrice !== originalPrice) {
+                                            // Calculate new discount percentage based on price change
+                                            const newDiscountPercent = basePrice > 0 ? ((basePrice - newPrice) / basePrice) * 100 : 0;
                                             updatePricingMutation.mutate({
                                               id: pricing.id,
-                                              pricePerDay: newPrice.toString()
+                                              pricePerDay: newPrice.toString(),
+                                              discountPercent: Math.max(0, newDiscountPercent).toFixed(2)
                                             });
                                           }
                                         }
@@ -1945,8 +1951,51 @@ export default function Admin() {
                                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right">
                                     {discountAmount.toFixed(0)} zł
                                   </td>
-                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right">
-                                    {discountPercent}%
+                                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={pricing.discountPercent}
+                                      onChange={(e) => {
+                                        const newDiscountPercent = parseFloat(e.target.value) || 0;
+                                        // Calculate new price based on discount and base price
+                                        const newPrice = basePrice * (1 - newDiscountPercent / 100);
+                                        setLocalPrices(prev => ({
+                                          ...prev,
+                                          [pricing.id]: newPrice
+                                        }));
+                                      }}
+                                      onBlur={(e) => {
+                                        const newDiscountPercent = parseFloat(e.target.value) || 0;
+                                        const originalDiscountPercent = parseFloat(pricing.discountPercent || "0");
+                                        if (newDiscountPercent !== originalDiscountPercent) {
+                                          // Calculate new price based on discount
+                                          const newPrice = basePrice * (1 - newDiscountPercent / 100);
+                                          updatePricingMutation.mutate({
+                                            id: pricing.id,
+                                            pricePerDay: newPrice.toFixed(2),
+                                            discountPercent: newDiscountPercent.toString()
+                                          });
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          const newDiscountPercent = parseFloat(e.currentTarget.value) || 0;
+                                          const originalDiscountPercent = parseFloat(pricing.discountPercent || "0");
+                                          if (newDiscountPercent !== originalDiscountPercent) {
+                                            // Calculate new price based on discount
+                                            const newPrice = basePrice * (1 - newDiscountPercent / 100);
+                                            updatePricingMutation.mutate({
+                                              id: pricing.id,
+                                              pricePerDay: newPrice.toFixed(2),
+                                              discountPercent: newDiscountPercent.toString()
+                                            });
+                                          }
+                                        }
+                                      }}
+                                      className="w-16 text-right"
+                                    />
+                                    <span className="ml-1">%</span>
                                   </td>
                                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
                                     <Button

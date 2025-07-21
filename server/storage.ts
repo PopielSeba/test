@@ -347,29 +347,26 @@ export class DatabaseStorage implements IStorage {
   async createEquipment(equipmentData: InsertEquipment): Promise<Equipment> {
     const [result] = await db.insert(equipment).values(equipmentData).returning();
     
-    // Create basic pricing structure with standard discount tiers
-    // Admin can adjust these values later if needed
+    // Create basic pricing structure that REQUIRES admin to set proper values
+    // All pricing starts at 0% discount - admin must configure actual discounts and prices
     const basicPricing = [
       { periodStart: 1, periodEnd: 2, discountPercent: 0 },
-      { periodStart: 3, periodEnd: 7, discountPercent: 10 },
-      { periodStart: 8, periodEnd: 18, discountPercent: 20 },
-      { periodStart: 19, periodEnd: 29, discountPercent: 30 },
-      { periodStart: 30, periodEnd: null, discountPercent: 40 }
+      { periodStart: 3, periodEnd: 7, discountPercent: 0 },
+      { periodStart: 8, periodEnd: 18, discountPercent: 0 },
+      { periodStart: 19, periodEnd: 29, discountPercent: 0 },
+      { periodStart: 30, periodEnd: null, discountPercent: 0 }
     ];
 
-    // Create pricing entries with standard discounts applied
-    // Base price starts at 100 zł, admin can adjust later
+    // Create placeholder pricing entries that admin MUST update
+    // Using 100 zł base price with NO discounts - admin must set real values
     const basePricePerDay = 100;
     
     for (const tier of basicPricing) {
-      // Calculate discounted price for each tier
-      const discountedPrice = basePricePerDay * (1 - tier.discountPercent / 100);
-      
       await db.insert(equipmentPricing).values({
         equipmentId: result.id,
         periodStart: tier.periodStart,
         periodEnd: tier.periodEnd,
-        pricePerDay: discountedPrice.toFixed(2),
+        pricePerDay: basePricePerDay.toString(),
         discountPercent: tier.discountPercent.toString()
       });
     }
