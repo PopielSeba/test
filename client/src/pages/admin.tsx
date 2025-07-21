@@ -1916,9 +1916,15 @@ export default function Admin() {
                                       value={localPrices[pricing.id] ?? currentPrice}
                                       onChange={(e) => {
                                         const newPrice = parseFloat(e.target.value) || 0;
+                                        // Calculate and update corresponding discount
+                                        const newDiscountPercent = basePrice > 0 ? ((basePrice - newPrice) / basePrice) * 100 : 0;
                                         setLocalPrices(prev => ({
                                           ...prev,
                                           [pricing.id]: newPrice
+                                        }));
+                                        setLocalDiscounts(prev => ({
+                                          ...prev,
+                                          [pricing.id]: Math.max(0, newDiscountPercent)
                                         }));
                                       }}
                                       onBlur={(e) => {
@@ -1963,9 +1969,15 @@ export default function Admin() {
                                       value={localDiscounts[pricing.id] ?? parseFloat(pricing.discountPercent || "0")}
                                       onChange={(e) => {
                                         const newDiscountPercent = parseFloat(e.target.value) || 0;
+                                        // Calculate and update corresponding price
+                                        const newPrice = basePrice * (1 - newDiscountPercent / 100);
                                         setLocalDiscounts(prev => ({
                                           ...prev,
                                           [pricing.id]: newDiscountPercent
+                                        }));
+                                        setLocalPrices(prev => ({
+                                          ...prev,
+                                          [pricing.id]: newPrice
                                         }));
                                       }}
                                       onBlur={(e) => {
