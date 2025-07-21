@@ -245,18 +245,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         
 
 
-        // Debug logs
-        console.log('Quote calculation:', {
-          equipmentId: item.equipmentId,
-          rentalPeriodDays: item.rentalPeriodDays,
-          pricingSchema: pricingSchema?.calculationMethod,
-          originalPricePerDay: parseFloat(pricing.pricePerDay),
-          originalDiscountPercent: parseFloat(pricing.discountPercent),
-          finalPricePerDay: pricePerDay,
-          finalDiscountPercent: discountPercent,
-          totalEquipmentPrice,
-          totalPrice
-        });
+
 
         onUpdate({
           ...item,
@@ -394,15 +383,11 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
   const getDiscountInfo = (days: number) => {
     if (!selectedEquipment || !selectedEquipment.pricing) {
-      console.log('No equipment or pricing for discount info');
+
       return "Bez rabatu";
     }
 
-    console.log('Getting discount info:', {
-      days,
-      pricingSchema: pricingSchema?.calculationMethod,
-      equipmentPricing: selectedEquipment.pricing
-    });
+
 
     if (pricingSchema && pricingSchema.calculationMethod === "first_day") {
       // For first_day method, show the highest available discount for this period
@@ -410,7 +395,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         .filter(p => days >= p.periodStart && (!p.periodEnd || days <= p.periodEnd))
         .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
       
-      console.log('First day method, applicable pricing:', applicablePricing);
+
       
       if (applicablePricing) {
         const discount = parseFloat(applicablePricing.discountPercent);
@@ -419,7 +404,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     } else {
       // For progressive method, use the period-specific pricing
       const pricing = getPricingForPeriod(selectedEquipment, days);
-      console.log('Progressive method, pricing for period:', pricing);
+
       
       if (pricing) {
         const discount = parseFloat(pricing.discountPercent);
