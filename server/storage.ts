@@ -347,25 +347,26 @@ export class DatabaseStorage implements IStorage {
   async createEquipment(equipmentData: InsertEquipment): Promise<Equipment> {
     const [result] = await db.insert(equipment).values(equipmentData).returning();
     
-    // Automatically create standard pricing tiers for new equipment
-    const standardPricing = [
+    // Create basic pricing structure that REQUIRES admin to set proper values
+    // All pricing starts at 0% discount - admin must configure actual discounts and prices
+    const basicPricing = [
       { periodStart: 1, periodEnd: 2, discountPercent: 0 },
-      { periodStart: 3, periodEnd: 7, discountPercent: 14.29 },
-      { periodStart: 8, periodEnd: 18, discountPercent: 28.57 },
-      { periodStart: 19, periodEnd: 29, discountPercent: 42.86 },
-      { periodStart: 30, periodEnd: null, discountPercent: 57.14 }
+      { periodStart: 3, periodEnd: 7, discountPercent: 0 },
+      { periodStart: 8, periodEnd: 18, discountPercent: 0 },
+      { periodStart: 19, periodEnd: 29, discountPercent: 0 },
+      { periodStart: 30, periodEnd: null, discountPercent: 0 }
     ];
 
-    // Create default pricing entries (admin will need to set actual prices)
-    const defaultPricePerDay = 100; // Default price that admin should update
+    // Create placeholder pricing entries that admin MUST update
+    // Using 100 zł base price with NO discounts - admin must set real values
+    const basePricePerDay = 100; // Admin must update this to real price
     
-    for (const tier of standardPricing) {
-      const discountedPrice = defaultPricePerDay * (1 - tier.discountPercent / 100);
+    for (const tier of basicPricing) {
       await db.insert(equipmentPricing).values({
         equipmentId: result.id,
         periodStart: tier.periodStart,
         periodEnd: tier.periodEnd,
-        pricePerDay: discountedPrice.toFixed(2),
+        pricePerDay: basePricePerDay.toString(), // Same price for all tiers initially
         discountPercent: tier.discountPercent.toString()
       });
     }

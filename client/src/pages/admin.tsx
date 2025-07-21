@@ -806,15 +806,17 @@ export default function Admin() {
   };
 
   const createStandardPricing = async (equipmentId: number) => {
-    const standardPricing = [
-      { periodStart: 1, periodEnd: 2, pricePerDay: "350", discountPercent: "0" },
-      { periodStart: 3, periodEnd: 7, pricePerDay: "300", discountPercent: "14.29" },
-      { periodStart: 8, periodEnd: 18, pricePerDay: "250", discountPercent: "28.57" },
-      { periodStart: 19, periodEnd: 29, pricePerDay: "200", discountPercent: "42.86" },
-      { periodStart: 30, periodEnd: undefined, pricePerDay: "150", discountPercent: "57.14" },
+    // Create placeholder pricing that REQUIRES admin to set proper values
+    // All pricing starts with same price and 0% discount - admin MUST configure actual values
+    const placeholderPricing = [
+      { periodStart: 1, periodEnd: 2, pricePerDay: "100", discountPercent: "0" },
+      { periodStart: 3, periodEnd: 7, pricePerDay: "100", discountPercent: "0" },
+      { periodStart: 8, periodEnd: 18, pricePerDay: "100", discountPercent: "0" },
+      { periodStart: 19, periodEnd: 29, pricePerDay: "100", discountPercent: "0" },
+      { periodStart: 30, periodEnd: undefined, pricePerDay: "100", discountPercent: "0" },
     ];
 
-    for (const pricing of standardPricing) {
+    for (const pricing of placeholderPricing) {
       createPricingMutation.mutate({
         equipmentId,
         ...pricing
@@ -1829,6 +1831,23 @@ export default function Admin() {
                     <h3 className="text-lg font-semibold mb-4">
                       {selectedEquipmentForPricing.name} - zasilane paliwem:
                     </h3>
+                    
+                    {/* Warning for default pricing */}
+                    {selectedEquipmentForPricing.pricing.some(p => p.pricePerDay === "100.00" && p.discountPercent === "0.00") && (
+                      <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                        <div className="flex items-start">
+                          <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 mr-2 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
+                              Urządzenie wymaga konfiguracji cennika
+                            </h4>
+                            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                              To urządzenie ma domyślne ceny (100 zł/doba, 0% rabat). Zaktualizuj ceny i rabaty zgodnie z rzeczywistymi wartościami przed użyciem w ofertach.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse">
