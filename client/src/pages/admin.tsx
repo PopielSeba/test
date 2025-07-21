@@ -97,6 +97,22 @@ interface User {
   createdAt?: string;
 }
 
+interface PricingSchema {
+  id: number;
+  name: string;
+  description?: string;
+  isDefault: boolean;
+  isActive: boolean;
+  tiers: PricingTier[];
+}
+
+interface PricingTier {
+  id: number;
+  dayStart: number;
+  dayEnd: number | null;
+  discountPercent: string;
+}
+
 const equipmentSchema = z.object({
   name: z.string().min(1, "Nazwa jest wymagana"),
   description: z.string().optional(),
@@ -128,6 +144,18 @@ const pricingSchema = z.object({
   discountPercent: z.string(),
 });
 
+const pricingSchemaSchema = z.object({
+  name: z.string().min(1, "Nazwa schematu jest wymagana"),
+  description: z.string().optional(),
+  isDefault: z.boolean().default(false),
+});
+
+const pricingTierSchema = z.object({
+  dayStart: z.number().min(1, "Początek okresu musi być większy od 0"),
+  dayEnd: z.number().optional(),
+  discountPercent: z.string().min(0, "Rabat musi być nieujemny"),
+});
+
 export default function Admin() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -140,34 +168,10 @@ export default function Admin() {
   const [selectedEquipmentForPricing, setSelectedEquipmentForPricing] = useState<Equipment | null>(null);
   const [editingPricingTable, setEditingPricingTable] = useState<any>({});
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
-
-  // Initialize local prices when equipment is selected
-  useEffect(() => {
-    if (selectedEquipmentForPricing) {
-      const initialPrices: Record<number, number> = {};
-      selectedEquipmentForPricing.pricing.forEach(p => {
-        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
-      });
-      setLocalPrices(initialPrices);
-    } else {
-      setLocalPrices({});
-    }
-  }, [selectedEquipmentForPricing?.id]);
-
-  // Check if user is admin
-  if (!authLoading && user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
-            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const [isPricingSchemaDialogOpen, setIsPricingSchemaDialogOpen] = useState(false);
+  const [editingPricingSchema, setEditingPricingSchema] = useState<PricingSchema | null>(null);
+  const [isPricingTierDialogOpen, setIsPricingTierDialogOpen] = useState(false);
+  const [selectedSchemaForTiers, setSelectedSchemaForTiers] = useState<PricingSchema | null>(null);
 
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery<Equipment[]>({
     queryKey: ["/api/equipment"],
@@ -188,6 +192,24 @@ export default function Admin() {
     queryKey: ["/api/users"],
     enabled: user?.role === 'admin',
   });
+
+  const { data: pricingSchemas = [], isLoading: pricingSchemasLoading } = useQuery<PricingSchema[]>({
+    queryKey: ["/api/pricing-schemas"],
+    enabled: user?.role === 'admin',
+  });
+
+  // Initialize local prices when equipment is selected
+  useEffect(() => {
+    if (selectedEquipmentForPricing) {
+      const initialPrices: Record<number, number> = {};
+      selectedEquipmentForPricing.pricing.forEach(p => {
+        initialPrices[p.id] = parseFloat(p.pricePerDay || "0");
+      });
+      setLocalPrices(initialPrices);
+    } else {
+      setLocalPrices({});
+    }
+  }, [selectedEquipmentForPricing?.id]);
 
   const equipmentForm = useForm<z.infer<typeof equipmentSchema>>({
     resolver: zodResolver(equipmentSchema),
@@ -222,6 +244,24 @@ export default function Admin() {
       periodStart: 1,
       periodEnd: undefined,
       pricePerDay: "",
+      discountPercent: "0",
+    },
+  });
+
+  const pricingSchemaForm = useForm<z.infer<typeof pricingSchemaSchema>>({
+    resolver: zodResolver(pricingSchemaSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      isDefault: false,
+    },
+  });
+
+  const pricingTierForm = useForm<z.infer<typeof pricingTierSchema>>({
+    resolver: zodResolver(pricingTierSchema),
+    defaultValues: {
+      dayStart: 1,
+      dayEnd: undefined,
       discountPercent: "0",
     },
   });
@@ -533,6 +573,173 @@ export default function Admin() {
     },
   });
 
+  // Pricing Schema Mutations
+  const createPricingSchemaMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof pricingSchemaSchema>) => {
+      const response = await apiRequest("POST", "/api/pricing-schemas", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
+      toast({
+        title: "Sukces",
+        description: "Schemat cenowy został utworzony",
+      });
+      setIsPricingSchemaDialogOpen(false);
+      pricingSchemaForm.reset();
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się utworzyć schematu cenowego",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePricingSchemaMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: number } & z.infer<typeof pricingSchemaSchema>) => {
+      const response = await apiRequest("PATCH", `/api/pricing-schemas/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
+      toast({
+        title: "Sukces",
+        description: "Schemat cenowy został zaktualizowany",
+      });
+      setIsPricingSchemaDialogOpen(false);
+      setEditingPricingSchema(null);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować schematu cenowego",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePricingSchemaMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/pricing-schemas/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
+      toast({
+        title: "Sukces",
+        description: "Schemat cenowy został usunięty",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć schematu cenowego",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createPricingTierMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof pricingTierSchema> & { schemaId: number }) => {
+      const response = await apiRequest("POST", "/api/pricing-tiers", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
+      toast({
+        title: "Sukces",
+        description: "Przedział rabatowy został dodany",
+      });
+      setIsPricingTierDialogOpen(false);
+      pricingTierForm.reset();
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się dodać przedziału rabatowego",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePricingTierMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/pricing-tiers/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
+      toast({
+        title: "Sukces",
+        description: "Przedział rabatowy został usunięty",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć przedziału rabatowego",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateUserRoleMutation = useMutation({
     mutationFn: async ({ id, role }: { id: string; role: string }) => {
       const response = await apiRequest("PUT", `/api/users/${id}/role`, { role });
@@ -707,6 +914,21 @@ export default function Admin() {
     if (!end) return `${start}+ dni`;
     return `${start}-${end} dni`;
   };
+
+  // Check if user is admin
+  if (!authLoading && user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Settings className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Brak uprawnień</h2>
+            <p className="text-muted-foreground">Nie masz uprawnień administratora aby uzyskać dostęp do tej strony.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (authLoading || equipmentLoading || categoriesLoading) {
     return (
@@ -1401,6 +1623,299 @@ export default function Admin() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Pricing Schemas Management */}
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    Schematy cenowe
+                  </CardTitle>
+                  <Dialog open={isPricingSchemaDialogOpen} onOpenChange={setIsPricingSchemaDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nowy schemat
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingPricingSchema ? "Edytuj schemat cenowy" : "Dodaj schemat cenowy"}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <Form {...pricingSchemaForm}>
+                        <form onSubmit={pricingSchemaForm.handleSubmit((data) => {
+                          if (editingPricingSchema) {
+                            updatePricingSchemaMutation.mutate({ id: editingPricingSchema.id, ...data });
+                          } else {
+                            createPricingSchemaMutation.mutate(data);
+                          }
+                        })} className="space-y-4">
+                          <FormField
+                            control={pricingSchemaForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nazwa schematu</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="np. Standard, Business, Premium" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={pricingSchemaForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Opis</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} placeholder="Opis schematu cenowego" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={pricingSchemaForm.control}
+                            name="isDefault"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">
+                                    Domyślny schemat
+                                  </FormLabel>
+                                  <div className="text-sm text-muted-foreground">
+                                    Automatycznie wybierany przy tworzeniu nowych wycen
+                                  </div>
+                                </div>
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                    className="w-4 h-4"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <div className="flex justify-end space-x-2">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => {
+                                setIsPricingSchemaDialogOpen(false);
+                                setEditingPricingSchema(null);
+                                pricingSchemaForm.reset();
+                              }}
+                            >
+                              Anuluj
+                            </Button>
+                            <Button 
+                              type="submit" 
+                              disabled={createPricingSchemaMutation.isPending || updatePricingSchemaMutation.isPending}
+                            >
+                              {editingPricingSchema ? "Zaktualizuj" : "Dodaj"}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {pricingSchemas.map((schema) => (
+                    <div key={schema.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{schema.name}</h4>
+                            {schema.isDefault && (
+                              <Badge variant="default">Domyślny</Badge>
+                            )}
+                            {!schema.isActive && (
+                              <Badge variant="destructive">Nieaktywny</Badge>
+                            )}
+                          </div>
+                          {schema.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{schema.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingPricingSchema(schema);
+                              pricingSchemaForm.reset({
+                                name: schema.name,
+                                description: schema.description || "",
+                                isDefault: schema.isDefault,
+                              });
+                              setIsPricingSchemaDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSchemaForTiers(schema);
+                              setIsPricingTierDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm(`Czy na pewno chcesz usunąć schemat "${schema.name}"?`)) {
+                                deletePricingSchemaMutation.mutate(schema.id);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                            disabled={deletePricingSchemaMutation.isPending || schema.isDefault}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Pricing Tiers */}
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-medium">Przedziały rabatowe:</h5>
+                        {schema.tiers.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">Brak przedziałów rabatowych</p>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {schema.tiers
+                              .sort((a, b) => a.dayStart - b.dayStart)
+                              .map((tier) => (
+                                <div key={tier.id} className="flex items-center justify-between text-sm bg-muted p-2 rounded">
+                                  <span>
+                                    {tier.dayStart}-{tier.dayEnd || "∞"} dni: {parseFloat(tier.discountPercent)}%
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (confirm(`Czy na pewno chcesz usunąć przedział ${tier.dayStart}-${tier.dayEnd || "∞"} dni?`)) {
+                                        deletePricingTierMutation.mutate(tier.id);
+                                      }
+                                    }}
+                                    className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pricing Tier Dialog */}
+            <Dialog open={isPricingTierDialogOpen} onOpenChange={setIsPricingTierDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Dodaj przedział rabatowy - {selectedSchemaForTiers?.name}
+                  </DialogTitle>
+                </DialogHeader>
+                <Form {...pricingTierForm}>
+                  <form onSubmit={pricingTierForm.handleSubmit((data) => {
+                    if (selectedSchemaForTiers) {
+                      createPricingTierMutation.mutate({ 
+                        ...data, 
+                        schemaId: selectedSchemaForTiers.id 
+                      });
+                    }
+                  })} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={pricingTierForm.control}
+                        name="dayStart"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Początek okresu (dni)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={pricingTierForm.control}
+                        name="dayEnd"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Koniec okresu (dni)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                placeholder="Puste dla ∞"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={pricingTierForm.control}
+                      name="discountPercent"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Procent rabatu (%)</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="15" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsPricingTierDialogOpen(false);
+                          setSelectedSchemaForTiers(null);
+                          pricingTierForm.reset();
+                        }}
+                      >
+                        Anuluj
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={createPricingTierMutation.isPending}
+                      >
+                        Dodaj przedział
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
 
             <MaintenanceDefaultsCard />
 
