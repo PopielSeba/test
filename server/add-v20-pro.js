@@ -30,10 +30,10 @@ async function addV20Pro() {
     // Add pricing tiers (380 PLN base price for hybrid lighting tower)
     const pricingTiers = [
       { periodStart: 1, periodEnd: 2, pricePerDay: 380, discountPercent: 0 },    // 1-2 dni
-      { periodStart: 3, periodEnd: 7, pricePerDay: 325, discountPercent: 14.29 }, // 3-7 dni
-      { periodStart: 8, periodEnd: 18, pricePerDay: 270, discountPercent: 28.57 }, // 8-18 dni
-      { periodStart: 19, periodEnd: 29, pricePerDay: 215, discountPercent: 42.86 }, // 19-29 dni
-      { periodStart: 30, periodEnd: null, pricePerDay: 160, discountPercent: 57.14 } // 30+ dni
+      { periodStart: 3, periodEnd: 7, pricePerDay: 342, discountPercent: 10.00 }, // 3-7 dni
+      { periodStart: 8, periodEnd: 18, pricePerDay: 304, discountPercent: 20.00 }, // 8-18 dni
+      { periodStart: 19, periodEnd: 29, pricePerDay: 266, discountPercent: 30.00 }, // 19-29 dni
+      { periodStart: 30, periodEnd: null, pricePerDay: 228, discountPercent: 40.00 } // 30+ dni
     ];
 
     for (const tier of pricingTiers) {

@@ -85,31 +85,31 @@ const lightingTowers = [
 const lightingTowerPricing = [
   // Generac VT1 - 350 zł/dzień
   { equipmentId: null, periodStart: 1, periodEnd: 2, pricePerDay: "350.00", discountPercent: "0.00" },
-  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "350.00", discountPercent: "14.29" },
-  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "350.00", discountPercent: "28.57" },
-  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "350.00", discountPercent: "42.86" },
-  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "350.00", discountPercent: "57.14" },
+  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "315.00", discountPercent: "10.00" },
+  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "280.00", discountPercent: "20.00" },
+  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "245.00", discountPercent: "30.00" },
+  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "210.00", discountPercent: "40.00" },
 
   // Generac V20 - 320 zł/dzień  
   { equipmentId: null, periodStart: 1, periodEnd: 2, pricePerDay: "320.00", discountPercent: "0.00" },
-  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "320.00", discountPercent: "14.29" },
-  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "320.00", discountPercent: "28.57" },
-  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "320.00", discountPercent: "42.86" },
-  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "320.00", discountPercent: "57.14" },
+  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "288.00", discountPercent: "10.00" },
+  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "256.00", discountPercent: "20.00" },
+  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "224.00", discountPercent: "30.00" },
+  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "192.00", discountPercent: "40.00" },
 
   // Atlas Copco H6+ - 380 zł/dzień
   { equipmentId: null, periodStart: 1, periodEnd: 2, pricePerDay: "380.00", discountPercent: "0.00" },
-  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "380.00", discountPercent: "14.29" },
-  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "380.00", discountPercent: "28.57" },
-  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "380.00", discountPercent: "42.86" },
-  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "380.00", discountPercent: "57.14" },
+  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "342.00", discountPercent: "10.00" },
+  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "304.00", discountPercent: "20.00" },
+  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "266.00", discountPercent: "30.00" },
+  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "228.00", discountPercent: "40.00" },
 
   // Atlas Copco H5+ - 360 zł/dzień
   { equipmentId: null, periodStart: 1, periodEnd: 2, pricePerDay: "360.00", discountPercent: "0.00" },
-  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "360.00", discountPercent: "14.29" },
-  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "360.00", discountPercent: "28.57" },
-  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "360.00", discountPercent: "42.86" },
-  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "360.00", discountPercent: "57.14" }
+  { equipmentId: null, periodStart: 3, periodEnd: 7, pricePerDay: "324.00", discountPercent: "10.00" },
+  { equipmentId: null, periodStart: 8, periodEnd: 18, pricePerDay: "288.00", discountPercent: "20.00" },
+  { equipmentId: null, periodStart: 19, periodEnd: 29, pricePerDay: "252.00", discountPercent: "30.00" },
+  { equipmentId: null, periodStart: 30, periodEnd: null, pricePerDay: "216.00", discountPercent: "40.00" }
 ];
 
 export async function seedLightingTowers() {

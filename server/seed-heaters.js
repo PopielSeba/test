@@ -85,10 +85,10 @@ export async function seedHeaters() {
   // Standard pricing tiers for heaters (higher pricing for powerful equipment)
   const standardPricingTiers = [
     { periodStart: 1, periodEnd: 2, pricePerDay: 450, discountPercent: 0 },    // 1-2 dni
-    { periodStart: 3, periodEnd: 7, pricePerDay: 385, discountPercent: 14.29 }, // 3-7 dni
-    { periodStart: 8, periodEnd: 18, pricePerDay: 320, discountPercent: 28.57 }, // 8-18 dni
-    { periodStart: 19, periodEnd: 29, pricePerDay: 255, discountPercent: 42.86 }, // 19-29 dni
-    { periodStart: 30, periodEnd: null, pricePerDay: 190, discountPercent: 57.14 } // 30+ dni
+    { periodStart: 3, periodEnd: 7, pricePerDay: 405, discountPercent: 10.00 }, // 3-7 dni
+    { periodStart: 8, periodEnd: 18, pricePerDay: 360, discountPercent: 20.00 }, // 8-18 dni
+    { periodStart: 19, periodEnd: 29, pricePerDay: 315, discountPercent: 30.00 }, // 19-29 dni
+    { periodStart: 30, periodEnd: null, pricePerDay: 270, discountPercent: 40.00 } // 30+ dni
   ];
 
   for (const heater of heaters) {
