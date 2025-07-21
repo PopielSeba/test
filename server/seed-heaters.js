@@ -10,7 +10,7 @@ export async function seedHeaters() {
       description: "Nagrzewnica olejowa EC55/BV170E z wentylatorem",
       model: "EC55 / BV170E",
       power: "55,0 kW / 49,0 kW",
-      categoryId: 2, // Nagrzewnice
+      categoryId: 24, // Nagrzewnice
       quantity: 2,
       availableQuantity: 2,
       fuelConsumption75: 4.6, // średnie zużycie paliwa l/h
@@ -25,7 +25,7 @@ export async function seedHeaters() {
       description: "Nagrzewnica olejowa EC85/BV290E z wentylatorem",
       model: "EC85 / BV290E",
       power: "85 kW",
-      categoryId: 2, // Nagrzewnice
+      categoryId: 24, // Nagrzewnice
       quantity: 1,
       availableQuantity: 1,
       fuelConsumption75: 7.17, // średnie zużycie paliwa l/h
@@ -40,7 +40,7 @@ export async function seedHeaters() {
       description: "Nagrzewnica olejowa Master BV691S z wentylatorem",
       model: "BV 691 S",
       power: "do 225 kW",
-      categoryId: 2, // Nagrzewnice
+      categoryId: 24, // Nagrzewnice
       quantity: 1,
       availableQuantity: 1,
       fuelConsumption75: 21.44, // zużycie paliwa l/h
@@ -55,7 +55,7 @@ export async function seedHeaters() {
       description: "Nagrzewnica olejowa Thermobile IMA 200",
       model: "IMA 200",
       power: "200,0 kW",
-      categoryId: 2, // Nagrzewnice
+      categoryId: 24, // Nagrzewnice
       quantity: 1,
       availableQuantity: 1,
       fuelConsumption75: 19.4, // zużycie paliwa l/h
@@ -70,7 +70,7 @@ export async function seedHeaters() {
       description: "Nagrzewnica olejowa Biemmedue Jumbo 235",
       model: "Jumbo 235",
       power: "235,0 kW",
-      categoryId: 2, // Nagrzewnice
+      categoryId: 24, // Nagrzewnice
       quantity: 1,
       availableQuantity: 1,
       fuelConsumption75: 18.65, // zużycie paliwa l/h

@@ -13,7 +13,7 @@ async function addV20Pro() {
         description: 'Maszt hybrydowy Generac V20 PRO z wieloma opcjami mocy',
         model: 'V20 PRO',
         power: '4x60W / 4x120W / 4x180W / 4x240W',
-        categoryId: 3, // Maszty oświetleniowe
+        categoryId: 25, // Maszty oświetleniowe
         quantity: 1,
         availableQuantity: 1,
         fuelConsumption75: 0.6,
