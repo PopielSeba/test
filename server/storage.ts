@@ -540,23 +540,29 @@ export class DatabaseStorage implements IStorage {
     const client = result[0].clients!;
     const createdBy = result[0].users!;
     
-    const items = result
-      .filter(row => row.quote_items && row.equipment && row.equipment_categories)
-      .map(row => ({
-        ...row.quote_items!,
-        equipment: {
-          ...row.equipment!,
-          category: row.equipment_categories!,
-          pricing: [], // Would need separate query for pricing
-          additionalEquipment: [],
-        },
-      }));
+    // Process items and fetch additional equipment for each
+    const itemsWithAdditional = await Promise.all(
+      result
+        .filter(row => row.quote_items && row.equipment && row.equipment_categories)
+        .map(async (row) => {
+          const additionalEquipment = await this.getEquipmentAdditional(row.equipment!.id);
+          return {
+            ...row.quote_items!,
+            equipment: {
+              ...row.equipment!,
+              category: row.equipment_categories!,
+              pricing: [],
+              additionalEquipment,
+            },
+          };
+        })
+    );
 
     return {
       ...quote,
       client,
       createdBy,
-      items,
+      items: itemsWithAdditional,
     };
   }
 

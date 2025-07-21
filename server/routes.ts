@@ -882,6 +882,26 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
+    // Wyposażenie dodatkowe i akcesoria
+    if (item.selectedAdditional && item.selectedAdditional.length > 0 && item.equipment.additionalEquipment) {
+      const selectedItems = item.equipment.additionalEquipment.filter((add: any) => 
+        item.selectedAdditional.includes(add.id)
+      );
+      
+      if (selectedItems.length > 0) {
+        detailsRows.push(`
+          <tr>
+            <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0f8ff; font-size: 0.9em;">
+              <strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong> ${formatCurrency(item.additionalCost || 0)}<br>
+              ${selectedItems.map((add: any) => {
+                return `• ${add.name} - ${formatCurrency(add.price)}`;
+              }).join('<br>')}
+            </td>
+          </tr>
+        `);
+      }
+    }
+
     // Uwagi
     if (item.notes) {
       detailsRows.push(`
