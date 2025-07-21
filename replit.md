@@ -34,6 +34,12 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed database integrity** - quote deletion now properly removes associated quote items
 - Application ready for production deployment as ofertnik.replit.app
 
+### January 21, 2025
+- **Fixed discount display issue**: System now always shows discount percentage even when 0%
+- **Resolved seed file discount values**: Updated all seed files to use correct discount percentages (10%, 20%, 30%, 40%)
+- **Fixed new equipment creation**: System now automatically creates equipment with proper discount tiers instead of 0% defaults
+- **Corrected pricing calculation**: New equipment gets standard discount structure (10% for 3-7 days, 20% for 8-18 days, 30% for 19-29 days, 40% for 30+ days)
+
 
 
 ## User Preferences
