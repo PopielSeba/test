@@ -96,19 +96,13 @@ interface Equipment {
   additionalEquipment?: EquipmentAdditional[];
 }
 
-interface PricingTier {
-  id: number;
-  dayStart: number;
-  dayEnd: number | null;
-  discountPercent: string;
-}
-
 interface PricingSchema {
   id: number;
   name: string;
   description: string | null;
+  calculationMethod: string; // "first_day" or "progressive"
   isDefault: boolean;
-  tiers: PricingTier[];
+  isActive: boolean;
 }
 
 interface QuoteItemProps {
@@ -180,23 +174,27 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         let pricePerDay = parseFloat(pricing.pricePerDay);
         let discountPercent = parseFloat(pricing.discountPercent);
         
-        // If pricing schema is provided, use it to calculate discount from base price
-        if (pricingSchema && pricingSchema.tiers) {
-          const applicableTier = pricingSchema.tiers
-            .filter(tier => 
-              item.rentalPeriodDays >= tier.dayStart && 
-              (tier.dayEnd === null || item.rentalPeriodDays <= tier.dayEnd)
-            )
-            .sort((a, b) => a.dayStart - b.dayStart)[0];
-
-          if (applicableTier) {
-            // Find base price (period 1-2 days, 0% discount)
+        // If pricing schema is provided, use it to determine calculation method
+        if (pricingSchema) {
+          if (pricingSchema.calculationMethod === "first_day") {
+            // Use equipment's base price with discount applied from day 1
             const basePricing = selectedEquipment.pricing.find(p => p.periodStart === 1);
             if (basePricing) {
               const basePrice = parseFloat(basePricing.pricePerDay);
-              discountPercent = parseFloat(applicableTier.discountPercent);
-              pricePerDay = basePrice * (1 - discountPercent / 100);
+              // Find the highest discount tier for this period from equipment pricing
+              const applicablePricing = selectedEquipment.pricing
+                .filter(p => item.rentalPeriodDays >= p.periodStart && 
+                           (!p.periodEnd || item.rentalPeriodDays <= p.periodEnd))
+                .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
+              
+              if (applicablePricing) {
+                discountPercent = parseFloat(applicablePricing.discountPercent);
+                pricePerDay = basePrice * (1 - discountPercent / 100);
+              }
             }
+          } else {
+            // Progressive method - use equipment's period-based pricing as-is (existing behavior)
+            // This already uses the period-specific pricing with discounts from equipment pricing table
           }
         }
         
@@ -380,29 +378,30 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
   };
 
   const getDiscountInfo = (days: number) => {
-    if (!pricingSchema || !pricingSchema.tiers) {
-      // Fallback to standard pricing if no schema provided
-      if (days >= 30) return "Rabat 57.14%";
-      if (days >= 19) return "Rabat 42.86%";
-      if (days >= 8) return "Rabat 28.57%";
-      if (days >= 3) return "Rabat 14.29%";
+    if (!selectedEquipment || !selectedEquipment.pricing) {
       return "Bez rabatu";
     }
 
-    // Find the appropriate tier for the given number of days
-    const applicableTier = pricingSchema.tiers
-      .filter(tier => 
-        days >= tier.dayStart && 
-        (tier.dayEnd === null || days <= tier.dayEnd)
-      )
-      .sort((a, b) => a.dayStart - b.dayStart)[0];
-
-    if (!applicableTier) {
-      return "Bez rabatu";
+    if (pricingSchema && pricingSchema.calculationMethod === "first_day") {
+      // For first_day method, show the highest available discount for this period
+      const applicablePricing = selectedEquipment.pricing
+        .filter(p => days >= p.periodStart && (!p.periodEnd || days <= p.periodEnd))
+        .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
+      
+      if (applicablePricing) {
+        const discount = parseFloat(applicablePricing.discountPercent);
+        return discount > 0 ? `Rabat ${discount}% (od 1. dnia)` : "Bez rabatu";
+      }
+    } else {
+      // For progressive method, use the period-specific pricing
+      const pricing = getPricingForPeriod(selectedEquipment, days);
+      if (pricing) {
+        const discount = parseFloat(pricing.discountPercent);
+        return discount > 0 ? `Rabat ${discount}%` : "Bez rabatu";
+      }
     }
 
-    const discount = parseFloat(applicableTier.discountPercent);
-    return discount > 0 ? `Rabat ${discount}%` : "Bez rabatu";
+    return "Bez rabatu";
   };
 
   const handleNotesChange = (notes: string) => {

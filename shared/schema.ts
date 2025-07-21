@@ -109,8 +109,9 @@ export const clients = pgTable("clients", {
 // Pricing tiers/schemas - define different pricing strategies
 export const pricingSchemas = pgTable("pricing_schemas", {
   id: serial("id").primaryKey(),
-  name: varchar("name").notNull().unique(), // e.g., "Standard", "Business", "Promo"
+  name: varchar("name").notNull().unique(), // e.g., "Rabat od pierwszego dnia", "Rabat progowy"
   description: text("description"),
+  calculationMethod: varchar("calculation_method").notNull().default("progressive"), // "first_day" or "progressive"
   isDefault: boolean("is_default").default(false).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -118,15 +119,7 @@ export const pricingSchemas = pgTable("pricing_schemas", {
 });
 
 // Progressive pricing tiers for each pricing schema
-export const pricingTiers = pgTable("pricing_tiers", {
-  id: serial("id").primaryKey(),
-  schemaId: integer("schema_id").references(() => pricingSchemas.id).notNull(),
-  tierNumber: integer("tier_number").notNull(), // 1, 2, 3, 4, 5
-  dayStart: integer("day_start").notNull(), // starting day for this tier
-  dayEnd: integer("day_end"), // ending day for this tier (null for unlimited)
-  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+
 
 // Quotes
 export const quotes = pgTable("quotes", {
@@ -272,16 +265,10 @@ export const clientsRelations = relations(clients, ({ many }) => ({
 }));
 
 export const pricingSchemasRelations = relations(pricingSchemas, ({ many }) => ({
-  tiers: many(pricingTiers),
   quotes: many(quotes),
 }));
 
-export const pricingTiersRelations = relations(pricingTiers, ({ one }) => ({
-  schema: one(pricingSchemas, {
-    fields: [pricingTiers.schemaId],
-    references: [pricingSchemas.id],
-  }),
-}));
+
 
 export const quotesRelations = relations(quotes, ({ one, many }) => ({
   client: one(clients, {
@@ -334,7 +321,6 @@ export const insertQuoteItemSchema = createInsertSchema(quoteItems);
 export const insertMaintenanceDefaultsSchema = createInsertSchema(maintenanceDefaults);
 export const insertEquipmentAdditionalSchema = createInsertSchema(equipmentAdditional);
 export const insertPricingSchemaSchema = createInsertSchema(pricingSchemas);
-export const insertPricingTierSchema = createInsertSchema(pricingTiers);
 
 export const selectUserSchema = createSelectSchema(users);
 export const selectEquipmentCategorySchema = createSelectSchema(equipmentCategories);
@@ -346,7 +332,7 @@ export const selectQuoteItemSchema = createSelectSchema(quoteItems);
 export const selectMaintenanceDefaultsSchema = createSelectSchema(maintenanceDefaults);
 export const selectEquipmentAdditionalSchema = createSelectSchema(equipmentAdditional);
 export const selectPricingSchemaSchema = createSelectSchema(pricingSchemas);
-export const selectPricingTierSchema = createSelectSchema(pricingTiers);
+
 
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -368,9 +354,7 @@ export type MaintenanceDefaults = z.infer<typeof selectMaintenanceDefaultsSchema
 export type InsertEquipmentAdditional = z.infer<typeof insertEquipmentAdditionalSchema>;
 export type EquipmentAdditional = z.infer<typeof selectEquipmentAdditionalSchema>;
 export type InsertPricingSchema = z.infer<typeof insertPricingSchemaSchema>;
-export type PricingSchema = z.infer<typeof selectPricingSchemaSchema>;
-export type InsertPricingTier = z.infer<typeof insertPricingTierSchema>;
-export type PricingTier = z.infer<typeof selectPricingTierSchema>;
+export type PricingSchema = typeof pricingSchemas.$inferSelect;
 
 // Extended types for API responses
 export type EquipmentWithCategory = Equipment & {

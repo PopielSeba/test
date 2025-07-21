@@ -100,19 +100,13 @@ interface Equipment {
   additionalEquipment?: EquipmentAdditional[];
 }
 
-interface PricingTier {
-  id: number;
-  dayStart: number;
-  dayEnd: number | null;
-  discountPercent: string;
-}
-
 interface PricingSchema {
   id: number;
   name: string;
   description: string | null;
+  calculationMethod: string; // "first_day" or "progressive"
   isDefault: boolean;
-  tiers: PricingTier[];
+  isActive: boolean;
 }
 
 interface CreateQuoteProps {
@@ -514,20 +508,30 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
                   
                   {selectedPricingSchemaId && pricingSchemas.length > 0 && (
                     <div className="mt-3 p-3 bg-muted rounded-lg">
-                      <h4 className="text-sm font-medium mb-2">Struktura rabatów:</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        {pricingSchemas
-                          .find(schema => schema.id === selectedPricingSchemaId)
-                          ?.tiers.map((tier, index) => (
-                            <div key={tier.id} className="flex justify-between">
-                              <span>
-                                {tier.dayStart}-{tier.dayEnd || "∞"} dni:
-                              </span>
-                              <span className="font-medium">
-                                {parseFloat(tier.discountPercent)}% rabatu
-                              </span>
-                            </div>
-                          ))}
+                      <h4 className="text-sm font-medium mb-2">Metoda naliczania rabatu:</h4>
+                      <div className="text-sm">
+                        {(() => {
+                          const selectedSchema = pricingSchemas.find(schema => schema.id === selectedPricingSchemaId);
+                          if (selectedSchema?.calculationMethod === "first_day") {
+                            return (
+                              <div className="space-y-1">
+                                <p className="font-medium text-green-600">✓ Rabat od pierwszego dnia</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Rabat jest naliczany od pierwszego dnia wynajmu zgodnie z indywidualnymi ustawieniami rabatu każdego urządzenia.
+                                </p>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div className="space-y-1">
+                                <p className="font-medium text-blue-600">✓ Rabat progowy</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Rabat jest naliczany po osiągnięciu określonych progów dni zgodnie z indywidualnymi ustawieniami każdego urządzenia.
+                                </p>
+                              </div>
+                            );
+                          }
+                        })()}
                       </div>
                     </div>
                   )}

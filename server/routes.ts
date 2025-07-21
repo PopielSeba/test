@@ -13,7 +13,7 @@ import {
   insertQuoteItemSchema,
   insertMaintenanceDefaultsSchema,
   insertPricingSchemaSchema,
-  insertPricingTierSchema,
+
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -727,67 +727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Pricing tiers routes
-  app.post('/api/pricing-tiers', isAuthenticated, async (req: any, res) => {
-    try {
-      // Allow development access
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (!isDevelopment) {
-        const currentUser = await storage.getUser(req.user.claims.sub);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied" });
-        }
-      }
 
-      const validatedData = insertPricingTierSchema.parse(req.body);
-      const tier = await storage.createPricingTier(validatedData);
-      res.status(201).json(tier);
-    } catch (error) {
-      console.error("Error creating pricing tier:", error);
-      res.status(500).json({ message: "Failed to create pricing tier" });
-    }
-  });
-
-  app.put('/api/pricing-tiers/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      // Allow development access
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (!isDevelopment) {
-        const currentUser = await storage.getUser(req.user.claims.sub);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied" });
-        }
-      }
-
-      const { id } = req.params;
-      const validatedData = insertPricingTierSchema.partial().parse(req.body);
-      const tier = await storage.updatePricingTier(parseInt(id), validatedData);
-      res.json(tier);
-    } catch (error) {
-      console.error("Error updating pricing tier:", error);
-      res.status(500).json({ message: "Failed to update pricing tier" });
-    }
-  });
-
-  app.delete('/api/pricing-tiers/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      // Allow development access
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (!isDevelopment) {
-        const currentUser = await storage.getUser(req.user.claims.sub);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied" });
-        }
-      }
-
-      const { id } = req.params;
-      await storage.deletePricingTier(parseInt(id));
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting pricing tier:", error);
-      res.status(500).json({ message: "Failed to delete pricing tier" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

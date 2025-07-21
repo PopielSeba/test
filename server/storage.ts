@@ -9,7 +9,7 @@ import {
   quoteItems,
   maintenanceDefaults,
   pricingSchemas,
-  pricingTiers,
+
   type User,
   type UpsertUser,
   type Equipment,
@@ -31,9 +31,7 @@ import {
   type MaintenanceDefaults,
   type InsertMaintenanceDefaults,
   type PricingSchema,
-  type PricingTier,
   type InsertPricingSchema,
-  type InsertPricingTier,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, and } from "drizzle-orm";
@@ -693,21 +691,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Pricing schemas
-  async getPricingSchemas(): Promise<(PricingSchema & { tiers: PricingTier[] })[]> {
+  async getPricingSchemas(): Promise<PricingSchema[]> {
     const schemas = await db.select().from(pricingSchemas).orderBy(pricingSchemas.name);
-    const result = [];
-    
-    for (const schema of schemas) {
-      const tiers = await db
-        .select()
-        .from(pricingTiers)
-        .where(eq(pricingTiers.schemaId, schema.id))
-        .orderBy(pricingTiers.tierNumber);
-      
-      result.push({ ...schema, tiers });
-    }
-    
-    return result;
+    return schemas;
   }
 
   async getPricingSchemaById(id: number): Promise<(PricingSchema & { tiers: PricingTier[] }) | undefined> {
@@ -738,29 +724,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePricingSchema(id: number): Promise<void> {
-    // First delete all associated tiers
-    await db.delete(pricingTiers).where(eq(pricingTiers.schemaId, id));
-    // Then delete the schema
     await db.delete(pricingSchemas).where(eq(pricingSchemas.id, id));
-  }
-
-  // Pricing tiers
-  async createPricingTier(tierData: InsertPricingTier): Promise<PricingTier> {
-    const [tier] = await db.insert(pricingTiers).values(tierData).returning();
-    return tier;
-  }
-
-  async updatePricingTier(id: number, tierData: Partial<InsertPricingTier>): Promise<PricingTier> {
-    const [tier] = await db
-      .update(pricingTiers)
-      .set(tierData)
-      .where(eq(pricingTiers.id, id))
-      .returning();
-    return tier;
-  }
-
-  async deletePricingTier(id: number): Promise<void> {
-    await db.delete(pricingTiers).where(eq(pricingTiers.id, id));
   }
 }
 

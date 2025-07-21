@@ -101,16 +101,9 @@ interface PricingSchema {
   id: number;
   name: string;
   description?: string;
+  calculationMethod: string; // "first_day" or "progressive"
   isDefault: boolean;
   isActive: boolean;
-  tiers: PricingTier[];
-}
-
-interface PricingTier {
-  id: number;
-  dayStart: number;
-  dayEnd: number | null;
-  discountPercent: string;
 }
 
 const equipmentSchema = z.object({
@@ -147,13 +140,8 @@ const pricingSchema = z.object({
 const pricingSchemaSchema = z.object({
   name: z.string().min(1, "Nazwa schematu jest wymagana"),
   description: z.string().optional(),
+  calculationMethod: z.enum(["first_day", "progressive"]),
   isDefault: z.boolean().default(false),
-});
-
-const pricingTierSchema = z.object({
-  dayStart: z.number().min(1, "Początek okresu musi być większy od 0"),
-  dayEnd: z.number().optional(),
-  discountPercent: z.string().min(0, "Rabat musi być nieujemny"),
 });
 
 export default function Admin() {
@@ -170,8 +158,7 @@ export default function Admin() {
   const [localPrices, setLocalPrices] = useState<Record<number, number>>({});
   const [isPricingSchemaDialogOpen, setIsPricingSchemaDialogOpen] = useState(false);
   const [editingPricingSchema, setEditingPricingSchema] = useState<PricingSchema | null>(null);
-  const [isPricingTierDialogOpen, setIsPricingTierDialogOpen] = useState(false);
-  const [selectedSchemaForTiers, setSelectedSchemaForTiers] = useState<PricingSchema | null>(null);
+
 
   // Allow development access to admin data
   const isDevelopment = import.meta.env.DEV || window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
@@ -257,16 +244,8 @@ export default function Admin() {
     defaultValues: {
       name: "",
       description: "",
+      calculationMethod: "progressive",
       isDefault: false,
-    },
-  });
-
-  const pricingTierForm = useForm<z.infer<typeof pricingTierSchema>>({
-    resolver: zodResolver(pricingTierSchema),
-    defaultValues: {
-      dayStart: 1,
-      dayEnd: undefined,
-      discountPercent: "0",
     },
   });
 
@@ -678,71 +657,7 @@ export default function Admin() {
     },
   });
 
-  const createPricingTierMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof pricingTierSchema> & { schemaId: number }) => {
-      const response = await apiRequest("POST", "/api/pricing-tiers", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
-      toast({
-        title: "Sukces",
-        description: "Przedział rabatowy został dodany",
-      });
-      setIsPricingTierDialogOpen(false);
-      pricingTierForm.reset();
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Błąd",
-        description: "Nie udało się dodać przedziału rabatowego",
-        variant: "destructive",
-      });
-    },
-  });
 
-  const deletePricingTierMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/pricing-tiers/${id}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pricing-schemas"] });
-      toast({
-        title: "Sukces",
-        description: "Przedział rabatowy został usunięty",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Błąd",
-        description: "Nie udało się usunąć przedziału rabatowego",
-        variant: "destructive",
-      });
-    },
-  });
 
   const updateUserRoleMutation = useMutation({
     mutationFn: async ({ id, role }: { id: string; role: string }) => {
@@ -1685,6 +1600,41 @@ export default function Admin() {
                           />
                           <FormField
                             control={pricingSchemaForm.control}
+                            name="calculationMethod"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Metoda naliczania rabatu</FormLabel>
+                                <FormControl>
+                                  <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Wybierz metodę" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="progressive">
+                                        <div className="flex flex-col">
+                                          <span>Rabat progowy</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            Rabat naliczany po osiągnięciu progów dni
+                                          </span>
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="first_day">
+                                        <div className="flex flex-col">
+                                          <span>Rabat od pierwszego dnia</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            Rabat naliczany od pierwszego dnia wynajmu
+                                          </span>
+                                        </div>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={pricingSchemaForm.control}
                             name="isDefault"
                             render={({ field }) => (
                               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -1760,6 +1710,7 @@ export default function Admin() {
                               pricingSchemaForm.reset({
                                 name: schema.name,
                                 description: schema.description || "",
+                                calculationMethod: schema.calculationMethod,
                                 isDefault: schema.isDefault,
                               });
                               setIsPricingSchemaDialogOpen(true);
@@ -1767,16 +1718,7 @@ export default function Admin() {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedSchemaForTiers(schema);
-                              setIsPricingTierDialogOpen(true);
-                            }}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1793,36 +1735,25 @@ export default function Admin() {
                         </div>
                       </div>
                       
-                      {/* Pricing Tiers */}
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-medium">Przedziały rabatowe:</h5>
-                        {schema.tiers.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">Brak przedziałów rabatowych</p>
-                        ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {schema.tiers
-                              .sort((a, b) => a.dayStart - b.dayStart)
-                              .map((tier) => (
-                                <div key={tier.id} className="flex items-center justify-between text-sm bg-muted p-2 rounded">
-                                  <span>
-                                    {tier.dayStart}-{tier.dayEnd || "∞"} dni: {parseFloat(tier.discountPercent)}%
-                                  </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      if (confirm(`Czy na pewno chcesz usunąć przedział ${tier.dayStart}-${tier.dayEnd || "∞"} dni?`)) {
-                                        deletePricingTierMutation.mutate(tier.id);
-                                      }
-                                    }}
-                                    className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              ))}
-                          </div>
-                        )}
+                      <div className="mt-3 p-3 bg-muted rounded-lg">
+                        <h5 className="text-sm font-medium mb-1">Metoda naliczania rabatu:</h5>
+                        <div className="text-sm">
+                          {schema.calculationMethod === "first_day" ? (
+                            <span className="text-green-600 font-medium">
+                              ✓ Rabat od pierwszego dnia
+                            </span>
+                          ) : (
+                            <span className="text-blue-600 font-medium">
+                              ✓ Rabat progowy
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {schema.calculationMethod === "first_day" 
+                            ? "Rabaty z indywidualnych ustawień urządzenia są naliczane od pierwszego dnia wynajmu."
+                            : "Rabaty z indywidualnych ustawień urządzenia są naliczane po osiągnięciu określonych progów dni."
+                          }
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -1830,96 +1761,7 @@ export default function Admin() {
               </CardContent>
             </Card>
 
-            {/* Pricing Tier Dialog */}
-            <Dialog open={isPricingTierDialogOpen} onOpenChange={setIsPricingTierDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    Dodaj przedział rabatowy - {selectedSchemaForTiers?.name}
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...pricingTierForm}>
-                  <form onSubmit={pricingTierForm.handleSubmit((data) => {
-                    if (selectedSchemaForTiers) {
-                      createPricingTierMutation.mutate({ 
-                        ...data, 
-                        schemaId: selectedSchemaForTiers.id 
-                      });
-                    }
-                  })} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={pricingTierForm.control}
-                        name="dayStart"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Początek okresu (dni)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={pricingTierForm.control}
-                        name="dayEnd"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Koniec okresu (dni)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                {...field} 
-                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                                placeholder="Puste dla ∞"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={pricingTierForm.control}
-                      name="discountPercent"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Procent rabatu (%)</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="15" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-end space-x-2">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => {
-                          setIsPricingTierDialogOpen(false);
-                          setSelectedSchemaForTiers(null);
-                          pricingTierForm.reset();
-                        }}
-                      >
-                        Anuluj
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        disabled={createPricingTierMutation.isPending}
-                      >
-                        Dodaj przedział
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+
 
             <MaintenanceDefaultsCard />
 
