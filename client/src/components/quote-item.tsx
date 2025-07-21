@@ -177,21 +177,23 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         // If pricing schema is provided, use it to determine calculation method
         if (pricingSchema) {
           if (pricingSchema.calculationMethod === "first_day") {
-            // Use equipment's base price with discount applied from day 1
+            // For first_day method: Use highest available discount from day 1, but apply base price
             const basePricing = selectedEquipment.pricing.find(p => p.periodStart === 1);
             if (basePricing) {
               const basePrice = parseFloat(basePricing.pricePerDay);
+              
               // Find the highest discount available for this rental period
               const applicablePricing = selectedEquipment.pricing
                 .filter(p => item.rentalPeriodDays >= p.periodStart && 
                            (!p.periodEnd || item.rentalPeriodDays <= p.periodEnd))
                 .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
               
-              if (applicablePricing) {
+              if (applicablePricing && parseFloat(applicablePricing.discountPercent) > 0) {
+                // Apply the highest available discount to base price from day 1
                 discountPercent = parseFloat(applicablePricing.discountPercent);
                 pricePerDay = basePrice * (1 - discountPercent / 100);
               } else {
-                // Fallback to base pricing if no applicable tier found
+                // No discount available, use base pricing
                 discountPercent = parseFloat(basePricing.discountPercent);
                 pricePerDay = basePrice;
               }
