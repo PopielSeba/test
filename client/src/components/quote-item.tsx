@@ -561,11 +561,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               className="text-center"
             />
             <div className="text-xs text-muted-foreground mt-1">
-              {item.discountPercent > 0 
-                ? pricingSchema?.calculationMethod === "first_day" 
-                  ? `Rabat ${item.discountPercent}% (od 1. dnia)`
-                  : `Rabat ${item.discountPercent}%`
-                : "Bez rabatu"
+              {pricingSchema?.calculationMethod === "first_day" 
+                ? `Rabat ${item.discountPercent}% (od 1. dnia)`
+                : `Rabat ${item.discountPercent}%`
               }
             </div>
           </div>
@@ -588,11 +586,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 </Button>
               )}
             </div>
-            {item.discountPercent > 0 && (
-              <p className="text-xs text-green-600 mt-1">
-                Rabat: {item.discountPercent}%
-              </p>
-            )}
+            <p className="text-xs text-green-600 mt-1">
+              Rabat: {item.discountPercent}%
+            </p>
           </div>
         </div>
 
