@@ -381,39 +381,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     });
   };
 
-  const getDiscountInfo = (days: number) => {
-    if (!selectedEquipment || !selectedEquipment.pricing) {
 
-      return "Bez rabatu";
-    }
-
-
-
-    if (pricingSchema && pricingSchema.calculationMethod === "first_day") {
-      // For first_day method, show the highest available discount for this period
-      const applicablePricing = selectedEquipment.pricing
-        .filter(p => days >= p.periodStart && (!p.periodEnd || days <= p.periodEnd))
-        .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
-      
-
-      
-      if (applicablePricing) {
-        const discount = parseFloat(applicablePricing.discountPercent);
-        return discount > 0 ? `Rabat ${discount}% (od 1. dnia)` : "Bez rabatu";
-      }
-    } else {
-      // For progressive method, use the period-specific pricing
-      const pricing = getPricingForPeriod(selectedEquipment, days);
-
-      
-      if (pricing) {
-        const discount = parseFloat(pricing.discountPercent);
-        return discount > 0 ? `Rabat ${discount}%` : "Bez rabatu";
-      }
-    }
-
-    return "Bez rabatu";
-  };
 
   const handleNotesChange = (notes: string) => {
     onUpdate({
@@ -549,7 +517,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               className="text-center"
             />
             <div className="text-xs text-muted-foreground mt-1">
-              {getDiscountInfo(item.rentalPeriodDays)}
+              {item.discountPercent > 0 
+                ? pricingSchema?.calculationMethod === "first_day" 
+                  ? `Rabat ${item.discountPercent}% (od 1. dnia)`
+                  : `Rabat ${item.discountPercent}%`
+                : "Bez rabatu"
+              }
             </div>
           </div>
 
