@@ -86,6 +86,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { id } = req.params;
+      
+      // Prevent admin from deleting themselves
+      if (id === req.user.claims.sub) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      await storage.deleteUser(id);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // Equipment Categories
   app.get('/api/equipment-categories', async (req, res) => {
     try {
@@ -203,6 +225,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating equipment:", error);
       res.status(500).json({ message: "Failed to update equipment" });
+    }
+  });
+
+  app.patch('/api/equipment/:id/quantity', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      const { quantity, availableQuantity } = req.body;
+      
+      if (typeof quantity !== 'number' || typeof availableQuantity !== 'number') {
+        return res.status(400).json({ message: "Quantity and availableQuantity must be numbers" });
+      }
+
+      if (availableQuantity > quantity) {
+        return res.status(400).json({ message: "Available quantity cannot exceed total quantity" });
+      }
+
+      const equipment = await storage.updateEquipment(id, { quantity, availableQuantity });
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error updating equipment quantity:", error);
+      res.status(500).json({ message: "Failed to update equipment quantity" });
     }
   });
 

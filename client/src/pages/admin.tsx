@@ -728,6 +728,70 @@ export default function Admin() {
     },
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/users/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Użytkownik został usunięty",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateEquipmentQuantityMutation = useMutation({
+    mutationFn: async ({ id, quantity, availableQuantity }: { id: number, quantity: number, availableQuantity: number }) => {
+      const response = await apiRequest("PATCH", `/api/equipment/${id}/quantity`, { quantity, availableQuantity });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      toast({
+        title: "Sukces",
+        description: "Ilość urządzenia została zaktualizowana",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaktualizować ilości urządzenia",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditEquipment = (equipment: Equipment) => {
     setSelectedEquipment(equipment);
     equipmentForm.reset({
@@ -776,8 +840,8 @@ export default function Admin() {
       description: "",
       model: "",
       power: "",
-      quantity: 0,
-      availableQuantity: 0,
+      quantity: 1,
+      availableQuantity: 1,
       categoryId: 0,
       fuelConsumption75: undefined,
       dimensions: "",
@@ -791,6 +855,12 @@ export default function Admin() {
   const handleDeleteEquipment = (id: number) => {
     if (confirm("Czy na pewno chcesz usunąć ten sprzęt?")) {
       deleteEquipmentMutation.mutate(id);
+    }
+  };
+
+  const handleDeleteUser = (id: string, userName: string) => {
+    if (confirm(`Czy na pewno chcesz usunąć użytkownika ${userName}?`)) {
+      deleteUserMutation.mutate(id);
     }
   };
 
@@ -962,6 +1032,15 @@ export default function Admin() {
                               ) : (
                                 <UserCheck className="w-4 h-4" />
                               )}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id, user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email?.split('@')[0] || 'Nieznany użytkownik')}
+                              disabled={deleteUserMutation.isPending}
+                              title="Usuń użytkownika"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -1352,11 +1431,40 @@ export default function Admin() {
                             <TableCell>
                               <Badge variant="outline">{item.category.name}</Badge>
                             </TableCell>
-                            <TableCell>{item.quantity}</TableCell>
                             <TableCell>
-                              <span className={item.availableQuantity > 0 ? "text-green-600" : "text-red-600"}>
-                                {item.availableQuantity}
-                              </span>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const newQuantity = parseInt(e.target.value) || 0;
+                                  updateEquipmentQuantityMutation.mutate({
+                                    id: item.id,
+                                    quantity: newQuantity,
+                                    availableQuantity: Math.min(item.availableQuantity, newQuantity)
+                                  });
+                                }}
+                                className="w-20"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                min="0"
+                                max={item.quantity}
+                                value={item.availableQuantity}
+                                onChange={(e) => {
+                                  const newAvailable = parseInt(e.target.value) || 0;
+                                  if (newAvailable <= item.quantity) {
+                                    updateEquipmentQuantityMutation.mutate({
+                                      id: item.id,
+                                      quantity: item.quantity,
+                                      availableQuantity: newAvailable
+                                    });
+                                  }
+                                }}
+                                className={`w-20 ${item.availableQuantity > 0 ? "text-green-600" : "text-red-600"}`}
+                              />
                             </TableCell>
                             <TableCell>
                               <div className="flex space-x-2">

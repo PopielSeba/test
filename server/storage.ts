@@ -43,6 +43,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserRole(id: string, role: string): Promise<User>;
   toggleUserActive(id: string): Promise<User>;
+  deleteUser(id: string): Promise<void>;
 
   // Equipment categories
   getEquipmentCategories(): Promise<EquipmentCategory[]>;
@@ -98,16 +99,11 @@ export interface IStorage {
   updateMaintenanceDefaults(categoryName: string, defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
 
   // Pricing schemas
-  getPricingSchemas(): Promise<(PricingSchema & { tiers: PricingTier[] })[]>;
-  getPricingSchemaById(id: number): Promise<(PricingSchema & { tiers: PricingTier[] }) | undefined>;
+  getPricingSchemas(): Promise<PricingSchema[]>;
+  getPricingSchemaById(id: number): Promise<PricingSchema | undefined>;
   createPricingSchema(schema: InsertPricingSchema): Promise<PricingSchema>;
   updatePricingSchema(id: number, schema: Partial<InsertPricingSchema>): Promise<PricingSchema>;
   deletePricingSchema(id: number): Promise<void>;
-  
-  // Pricing tiers
-  createPricingTier(tier: InsertPricingTier): Promise<PricingTier>;
-  updatePricingTier(id: number, tier: Partial<InsertPricingTier>): Promise<PricingTier>;
-  deletePricingTier(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -155,6 +151,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return updatedUser;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   // Equipment categories
@@ -697,17 +697,9 @@ export class DatabaseStorage implements IStorage {
     return schemas;
   }
 
-  async getPricingSchemaById(id: number): Promise<(PricingSchema & { tiers: PricingTier[] }) | undefined> {
+  async getPricingSchemaById(id: number): Promise<PricingSchema | undefined> {
     const [schema] = await db.select().from(pricingSchemas).where(eq(pricingSchemas.id, id));
-    if (!schema) return undefined;
-
-    const tiers = await db
-      .select()
-      .from(pricingTiers)
-      .where(eq(pricingTiers.schemaId, id))
-      .orderBy(pricingTiers.tierNumber);
-
-    return { ...schema, tiers };
+    return schema;
   }
 
   async createPricingSchema(schemaData: InsertPricingSchema): Promise<PricingSchema> {
