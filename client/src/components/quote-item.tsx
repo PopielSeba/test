@@ -228,7 +228,17 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               const basePricing = sortedPricing[0];
               if (basePricing) {
                 const basePrice = parseFloat(basePricing.pricePerDay);
-                discountPercent = ((basePrice - pricePerDay) / basePrice) * 100;
+                // Use stored discount percentage instead of calculating it
+                // This ensures consistency with admin panel settings
+                const applicableTierForDiscount = sortedPricing.find(tier => 
+                  item.rentalPeriodDays >= tier.periodStart && 
+                  (!tier.periodEnd || item.rentalPeriodDays <= tier.periodEnd)
+                );
+                if (applicableTierForDiscount) {
+                  discountPercent = parseFloat(applicableTierForDiscount.discountPercent);
+                } else {
+                  discountPercent = ((basePrice - pricePerDay) / basePrice) * 100;
+                }
               }
             }
           }
