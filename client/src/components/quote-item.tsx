@@ -197,8 +197,41 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 pricePerDay = basePrice;
               }
             }
+          } else if (pricingSchema.calculationMethod === "progressive") {
+            // For progressive method: Calculate price based on progressive tiers
+            // Use different pricing for different periods within the rental
+            let totalCost = 0;
+            let remainingDays = item.rentalPeriodDays;
+            
+            // Sort pricing tiers by period start
+            const sortedPricing = selectedEquipment.pricing.sort((a, b) => a.periodStart - b.periodStart);
+            
+            for (const tier of sortedPricing) {
+              if (remainingDays <= 0) break;
+              
+              const tierStartDay = tier.periodStart;
+              const tierEndDay = tier.periodEnd || 999; // Use high number for unlimited end
+              
+              // Calculate how many days this tier applies to
+              const tierDays = Math.min(remainingDays, tierEndDay - tierStartDay + 1);
+              
+              if (tierDays > 0 && item.rentalPeriodDays >= tierStartDay) {
+                const tierPrice = parseFloat(tier.pricePerDay);
+                totalCost += tierPrice * tierDays * item.quantity;
+                remainingDays -= tierDays;
+              }
+            }
+            
+            // Calculate average price per day and effective discount
+            if (totalCost > 0) {
+              pricePerDay = totalCost / (item.rentalPeriodDays * item.quantity);
+              const basePricing = sortedPricing[0];
+              if (basePricing) {
+                const basePrice = parseFloat(basePricing.pricePerDay);
+                discountPercent = ((basePrice - pricePerDay) / basePrice) * 100;
+              }
+            }
           }
-          // For progressive method, use the standard pricing logic (no changes needed)
         }
         
         if (isNaN(pricePerDay) || isNaN(discountPercent)) {
