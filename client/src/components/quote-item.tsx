@@ -199,32 +199,32 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             }
           } else if (pricingSchema.calculationMethod === "progressive") {
             // For progressive method: Calculate price based on progressive tiers
-            // Use different pricing for different periods within the rental
             let totalCost = 0;
-            let remainingDays = item.rentalPeriodDays;
+            let currentDay = 1;
             
             // Sort pricing tiers by period start
             const sortedPricing = selectedEquipment.pricing.sort((a, b) => a.periodStart - b.periodStart);
             
-            for (const tier of sortedPricing) {
-              if (remainingDays <= 0) break;
+            while (currentDay <= item.rentalPeriodDays) {
+              // Find which tier applies to the current day
+              let applicableTier = sortedPricing[0]; // default to first tier
               
-              const tierStartDay = tier.periodStart;
-              const tierEndDay = tier.periodEnd || 999; // Use high number for unlimited end
-              
-              // Calculate how many days this tier applies to
-              const tierDays = Math.min(remainingDays, tierEndDay - tierStartDay + 1);
-              
-              if (tierDays > 0 && item.rentalPeriodDays >= tierStartDay) {
-                const tierPrice = parseFloat(tier.pricePerDay);
-                totalCost += tierPrice * tierDays * item.quantity;
-                remainingDays -= tierDays;
+              for (const tier of sortedPricing) {
+                if (currentDay >= tier.periodStart && 
+                    (!tier.periodEnd || currentDay <= tier.periodEnd)) {
+                  applicableTier = tier;
+                  break;
+                }
               }
+              
+              const tierPrice = parseFloat(applicableTier.pricePerDay);
+              totalCost += tierPrice;
+              currentDay++;
             }
             
             // Calculate average price per day and effective discount
             if (totalCost > 0) {
-              pricePerDay = totalCost / (item.rentalPeriodDays * item.quantity);
+              pricePerDay = totalCost / item.rentalPeriodDays;
               const basePricing = sortedPricing[0];
               if (basePricing) {
                 const basePrice = parseFloat(basePricing.pricePerDay);
