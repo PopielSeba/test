@@ -181,7 +181,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             const basePricing = selectedEquipment.pricing.find(p => p.periodStart === 1);
             if (basePricing) {
               const basePrice = parseFloat(basePricing.pricePerDay);
-              // Find the highest discount tier for this period from equipment pricing
+              // Find the highest discount available for this rental period
               const applicablePricing = selectedEquipment.pricing
                 .filter(p => item.rentalPeriodDays >= p.periodStart && 
                            (!p.periodEnd || item.rentalPeriodDays <= p.periodEnd))
@@ -190,12 +190,14 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               if (applicablePricing) {
                 discountPercent = parseFloat(applicablePricing.discountPercent);
                 pricePerDay = basePrice * (1 - discountPercent / 100);
+              } else {
+                // Fallback to base pricing if no applicable tier found
+                discountPercent = parseFloat(basePricing.discountPercent);
+                pricePerDay = basePrice;
               }
             }
-          } else {
-            // Progressive method - use equipment's period-based pricing as-is (existing behavior)
-            // This already uses the period-specific pricing with discounts from equipment pricing table
           }
+          // For progressive method, use the standard pricing logic (no changes needed)
         }
         
         if (isNaN(pricePerDay) || isNaN(discountPercent)) {
@@ -242,6 +244,19 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         const totalPrice = totalEquipmentPrice + fuelCost + installationCost + maintenanceCost + serviceItemsCost + additionalCost + accessoriesCost;
         
 
+
+        // Debug logs
+        console.log('Quote calculation:', {
+          equipmentId: item.equipmentId,
+          rentalPeriodDays: item.rentalPeriodDays,
+          pricingSchema: pricingSchema?.calculationMethod,
+          originalPricePerDay: parseFloat(pricing.pricePerDay),
+          originalDiscountPercent: parseFloat(pricing.discountPercent),
+          finalPricePerDay: pricePerDay,
+          finalDiscountPercent: discountPercent,
+          totalEquipmentPrice,
+          totalPrice
+        });
 
         onUpdate({
           ...item,
@@ -379,14 +394,23 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
   const getDiscountInfo = (days: number) => {
     if (!selectedEquipment || !selectedEquipment.pricing) {
+      console.log('No equipment or pricing for discount info');
       return "Bez rabatu";
     }
+
+    console.log('Getting discount info:', {
+      days,
+      pricingSchema: pricingSchema?.calculationMethod,
+      equipmentPricing: selectedEquipment.pricing
+    });
 
     if (pricingSchema && pricingSchema.calculationMethod === "first_day") {
       // For first_day method, show the highest available discount for this period
       const applicablePricing = selectedEquipment.pricing
         .filter(p => days >= p.periodStart && (!p.periodEnd || days <= p.periodEnd))
         .sort((a, b) => parseFloat(b.discountPercent) - parseFloat(a.discountPercent))[0];
+      
+      console.log('First day method, applicable pricing:', applicablePricing);
       
       if (applicablePricing) {
         const discount = parseFloat(applicablePricing.discountPercent);
@@ -395,6 +419,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     } else {
       // For progressive method, use the period-specific pricing
       const pricing = getPricingForPeriod(selectedEquipment, days);
+      console.log('Progressive method, pricing for period:', pricing);
+      
       if (pricing) {
         const discount = parseFloat(pricing.discountPercent);
         return discount > 0 ? `Rabat ${discount}%` : "Bez rabatu";
