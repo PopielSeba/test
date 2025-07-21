@@ -130,35 +130,7 @@ export default function Equipment() {
           </div>
         </div>
 
-        {/* Category Quick Access */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {['Klimatyzacje', 'Nagrzewnice', 'Maszty oświetleniowe', 'Agregaty prądotwórcze'].map((categoryName) => {
-            const IconComponent = getCategoryIcon(categoryName);
-            const categoryData = categories.find(cat => cat.name === categoryName);
-            const categoryEquipment = equipment.filter(item => item.category.name === categoryName);
-            const totalCount = categoryEquipment.reduce((sum, item) => sum + item.quantity, 0);
-            
-            return (
-              <Card 
-                key={categoryName} 
-                className="cursor-pointer hover:shadow-md transition-shadow duration-200 border-2 hover:border-primary/20"
-                onClick={() => scrollToCategory(categoryName)}
-              >
-                <CardContent className="p-4 text-center">
-                  <div className="flex flex-col items-center space-y-2">
-                    <div className={`p-3 rounded-full ${getCategoryColor(categoryName)} bg-opacity-20`}>
-                      <IconComponent className="w-6 h-6" />
-                    </div>
-                    <h3 className="font-semibold text-sm">{categoryName}</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      {totalCount} szt.
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
