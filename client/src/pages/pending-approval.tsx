@@ -49,10 +49,21 @@ export default function PendingApproval() {
             </Badge>
           </div>
 
-          <div className="space-y-3 pt-4">
-            <p className="text-sm text-muted-foreground">
-              Administrator zostanie powiadomiony o Twojej rejestracji. 
-              Po zatwierdzeniu otrzymasz dostęp do systemu.
+          <div className="space-y-4 pt-4">
+            <div className="bg-muted/50 p-3 rounded-md">
+              <p className="text-sm text-muted-foreground text-center">
+                <strong>Co się dzieje teraz?</strong>
+              </p>
+              <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                <li>• Administrator został powiadomiony o Twojej rejestracji</li>
+                <li>• Twoje konto jest bezpiecznie zapisane w systemie</li>
+                <li>• Po zatwierdzeniu otrzymasz pełen dostęp do systemu wycen</li>
+              </ul>
+            </div>
+            
+            <p className="text-sm text-muted-foreground text-center">
+              Proces akceptacji może potrwać kilka godzin. 
+              Sprawdź ponownie później lub skontaktuj się z administratorem.
             </p>
             
             <div className="flex flex-col space-y-2">

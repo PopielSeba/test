@@ -33,6 +33,16 @@ export default function Landing() {
             >
               Zaloguj się do systemu
             </Button>
+            
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-8 py-3 text-lg"
+              onClick={() => window.location.href = '/api/login'}
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              Nowy użytkownik
+            </Button>
             <Button 
               size="lg" 
               variant="outline"
@@ -56,9 +66,19 @@ export default function Landing() {
               </div>
             </div>
           </div>
+          
+          {/* Information for new users */}
+          <div className="bg-blue-500/20 backdrop-blur-sm rounded-lg p-4 mt-6 max-w-2xl mx-auto border border-blue-300/30">
+            <div className="flex items-center justify-center mb-2">
+              <Info className="w-5 h-5 text-blue-200 mr-2" />
+              <h3 className="text-lg font-medium text-white">Informacja dla nowych użytkowników</h3>
+            </div>
+            <p className="text-blue-100 text-sm">
+              Po pierwszym zalogowaniu Twoje konto będzie oczekiwać na akceptację przez administratora. 
+              Otrzymasz dostęp do systemu po zatwierdzeniu przez uprawnioną osobę.
+            </p>
+          </div>
         </div>
-
-
 
         <div className="mt-16 text-center text-white/80">
           <p className="text-sm">
