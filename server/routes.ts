@@ -280,11 +280,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/equipment/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/equipment/:id', async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied. Admin role required." });
+      // In development mode, allow equipment deletion without authentication
+      if (process.env.NODE_ENV === 'production') {
+        if (!req.isAuthenticated()) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+        const user = await storage.getUser(req.user.claims.sub);
+        if (user?.role !== 'admin') {
+          return res.status(403).json({ message: "Access denied. Admin role required." });
+        }
       }
 
       const id = parseInt(req.params.id);
@@ -296,11 +302,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/equipment/:id/permanent', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/equipment/:id/permanent', async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied. Admin role required." });
+      // In development mode, allow permanent equipment deletion without authentication
+      if (process.env.NODE_ENV === 'production') {
+        if (!req.isAuthenticated()) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+        const user = await storage.getUser(req.user.claims.sub);
+        if (user?.role !== 'admin') {
+          return res.status(403).json({ message: "Access denied. Admin role required." });
+        }
       }
 
       const id = parseInt(req.params.id);
