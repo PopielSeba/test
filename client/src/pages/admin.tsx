@@ -813,12 +813,12 @@ export default function Admin() {
       quantity: equipment.quantity || 1,
       availableQuantity: equipment.availableQuantity || 1,
       categoryId: equipment.category?.id || 23,
-      fuelConsumption75: equipment.fuelConsumption75 ? equipment.fuelConsumption75.toString() : "",
+      fuelConsumption75: equipment.fuelConsumption75?.toString() || "",
       dimensions: equipment.dimensions || "",
       weight: equipment.weight || "",
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
-      fuelTankCapacity: equipment.fuelTankCapacity ? equipment.fuelTankCapacity.toString() : "",
+      fuelTankCapacity: equipment.fuelTankCapacity?.toString() || "",
     };
     console.log("Resetting form with data:", formData);
     console.log("Category ID being set:", formData.categoryId);
@@ -1329,8 +1329,8 @@ export default function Admin() {
                                             <Input 
                                               type="number" 
                                               step="0.1"
-                                              {...field} 
-                                              onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                              placeholder="np. 35.3"
+                                              {...field}
                                             />
                                           </FormControl>
                                           <FormMessage />
@@ -1346,8 +1346,8 @@ export default function Admin() {
                                           <FormControl>
                                             <Input 
                                               type="number" 
-                                              {...field} 
-                                              onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                              placeholder="np. 350"
+                                              {...field}
                                             />
                                           </FormControl>
                                           <FormMessage />
