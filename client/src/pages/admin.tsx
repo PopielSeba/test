@@ -239,7 +239,7 @@ function EquipmentMaintenanceDefaultsCard({ equipment }: { equipment: Equipment[
               <SelectContent>
                 {equipmentWithMaintenance.map((item) => (
                   <SelectItem key={item.id} value={item.id.toString()}>
-                    {item.name} ({item.category.name})
+                    {item.name} ({item.category?.name || 'Brak kategorii'})
                   </SelectItem>
                 ))}
               </SelectContent>
