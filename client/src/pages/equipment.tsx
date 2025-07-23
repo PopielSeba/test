@@ -82,7 +82,7 @@ export default function Equipment() {
   });
 
   const groupedEquipment = filteredEquipment.reduce((acc, item) => {
-    const categoryName = item.category.name;
+    const categoryName = item.category?.name || 'Brak kategorii';
     if (!acc[categoryName]) {
       acc[categoryName] = [];
     }

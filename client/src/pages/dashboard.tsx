@@ -59,7 +59,7 @@ export default function Dashboard() {
   const totalEquipment = equipment.reduce((sum, item) => sum + item.quantity, 0);
   const availableEquipment = equipment.reduce((sum, item) => sum + item.availableQuantity, 0);
   const categoryCounts = equipment.reduce((acc, item) => {
-    const categoryName = item.category.name;
+    const categoryName = item.category?.name || 'Brak kategorii';
     acc[categoryName] = (acc[categoryName] || 0) + item.quantity;
     return acc;
   }, {} as Record<string, number>);
