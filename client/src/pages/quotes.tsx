@@ -64,7 +64,7 @@ export default function Quotes() {
 
   // Redirect non-admin users
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || (user?.role !== 'admin' && user?.role !== 'employee'))) {
+    if (!authLoading && (!isAuthenticated || ((user as any)?.role !== 'admin' && (user as any)?.role !== 'employee'))) {
       toast({
         title: "Brak uprawnień",
         description: "Dostęp do wycen jest dostępny tylko dla pracowników i administratorów.",
@@ -78,7 +78,7 @@ export default function Quotes() {
 
   const { data: quotes = [], isLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
-    enabled: isAuthenticated && user?.role === 'admin',
+    enabled: isAuthenticated && (user as any)?.role === 'admin',
   });
 
   const deleteQuoteMutation = useMutation({
@@ -125,7 +125,7 @@ export default function Quotes() {
   }
 
   // Don't render if user is not admin
-  if (!isAuthenticated || user?.role !== 'admin') {
+  if (!isAuthenticated || (user as any)?.role !== 'admin') {
     return null;
   }
 
@@ -286,7 +286,7 @@ export default function Quotes() {
                               >
                                 <Download className="w-4 h-4" />
                               </Button>
-                              {user?.role === 'admin' && (
+                              {(user as any)?.role === 'admin' && (
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
