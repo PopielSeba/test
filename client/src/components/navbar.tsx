@@ -31,12 +31,11 @@ export default function Navbar() {
   const navItems = [
     { path: "/", label: "Dashboard", icon: BarChart3 },
     { path: "/equipment", label: "Sprzęt", icon: Wrench },
-    { path: "/quotes", label: "Wyceny", icon: FileText },
     { path: "/create-quote", label: "Nowa Wycena", icon: Plus },
   ];
 
-  // Only admins can access Admin panel
   if (isAuthenticated && (user as any)?.role === 'admin') {
+    navItems.push({ path: "/quotes", label: "Wyceny", icon: FileText });
     navItems.push({ path: "/admin", label: "Admin", icon: Settings });
   }
 

@@ -44,9 +44,7 @@ import { eq, desc, like, and } from "drizzle-orm";
 export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  createLocalUser(user: any): Promise<User>;
   getAllUsers(): Promise<User[]>;
   getPendingUsers(): Promise<User[]>;
   updateUserRole(id: string, role: string): Promise<User>;
@@ -127,27 +125,6 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
-  }
-
-  async createLocalUser(userData: any): Promise<User> {
-    // Generate a unique ID for local users
-    const userId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const [user] = await db
-      .insert(users)
-      .values({
-        id: userId,
-        ...userData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
     return user;
   }
 

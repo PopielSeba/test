@@ -8,9 +8,8 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-// Allow localhost for development, but warn about missing REPLIT_DOMAINS in production
 if (!process.env.REPLIT_DOMAINS) {
-  console.warn("Environment variable REPLIT_DOMAINS not provided - using localhost for development");
+  throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
 const getOidcConfig = memoize(
@@ -90,11 +89,8 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  const domains = process.env.REPLIT_DOMAINS ? 
-    process.env.REPLIT_DOMAINS.split(",") : 
-    ["localhost"];
-    
-  for (const domain of domains) {
+  for (const domain of process.env
+    .REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -107,26 +103,8 @@ export async function setupAuth(app: Express) {
     passport.use(strategy);
   }
 
-  passport.serializeUser((user: any, cb) => {
-    if (user.claims) {
-      // Replit user - store as-is
-      cb(null, user);
-    } else {
-      // Local user - store with type info
-      cb(null, { type: 'local', id: user.id });
-    }
-  });
-  
-  passport.deserializeUser(async (obj: any, cb) => {
-    if (obj.type === 'local') {
-      // Local user - fetch fresh data
-      const user = await storage.getUser(obj.id);
-      cb(null, user);
-    } else {
-      // Replit user - return as-is
-      cb(null, obj);
-    }
-  });
+  passport.serializeUser((user: Express.User, cb) => cb(null, user));
+  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {

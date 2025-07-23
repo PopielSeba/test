@@ -25,7 +25,7 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for Replit Auth and Local Auth
+// User storage table for Replit Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
@@ -37,9 +37,6 @@ export const users = pgTable("users", {
   isApproved: boolean("is_approved").default(false).notNull(), // admin approval required
   approvedAt: timestamp("approved_at"),
   approvedById: varchar("approved_by_id"),
-  // Local authentication fields
-  password: varchar("password"), // For local auth users
-  authProvider: varchar("auth_provider").notNull().default("replit"), // "replit" or "local"
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -5,13 +5,7 @@ import { Clock, Mail, Shield, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PendingApproval() {
-  const { user, needsApproval } = useAuth();
-
-  // If user is approved, redirect to home
-  if (user && user.isApproved) {
-    window.location.href = "/";
-    return null;
-  }
+  const { user } = useAuth();
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
@@ -40,7 +34,7 @@ export default function PendingApproval() {
             <div className="flex items-center justify-center space-x-2">
               <Mail className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {user?.email || 'Brak emaila'}
+                {(user as any)?.email}
               </span>
             </div>
           </div>

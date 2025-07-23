@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
-import Auth from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import Equipment from "@/pages/equipment";
 import Quotes from "@/pages/quotes";
@@ -19,11 +18,10 @@ import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import GuestQuote from "@/pages/guest-quote";
 import PendingApproval from "@/pages/pending-approval";
-import Clients from "@/pages/clients";
 import Navbar from "@/components/navbar";
 
 function Router() {
-  const { isAuthenticated, isLoading, user, needsApproval, isApproved } = useAuth();
+  const { isAuthenticated, isLoading, user, needsApproval } = useAuth();
 
   if (isLoading) {
     return (
@@ -41,7 +39,6 @@ function Router() {
       <div className="min-h-screen bg-background">
         <Switch>
           <Route path="/" component={Landing} />
-          <Route path="/auth" component={Auth} />
           <Route component={() => <Landing />} />
         </Switch>
       </div>
@@ -49,7 +46,7 @@ function Router() {
   }
 
   // Check if user needs approval (authenticated but not approved)
-  if (isAuthenticated && (needsApproval || !isApproved)) {
+  if (user && !(user as any).isApproved) {
     return (
       <div className="min-h-screen bg-background">
         <PendingApproval />
@@ -67,7 +64,6 @@ function Router() {
         <Route path="/quotes/:id" component={QuoteDetail} />
         <Route path="/quotes/:id/edit" component={EditQuote} />
         <Route path="/create-quote" component={() => <CreateQuote />} />
-        <Route path="/clients" component={Clients} />
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />

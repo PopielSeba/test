@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isApproved } from "./replitAuth";
-import { setupLocalAuth } from "./localAuth";
 import { z } from "zod";
 import {
   insertEquipmentCategorySchema,
@@ -22,32 +21,14 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
-  setupLocalAuth(app);
 
   // Remove development mode bypass - require authentication for all protected routes
 
-  // Unified auth middleware
-  const unifiedAuth = async (req: any, res: any, next: any) => {
-    // Check if user is authenticated via Replit or Local
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    return res.status(401).json({ message: "Unauthorized" });
-  };
-
   // Auth routes
-  app.get('/api/auth/user', unifiedAuth, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      let user;
-      
-      // Check if it's Replit auth user
-      if (req.user.claims) {
-        const userId = req.user.claims.sub;
-        user = await storage.getUser(userId);
-      } else {
-        // Local auth user
-        user = req.user;
-      }
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       
       // If user exists but is not approved, return 403 with special flag
       if (user && !user.isApproved) {
@@ -66,15 +47,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get('/api/users', unifiedAuth, async (req: any, res) => {
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
     try {
-      let currentUser;
-      if (req.user.claims) {
-        currentUser = await storage.getUser(req.user.claims.sub);
-      } else {
-        currentUser = req.user;
-      }
-      
+      const currentUser = await storage.getUser(req.user.claims.sub);
       if (currentUser?.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -539,6 +514,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quotes - accessible to admin and employee roles
   app.get('/api/quotes', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       const quotes = await storage.getQuotes();
       res.json(quotes);
     } catch (error) {
@@ -549,6 +529,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
       
@@ -618,6 +603,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       const id = parseInt(req.params.id);
       const quote = await storage.getQuoteById(id);
       
@@ -665,6 +655,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Quote not found" });
       }
 
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       // Generate HTML content for the quote
       console.log("Quote data for print:", {
         id: quote.id,
@@ -682,9 +677,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quote Items - accessible to all authenticated users
+  // Quote Items - accessible to admin and employee roles, or guest in development
   app.post('/api/quote-items', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       const itemData = insertQuoteItemSchema.parse(req.body);
       const item = await storage.createQuoteItem(itemData);
       res.json(item);
@@ -698,6 +698,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/quote-items/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       const id = parseInt(req.params.id);
       const itemData = insertQuoteItemSchema.partial().parse(req.body);
       const item = await storage.updateQuoteItem(id, itemData);
@@ -710,6 +715,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/quote-items/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
+      }
+
       const id = parseInt(req.params.id);
       await storage.deleteQuoteItem(id);
       res.json({ message: "Quote item deleted successfully" });
