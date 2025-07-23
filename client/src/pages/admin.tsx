@@ -217,9 +217,9 @@ export default function Admin() {
       description: "",
       model: "",
       power: "",
-      quantity: 0,
-      availableQuantity: 0,
-      categoryId: 0,
+      quantity: 1,
+      availableQuantity: 1,
+      categoryId: 23, // Use first available category ID
     },
   });
 
@@ -857,7 +857,7 @@ export default function Admin() {
       power: "",
       quantity: 1,
       availableQuantity: 1,
-      categoryId: 0,
+      categoryId: 23, // Use valid category ID
       fuelConsumption75: undefined,
       dimensions: "",
       weight: "",
