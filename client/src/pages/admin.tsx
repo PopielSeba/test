@@ -1518,7 +1518,16 @@ export default function Admin() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => setSelectedEquipmentForServiceCosts(item)}
+                                  onClick={() => {
+                                    setSelectedEquipmentForServiceCosts(item);
+                                    // Scroll to service costs section
+                                    setTimeout(() => {
+                                      const serviceCostsSection = document.querySelector('[data-service-costs-section]');
+                                      if (serviceCostsSection) {
+                                        serviceCostsSection.scrollIntoView({ behavior: 'smooth' });
+                                      }
+                                    }, 100);
+                                  }}
                                   title="Koszty serwisu"
                                   className="text-purple-600 hover:text-purple-700"
                                 >

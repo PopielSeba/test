@@ -194,7 +194,7 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card className="w-full max-w-4xl mx-auto" data-service-costs-section>
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>Koszty serwisu - {equipment.name}</CardTitle>
@@ -222,7 +222,7 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
               />
             </div>
             <div>
-              <Label htmlFor="workerHours">Roboczogodziny (stałe)</Label>
+              <Label htmlFor="workerHours">Roboczogodziny</Label>
               <Input
                 id="workerHours"
                 type="number"
@@ -233,21 +233,20 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
                 }))}
                 min="0"
                 step="0.5"
-                readOnly
-                className="bg-gray-50"
               />
             </div>
             <div>
-              <Label htmlFor="workerCost">Koszt za godzinę (stały)</Label>
+              <Label htmlFor="workerCost">Koszt za godzinę (zł)</Label>
               <Input
                 id="workerCost"
+                type="number"
                 value={serviceCostsForm.workerCostPerHour}
                 onChange={(e) => setServiceCostsForm(prev => ({
                   ...prev,
                   workerCostPerHour: e.target.value
                 }))}
-                readOnly
-                className="bg-gray-50"
+                min="0"
+                step="0.01"
               />
             </div>
           </div>
