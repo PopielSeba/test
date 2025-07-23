@@ -97,6 +97,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Enhanced database schema**: Added password and authProvider fields for local users
 - **Unified authentication middleware**: System handles both Replit and local users seamlessly
 - **Fixed frontend authentication**: Resolved fetch credentials and error handling issues
+- **RESTORED Replit Auth functionality**: Fixed authentication system to support both Replit and local auth simultaneously
+- **Fixed pending approval workflow**: Users now see proper waiting page instead of infinite loading loops
+- **Unified serialization system**: Both authentication methods work seamlessly with proper session management
 
 
 

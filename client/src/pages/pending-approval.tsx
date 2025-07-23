@@ -40,7 +40,7 @@ export default function PendingApproval() {
             <div className="flex items-center justify-center space-x-2">
               <Mail className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {(user as any)?.email}
+                {user?.email || 'Brak emaila'}
               </span>
             </div>
           </div>
