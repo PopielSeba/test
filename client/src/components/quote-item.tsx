@@ -767,8 +767,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           )}
         </div>
 
-        {/* Service Items Enable Section (for heaters only) */}
-        {selectedEquipment?.category?.name === 'Nagrzewnice' && (
+        {/* Service Items Enable Section (for equipment that supports service costs) */}
+        {(selectedEquipment?.category?.name === 'Nagrzewnice' || 
+          selectedEquipment?.category?.name === 'Klimatyzacje' ||
+          selectedEquipment?.category?.name === 'Agregaty prądotwórcze' ||
+          selectedEquipment?.category?.name === 'Maszty oświetleniowe' ||
+          selectedEquipment?.category?.name === 'Kurtyny powietrzne' ||
+          selectedEquipment?.category?.name === 'Wyciągi spalin') && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
               <Checkbox 
@@ -778,13 +783,14 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   let updatedItem = { ...item };
                   
                   if (checked) {
-                    // Load default values from service items or use fallback defaults
-                    if (selectedEquipment?.category?.name === 'Nagrzewnice') {
+                    // Load default values from service items or use fallback defaults for any supported category
+                    const supportedCategories = ['Nagrzewnice', 'Klimatyzacje', 'Agregaty prądotwórcze', 'Maszty oświetleniowe', 'Kurtyny powietrzne', 'Wyciągi spalin'];
+                    if (selectedEquipment?.category?.name && supportedCategories.includes(selectedEquipment.category.name)) {
                       updatedItem = {
                         ...updatedItem,
-                        serviceItem1Cost: updatedItem.serviceItem1Cost || (serviceItems[0]?.itemCost ? parseFloat(serviceItems[0].itemCost) : 200),
-                        serviceItem2Cost: updatedItem.serviceItem2Cost || (serviceItems[1]?.itemCost ? parseFloat(serviceItems[1].itemCost) : 100),
-                        serviceItem3Cost: updatedItem.serviceItem3Cost || (serviceItems[2]?.itemCost ? parseFloat(serviceItems[2].itemCost) : 150),
+                        serviceItem1Cost: updatedItem.serviceItem1Cost || ((serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 200),
+                        serviceItem2Cost: updatedItem.serviceItem2Cost || ((serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 100),
+                        serviceItem3Cost: updatedItem.serviceItem3Cost || ((serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 150),
                       };
                     }
                     
@@ -805,8 +811,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           </div>
         )}
 
-        {/* Service Items Configuration Section (for heaters only) */}
-        {selectedEquipment?.category?.name === 'Nagrzewnice' && item.includeServiceItems && (
+        {/* Service Items Configuration Section (for equipment that supports service costs) */}
+        {(selectedEquipment?.category?.name === 'Nagrzewnice' || 
+          selectedEquipment?.category?.name === 'Klimatyzacje' ||
+          selectedEquipment?.category?.name === 'Agregaty prądotwórcze' ||
+          selectedEquipment?.category?.name === 'Maszty oświetleniowe' ||
+          selectedEquipment?.category?.name === 'Kurtyny powietrzne' ||
+          selectedEquipment?.category?.name === 'Wyciągi spalin') && item.includeServiceItems && (
           <div className="mt-4">
             <div className="space-y-4 bg-muted p-4 rounded-lg">
               <div className="flex items-center space-x-2">
@@ -817,7 +828,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {serviceItems[0]?.itemName || 'Przegląd serwisowy'}
+                    {(serviceItems as any[])[0]?.itemName || 'Przegląd serwisowy'}
                   </label>
                   <Input
                     type="number"
@@ -832,13 +843,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         totalServiceItemsCost: totalCost
                       });
                     }}
-                    placeholder={serviceItems[0]?.itemCost ? parseFloat(serviceItems[0].itemCost).toFixed(2) : "0.00"}
+                    placeholder={(serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {serviceItems[1]?.itemName || 'Dojazd'}
+                    {(serviceItems as any[])[1]?.itemName || 'Dojazd'}
                   </label>
                   <Input
                     type="number"
@@ -853,13 +864,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         totalServiceItemsCost: totalCost
                       });
                     }}
-                    placeholder={serviceItems[1]?.itemCost ? parseFloat(serviceItems[1].itemCost).toFixed(2) : "0.00"}
+                    placeholder={(serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {serviceItems[2]?.itemName || 'Wymiana palnika'}
+                    {(serviceItems as any[])[2]?.itemName || 'Wymiana palnika'}
                   </label>
                   <Input
                     type="number"
@@ -874,7 +885,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         totalServiceItemsCost: totalCost
                       });
                     }}
-                    placeholder={serviceItems[2]?.itemCost ? parseFloat(serviceItems[2].itemCost).toFixed(2) : "0.00"}
+                    placeholder={(serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
               </div>
