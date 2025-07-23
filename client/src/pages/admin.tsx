@@ -116,13 +116,13 @@ const equipmentSchema = z.object({
   quantity: z.number().min(0, "Ilość musi być nieujemna"),
   availableQuantity: z.number().min(0, "Dostępna ilość musi być nieujemna"),
   categoryId: z.number().min(1, "Kategoria jest wymagana"),
-  // Technical specifications for generators
-  fuelConsumption75: z.number().optional(),
+  // Technical specifications for generators - all optional and nullable
+  fuelConsumption75: z.number().nullable().optional(),
   dimensions: z.string().default(""),
   weight: z.string().default(""),
   engine: z.string().default(""),
   alternator: z.string().default(""),
-  fuelTankCapacity: z.number().optional(),
+  fuelTankCapacity: z.number().nullable().optional(),
 });
 
 const categorySchema = z.object({
@@ -219,12 +219,12 @@ export default function Admin() {
       quantity: 1,
       availableQuantity: 1,
       categoryId: 23,
-      fuelConsumption75: undefined,
+      fuelConsumption75: null,
       dimensions: "",
       weight: "",
       engine: "",
       alternator: "",
-      fuelTankCapacity: undefined,
+      fuelTankCapacity: null,
     },
   });
 
@@ -813,12 +813,12 @@ export default function Admin() {
       quantity: equipment.quantity || 1,
       availableQuantity: equipment.availableQuantity || 1,
       categoryId: equipment.category?.id || 23,
-      fuelConsumption75: equipment.fuelConsumption75 || undefined,
+      fuelConsumption75: equipment.fuelConsumption75 || null,
       dimensions: equipment.dimensions || "",
       weight: equipment.weight || "",
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
-      fuelTankCapacity: equipment.fuelTankCapacity || undefined,
+      fuelTankCapacity: equipment.fuelTankCapacity || null,
     };
     console.log("Resetting form with data:", formData);
     console.log("Category ID being set:", formData.categoryId);
@@ -879,12 +879,12 @@ export default function Admin() {
       quantity: 1,
       availableQuantity: 1,
       categoryId: 23,
-      fuelConsumption75: undefined,
+      fuelConsumption75: null,
       dimensions: "",
       weight: "",
       engine: "",
       alternator: "",
-      fuelTankCapacity: undefined,
+      fuelTankCapacity: null,
     });
   };
 
@@ -1331,7 +1331,7 @@ export default function Admin() {
                                               step="0.1"
                                               {...field} 
                                               value={field.value || ""}
-                                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
                                             />
                                           </FormControl>
                                           <FormMessage />
@@ -1349,7 +1349,7 @@ export default function Admin() {
                                               type="number" 
                                               {...field} 
                                               value={field.value || ""}
-                                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                                             />
                                           </FormControl>
                                           <FormMessage />
