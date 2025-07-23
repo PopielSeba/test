@@ -83,7 +83,7 @@ export default function Quotes() {
 
   const deleteQuoteMutation = useMutation({
     mutationFn: async (quoteId: number) => {
-      const response = await apiRequest("DELETE", `/api/quotes/${quoteId}`);
+      const response = await apiRequest(`/api/quotes/${quoteId}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
