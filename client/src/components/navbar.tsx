@@ -117,9 +117,8 @@ export default function Navbar() {
                         // Clear any local storage
                         localStorage.clear();
                         sessionStorage.clear();
-                        // Use dev logout in development, regular logout in production
-                        const logoutUrl = window.location.hostname === 'localhost' ? '/api/dev-logout' : '/api/logout';
-                        window.location.href = logoutUrl;
+                        // Always use /api/logout - it's handled properly in both dev and prod
+                        window.location.href = '/api/logout';
                       }}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
