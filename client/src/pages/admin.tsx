@@ -765,7 +765,7 @@ export default function Admin() {
 
   const updateEquipmentQuantityMutation = useMutation({
     mutationFn: async ({ id, quantity, availableQuantity }: { id: number, quantity: number, availableQuantity: number }) => {
-      const response = await apiRequest("PATCH", `/api/equipment/${id}/quantity`, { quantity, availableQuantity });
+      const response = await apiRequest(`/api/equipment/${id}/quantity`, "PATCH", { quantity, availableQuantity });
       return response.json();
     },
     onSuccess: () => {
@@ -896,17 +896,16 @@ export default function Admin() {
   };
 
   const createStandardPricing = async (equipmentId: number) => {
-    // Create placeholder pricing that REQUIRES admin to set proper values
-    // All pricing starts with same price and 0% discount - admin MUST configure actual values
-    const placeholderPricing = [
+    // Create standard pricing with proper discount structure
+    const standardPricing = [
       { periodStart: 1, periodEnd: 2, pricePerDay: "100", discountPercent: "0" },
-      { periodStart: 3, periodEnd: 7, pricePerDay: "100", discountPercent: "0" },
-      { periodStart: 8, periodEnd: 18, pricePerDay: "100", discountPercent: "0" },
-      { periodStart: 19, periodEnd: 29, pricePerDay: "100", discountPercent: "0" },
-      { periodStart: 30, periodEnd: undefined, pricePerDay: "100", discountPercent: "0" },
+      { periodStart: 3, periodEnd: 7, pricePerDay: "100", discountPercent: "10" },
+      { periodStart: 8, periodEnd: 18, pricePerDay: "100", discountPercent: "20" },
+      { periodStart: 19, periodEnd: 29, pricePerDay: "100", discountPercent: "30" },
+      { periodStart: 30, periodEnd: undefined, pricePerDay: "100", discountPercent: "40" },
     ];
 
-    for (const pricing of placeholderPricing) {
+    for (const pricing of standardPricing) {
       createPricingMutation.mutate({
         equipmentId,
         ...pricing
