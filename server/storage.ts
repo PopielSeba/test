@@ -4,6 +4,8 @@ import {
   equipmentCategories,
   equipmentPricing,
   equipmentAdditional,
+  equipmentServiceCosts,
+  equipmentServiceItems,
   clients,
   quotes,
   quoteItems,
@@ -18,6 +20,10 @@ import {
   type EquipmentAdditional,
   type InsertEquipmentAdditional,
   type EquipmentWithCategory,
+  type EquipmentServiceCosts,
+  type EquipmentServiceItems,
+  type InsertEquipmentServiceCosts,
+  type InsertEquipmentServiceItems,
   type Client,
   type Quote,
   type QuoteItem,
@@ -70,6 +76,16 @@ export interface IStorage {
   createEquipmentAdditional(additional: InsertEquipmentAdditional): Promise<EquipmentAdditional>;
   updateEquipmentAdditional(id: number, additional: Partial<InsertEquipmentAdditional>): Promise<EquipmentAdditional>;
   deleteEquipmentAdditional(id: number): Promise<void>;
+
+  // Equipment service costs
+  getEquipmentServiceCosts(equipmentId: number): Promise<EquipmentServiceCosts | undefined>;
+  upsertEquipmentServiceCosts(serviceCosts: InsertEquipmentServiceCosts): Promise<EquipmentServiceCosts>;
+  
+  // Equipment service items
+  getEquipmentServiceItems(equipmentId: number): Promise<EquipmentServiceItems[]>;
+  createEquipmentServiceItem(serviceItem: InsertEquipmentServiceItems): Promise<EquipmentServiceItems>;
+  updateEquipmentServiceItem(id: number, serviceItem: Partial<InsertEquipmentServiceItems>): Promise<EquipmentServiceItems>;
+  deleteEquipmentServiceItem(id: number): Promise<void>;
 
   // Clients
   getClients(): Promise<Client[]>;
@@ -213,6 +229,8 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(equipmentCategories, eq(equipment.categoryId, equipmentCategories.id))
       .leftJoin(equipmentPricing, eq(equipment.id, equipmentPricing.equipmentId))
       .leftJoin(equipmentAdditional, eq(equipment.id, equipmentAdditional.equipmentId))
+      .leftJoin(equipmentServiceCosts, eq(equipment.id, equipmentServiceCosts.equipmentId))
+      .leftJoin(equipmentServiceItems, eq(equipment.id, equipmentServiceItems.equipmentId))
       .where(eq(equipment.isActive, false));
 
     const equipmentMap = new Map<number, EquipmentWithCategory>();
@@ -224,6 +242,8 @@ export class DatabaseStorage implements IStorage {
           category: row.equipment_categories!,
           pricing: [],
           additionalEquipment: [],
+          serviceCosts: row.equipment_service_costs || undefined,
+          serviceItems: [],
         });
       }
 
@@ -240,6 +260,13 @@ export class DatabaseStorage implements IStorage {
         const existingAdditional = equipmentItem.additionalEquipment.find(a => a.id === row.equipment_additional!.id);
         if (!existingAdditional) {
           equipmentItem.additionalEquipment.push(row.equipment_additional);
+        }
+      }
+
+      if (row.equipment_service_items) {
+        const existingServiceItem = equipmentItem.serviceItems.find(s => s.id === row.equipment_service_items!.id);
+        if (!existingServiceItem) {
+          equipmentItem.serviceItems.push(row.equipment_service_items);
         }
       }
     }
@@ -254,6 +281,8 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(equipmentCategories, eq(equipment.categoryId, equipmentCategories.id))
       .leftJoin(equipmentPricing, eq(equipment.id, equipmentPricing.equipmentId))
       .leftJoin(equipmentAdditional, eq(equipment.id, equipmentAdditional.equipmentId))
+      .leftJoin(equipmentServiceCosts, eq(equipment.id, equipmentServiceCosts.equipmentId))
+      .leftJoin(equipmentServiceItems, eq(equipment.id, equipmentServiceItems.equipmentId))
       .where(eq(equipment.isActive, true));
 
     const equipmentMap = new Map<number, EquipmentWithCategory>();
@@ -265,6 +294,8 @@ export class DatabaseStorage implements IStorage {
           category: row.equipment_categories!,
           pricing: [],
           additionalEquipment: [],
+          serviceCosts: row.equipment_service_costs || undefined,
+          serviceItems: [],
         });
       }
 
@@ -283,6 +314,13 @@ export class DatabaseStorage implements IStorage {
           equipmentItem.additionalEquipment.push(row.equipment_additional);
         }
       }
+
+      if (row.equipment_service_items) {
+        const existingServiceItem = equipmentItem.serviceItems.find(s => s.id === row.equipment_service_items!.id);
+        if (!existingServiceItem) {
+          equipmentItem.serviceItems.push(row.equipment_service_items);
+        }
+      }
     }
 
     return Array.from(equipmentMap.values()).sort((a, b) => a.name.localeCompare(b.name));
@@ -295,6 +333,8 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(equipmentCategories, eq(equipment.categoryId, equipmentCategories.id))
       .leftJoin(equipmentPricing, eq(equipment.id, equipmentPricing.equipmentId))
       .leftJoin(equipmentAdditional, eq(equipment.id, equipmentAdditional.equipmentId))
+      .leftJoin(equipmentServiceCosts, eq(equipment.id, equipmentServiceCosts.equipmentId))
+      .leftJoin(equipmentServiceItems, eq(equipment.id, equipmentServiceItems.equipmentId))
       .where(eq(equipment.id, id));
 
     if (result.length === 0) return undefined;
@@ -303,12 +343,16 @@ export class DatabaseStorage implements IStorage {
     const category = result[0].equipment_categories!;
     const pricing = result.map(row => row.equipment_pricing).filter(Boolean) as EquipmentPricing[];
     const additionalEquipment = result.map(row => row.equipment_additional).filter(Boolean) as EquipmentAdditional[];
+    const serviceCosts = result[0].equipment_service_costs || undefined;
+    const serviceItems = result.map(row => row.equipment_service_items).filter(Boolean) as EquipmentServiceItems[];
 
     return {
       ...equipmentData,
       category,
       pricing,
       additionalEquipment,
+      serviceCosts,
+      serviceItems,
     };
   }
 
@@ -329,6 +373,7 @@ export class DatabaseStorage implements IStorage {
           category: row.equipment_categories!,
           pricing: [],
           additionalEquipment: [],
+          serviceItems: [],
         });
       }
 
@@ -549,6 +594,7 @@ export class DatabaseStorage implements IStorage {
               category: row.equipment_categories!,
               pricing: [],
               additionalEquipment,
+              serviceItems: [],
             },
           };
         })
@@ -598,6 +644,7 @@ export class DatabaseStorage implements IStorage {
               category: row.equipment_categories,
               pricing: [],
               additionalEquipment: [],
+              serviceItems: [],
             },
           });
         }
@@ -680,6 +727,62 @@ export class DatabaseStorage implements IStorage {
 
   async deletePricingSchema(id: number): Promise<void> {
     await db.delete(pricingSchemas).where(eq(pricingSchemas.id, id));
+  }
+
+  // Equipment service costs methods
+  async getEquipmentServiceCosts(equipmentId: number): Promise<EquipmentServiceCosts | undefined> {
+    const [result] = await db
+      .select()
+      .from(equipmentServiceCosts)
+      .where(eq(equipmentServiceCosts.equipmentId, equipmentId));
+    return result;
+  }
+
+  async upsertEquipmentServiceCosts(serviceCosts: InsertEquipmentServiceCosts): Promise<EquipmentServiceCosts> {
+    const [result] = await db
+      .insert(equipmentServiceCosts)
+      .values(serviceCosts)
+      .onConflictDoUpdate({
+        target: equipmentServiceCosts.equipmentId,
+        set: {
+          serviceIntervalMonths: serviceCosts.serviceIntervalMonths,
+          workerHours: serviceCosts.workerHours,
+          workerCostPerHour: serviceCosts.workerCostPerHour,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  // Equipment service items methods
+  async getEquipmentServiceItems(equipmentId: number): Promise<EquipmentServiceItems[]> {
+    return await db
+      .select()
+      .from(equipmentServiceItems)
+      .where(eq(equipmentServiceItems.equipmentId, equipmentId))
+      .orderBy(equipmentServiceItems.sortOrder);
+  }
+
+  async createEquipmentServiceItem(serviceItem: InsertEquipmentServiceItems): Promise<EquipmentServiceItems> {
+    const [result] = await db
+      .insert(equipmentServiceItems)
+      .values(serviceItem)
+      .returning();
+    return result;
+  }
+
+  async updateEquipmentServiceItem(id: number, serviceItem: Partial<InsertEquipmentServiceItems>): Promise<EquipmentServiceItems> {
+    const [result] = await db
+      .update(equipmentServiceItems)
+      .set({ ...serviceItem, updatedAt: new Date() })
+      .where(eq(equipmentServiceItems.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteEquipmentServiceItem(id: number): Promise<void> {
+    await db.delete(equipmentServiceItems).where(eq(equipmentServiceItems.id, id));
   }
 }
 

@@ -51,6 +51,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import EquipmentAdditionalManager from "@/components/equipment-additional-manager";
+import { ServiceCostsManager } from "@/components/service-costs-manager";
 
 interface Equipment {
   id: number;
@@ -159,6 +160,7 @@ export default function Admin() {
   const [localDiscounts, setLocalDiscounts] = useState<Record<number, number>>({});
   const [isPricingSchemaDialogOpen, setIsPricingSchemaDialogOpen] = useState(false);
   const [editingPricingSchema, setEditingPricingSchema] = useState<PricingSchema | null>(null);
+  const [selectedEquipmentForServiceCosts, setSelectedEquipmentForServiceCosts] = useState<Equipment | null>(null);
 
 
   // Allow development access to admin data
@@ -1516,6 +1518,15 @@ export default function Admin() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => setSelectedEquipmentForServiceCosts(item)}
+                                  title="Koszty serwisu"
+                                  className="text-purple-600 hover:text-purple-700"
+                                >
+                                  <Wrench className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => handleDeleteEquipment(item.id)}
                                   className="text-red-600 hover:text-red-700"
                                   title="Usuń"
@@ -2267,6 +2278,14 @@ export default function Admin() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Service Costs Manager */}
+      {selectedEquipmentForServiceCosts && (
+        <ServiceCostsManager
+          equipment={selectedEquipmentForServiceCosts}
+          onClose={() => setSelectedEquipmentForServiceCosts(null)}
+        />
+      )}
     </div>
   );
 }

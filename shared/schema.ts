@@ -196,6 +196,28 @@ export const quoteItems = pgTable("quote_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Service cost configuration for equipment
+export const equipmentServiceCosts = pgTable("equipment_service_costs", {
+  id: serial("id").primaryKey(),
+  equipmentId: integer("equipment_id").references(() => equipment.id).notNull(),
+  serviceIntervalMonths: integer("service_interval_months").default(12).notNull(), // How often service is required
+  workerHours: decimal("worker_hours", { precision: 4, scale: 1 }).default("2.0").notNull(), // Fixed field name
+  workerCostPerHour: decimal("worker_cost_per_hour", { precision: 8, scale: 2 }).default("100.00").notNull(), // Fixed field name
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Service items for equipment (configurable by admin)
+export const equipmentServiceItems = pgTable("equipment_service_items", {
+  id: serial("id").primaryKey(),
+  equipmentId: integer("equipment_id").references(() => equipment.id).notNull(),
+  itemName: varchar("item_name").notNull(), // e.g., "Filtr paliwa 1", "Filtr oleju", "Wymiana oleju"
+  itemCost: decimal("item_cost", { precision: 8, scale: 2 }).default("0.00").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const equipmentRelations = relations(equipment, ({ one, many }) => ({
   category: one(equipmentCategories, {
@@ -205,6 +227,11 @@ export const equipmentRelations = relations(equipment, ({ one, many }) => ({
   pricing: many(equipmentPricing),
   quoteItems: many(quoteItems),
   additionalEquipment: many(equipmentAdditional),
+  serviceCosts: one(equipmentServiceCosts, {
+    fields: [equipment.id],
+    references: [equipmentServiceCosts.equipmentId],
+  }),
+  serviceItems: many(equipmentServiceItems),
 }));
 
 export const equipmentAdditionalRelations = relations(equipmentAdditional, ({ one }) => ({
@@ -262,6 +289,20 @@ export const quoteItemsRelations = relations(quoteItems, ({ one }) => ({
   }),
 }));
 
+export const equipmentServiceCostsRelations = relations(equipmentServiceCosts, ({ one }) => ({
+  equipment: one(equipment, {
+    fields: [equipmentServiceCosts.equipmentId],
+    references: [equipment.id],
+  }),
+}));
+
+export const equipmentServiceItemsRelations = relations(equipmentServiceItems, ({ one }) => ({
+  equipment: one(equipment, {
+    fields: [equipmentServiceItems.equipmentId],
+    references: [equipment.id],
+  }),
+}));
+
 export const usersRelations = relations(users, ({ many }) => ({
   quotes: many(quotes),
 }));
@@ -286,6 +327,8 @@ export const insertQuoteItemSchema = createInsertSchema(quoteItems);
 
 export const insertEquipmentAdditionalSchema = createInsertSchema(equipmentAdditional);
 export const insertPricingSchemaSchema = createInsertSchema(pricingSchemas);
+export const insertEquipmentServiceCostsSchema = createInsertSchema(equipmentServiceCosts);
+export const insertEquipmentServiceItemsSchema = createInsertSchema(equipmentServiceItems);
 
 export const selectUserSchema = createSelectSchema(users);
 export const selectEquipmentCategorySchema = createSelectSchema(equipmentCategories);
@@ -297,6 +340,8 @@ export const selectQuoteItemSchema = createSelectSchema(quoteItems);
 
 export const selectEquipmentAdditionalSchema = createSelectSchema(equipmentAdditional);
 export const selectPricingSchemaSchema = createSelectSchema(pricingSchemas);
+export const selectEquipmentServiceCostsSchema = createSelectSchema(equipmentServiceCosts);
+export const selectEquipmentServiceItemsSchema = createSelectSchema(equipmentServiceItems);
 
 
 // Types
@@ -320,11 +365,18 @@ export type EquipmentAdditional = z.infer<typeof selectEquipmentAdditionalSchema
 export type InsertPricingSchema = z.infer<typeof insertPricingSchemaSchema>;
 export type PricingSchema = typeof pricingSchemas.$inferSelect;
 
+export type InsertEquipmentServiceCosts = z.infer<typeof insertEquipmentServiceCostsSchema>;
+export type EquipmentServiceCosts = z.infer<typeof selectEquipmentServiceCostsSchema>;
+export type InsertEquipmentServiceItems = z.infer<typeof insertEquipmentServiceItemsSchema>;
+export type EquipmentServiceItems = z.infer<typeof selectEquipmentServiceItemsSchema>;
+
 // Extended types for API responses
 export type EquipmentWithCategory = Equipment & {
   category: EquipmentCategory;
   pricing: EquipmentPricing[];
   additionalEquipment: EquipmentAdditional[];
+  serviceCosts?: EquipmentServiceCosts;
+  serviceItems: EquipmentServiceItems[];
 };
 
 export type QuoteWithDetails = Quote & {

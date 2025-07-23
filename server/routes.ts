@@ -8,6 +8,8 @@ import {
   insertEquipmentSchema,
   insertEquipmentPricingSchema,
   insertEquipmentAdditionalSchema,
+  insertEquipmentServiceCostsSchema,
+  insertEquipmentServiceItemsSchema,
   insertClientSchema,
   insertQuoteSchema,
   insertQuoteItemSchema,
@@ -744,7 +746,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Equipment service costs endpoints
+  app.get('/api/equipment/:id/service-costs', async (req, res) => {
+    try {
+      const equipmentId = parseInt(req.params.id);
+      const serviceCosts = await storage.getEquipmentServiceCosts(equipmentId);
+      res.json(serviceCosts || null);
+    } catch (error) {
+      console.error("Error fetching equipment service costs:", error);
+      res.status(500).json({ message: "Failed to fetch equipment service costs" });
+    }
+  });
 
+  app.post('/api/equipment/:id/service-costs', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const equipmentId = parseInt(req.params.id);
+      const serviceCostsData = insertEquipmentServiceCostsSchema.parse({
+        ...req.body,
+        equipmentId
+      });
+      const serviceCosts = await storage.upsertEquipmentServiceCosts(serviceCostsData);
+      res.json(serviceCosts);
+    } catch (error) {
+      console.error("Error upserting equipment service costs:", error);
+      res.status(500).json({ message: "Failed to upsert equipment service costs" });
+    }
+  });
+
+  // Equipment service items endpoints
+  app.get('/api/equipment/:id/service-items', async (req, res) => {
+    try {
+      const equipmentId = parseInt(req.params.id);
+      const serviceItems = await storage.getEquipmentServiceItems(equipmentId);
+      res.json(serviceItems);
+    } catch (error) {
+      console.error("Error fetching equipment service items:", error);
+      res.status(500).json({ message: "Failed to fetch equipment service items" });
+    }
+  });
+
+  app.post('/api/equipment/:id/service-items', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const equipmentId = parseInt(req.params.id);
+      const serviceItemData = insertEquipmentServiceItemsSchema.parse({
+        ...req.body,
+        equipmentId
+      });
+      const serviceItem = await storage.createEquipmentServiceItem(serviceItemData);
+      res.json(serviceItem);
+    } catch (error) {
+      console.error("Error creating equipment service item:", error);
+      res.status(500).json({ message: "Failed to create equipment service item" });
+    }
+  });
+
+  app.patch('/api/equipment-service-items/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      const serviceItemData = insertEquipmentServiceItemsSchema.partial().parse(req.body);
+      const serviceItem = await storage.updateEquipmentServiceItem(id, serviceItemData);
+      res.json(serviceItem);
+    } catch (error) {
+      console.error("Error updating equipment service item:", error);
+      res.status(500).json({ message: "Failed to update equipment service item" });
+    }
+  });
+
+  app.delete('/api/equipment-service-items/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteEquipmentServiceItem(id);
+      res.json({ message: "Equipment service item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting equipment service item:", error);
+      res.status(500).json({ message: "Failed to delete equipment service item" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
