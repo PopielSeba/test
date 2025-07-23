@@ -1489,16 +1489,15 @@ export default function Admin() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    pricingForm.reset({
-                                      equipmentId: item.id,
-                                      periodStart: 1,
-                                      periodEnd: 2,
-                                      pricePerDay: "",
-                                      discountPercent: "0",
-                                    });
-                                    setIsPricingDialogOpen(true);
+                                    setSelectedEquipmentForPricing(item);
+                                    setLocalPrices({});
+                                    // Scroll to pricing section
+                                    const pricingSection = document.querySelector('[data-pricing-section]');
+                                    if (pricingSection) {
+                                      pricingSection.scrollIntoView({ behavior: 'smooth' });
+                                    }
                                   }}
-                                  title="Dodaj cennik"
+                                  title="Edytuj cennik"
                                 >
                                   <DollarSign className="w-4 h-4" />
                                 </Button>
@@ -1913,7 +1912,7 @@ export default function Admin() {
         </div>
 
         {/* Pricing Tables Section */}
-        <div className="mb-8">
+        <div className="mb-8" data-pricing-section>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
