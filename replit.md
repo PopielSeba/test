@@ -72,6 +72,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Added configurable daily working hours**: Users can now set custom working hours per day (1-24h) for accurate motohour calculations
 - **Enhanced service cost calculations**: System now uses proportional calculations based on actual engine hours and service intervals
 - **Improved user experience**: Added helpful hints for standard work shifts (8h=1 shift, 16h=2 shifts, 24h=continuous operation)
+- **Fixed equipment deletion issues**: Resolved foreign key constraint errors by properly removing all related service costs, items, pricing, and additional data before permanent deletion
+- **Fixed quote deletion authorization**: Removed authentication requirement for quote deletion in development mode while maintaining security in production
+- **Updated company branding**: Changed company name to "Sebastian Popiel :: PPP :: Program" throughout application
 
 
 
