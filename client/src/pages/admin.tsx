@@ -1323,20 +1323,22 @@ export default function Admin() {
                                   />
                                 )}
 
-                                {/* Generator and heater-specific fields - show for agregat and nagrzewnic */}
-                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic")) && (
+                                {/* Equipment with fuel consumption - show for agregat, nagrzewnic, and maszt */}
+                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic") || selectedCategoryName.includes("maszt")) && (
                                   <>
                                     <FormField
                                       control={equipmentForm.control}
                                       name="fuelConsumption75"
                                       render={({ field }) => (
                                         <FormItem>
-                                          <FormLabel>Spalanie przy 75% obciążenia (l/h)</FormLabel>
+                                          <FormLabel>
+                                            {selectedCategoryName.includes("maszt") ? "Spalanie paliwa (l/h)" : "Spalanie przy 75% obciążenia (l/h)"}
+                                          </FormLabel>
                                           <FormControl>
                                             <Input 
                                               type="number" 
                                               step="0.1"
-                                              placeholder="np. 35.3"
+                                              placeholder={selectedCategoryName.includes("maszt") ? "np. 4.2" : "np. 35.3"}
                                               {...field}
                                             />
                                           </FormControl>
@@ -1353,7 +1355,7 @@ export default function Admin() {
                                           <FormControl>
                                             <Input 
                                               type="number" 
-                                              placeholder="np. 350"
+                                              placeholder={selectedCategoryName.includes("maszt") ? "np. 60" : "np. 350"}
                                               {...field}
                                             />
                                           </FormControl>
