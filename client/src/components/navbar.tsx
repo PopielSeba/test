@@ -112,13 +112,24 @@ export default function Navbar() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       className="text-red-600 cursor-pointer"
-                      onSelect={(e) => {
+                      onSelect={async (e) => {
                         e.preventDefault();
                         // Clear any local storage
                         localStorage.clear();
                         sessionStorage.clear();
-                        // Always use /api/logout - it's handled properly in both dev and prod
-                        window.location.href = '/api/logout';
+                        
+                        // Call logout endpoint and wait for response
+                        try {
+                          await fetch('/api/logout', { 
+                            method: 'GET',
+                            credentials: 'include'
+                          });
+                        } catch (error) {
+                          console.error('Logout error:', error);
+                        }
+                        
+                        // Force page reload to clear all state
+                        window.location.href = '/';
                       }}
                     >
                       <LogOut className="w-4 h-4 mr-2" />

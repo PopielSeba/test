@@ -28,7 +28,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.get("/api/logout", (req, res) => {
       // Clear session and redirect to home in development
       if (req.session) {
-        req.session.destroy(() => {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error('Session destroy error:', err);
+          }
+          res.clearCookie('connect.sid', { path: '/' });
           res.clearCookie('connect.sid');
           res.redirect('/');
         });
@@ -45,6 +49,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
       if (isDevelopment) {
+        // Check if session exists and has been cleared
+        if (!req.session || req.session.loggedOut) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+        
         // Return mock user in development
         return res.json({
           id: "dev-user",
