@@ -35,7 +35,7 @@ export default function Navbar() {
     { path: "/create-quote", label: "Nowa Wycena", icon: Plus },
   ];
 
-  if (isAuthenticated && user?.role === 'admin') {
+  if (isAuthenticated && (user as any)?.role === 'admin') {
     navItems.push({ path: "/quotes", label: "Wyceny", icon: FileText });
     navItems.push({ path: "/users", label: "Użytkownicy", icon: Users });
     navItems.push({ path: "/admin", label: "Admin", icon: Settings });
@@ -83,15 +83,15 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2 h-10">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={user?.profileImageUrl || undefined} />
+                        <AvatarImage src={(user as any)?.profileImageUrl || undefined} />
                         <AvatarFallback className="bg-primary text-white">
                           <User className="w-4 h-4" />
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm font-medium text-foreground">
-                        {user?.firstName && user?.lastName 
-                          ? `${user.firstName} ${user.lastName}`
-                          : user?.email?.split('@')[0] || 'Użytkownik'
+                        {(user as any)?.firstName && (user as any)?.lastName 
+                          ? `${(user as any).firstName} ${(user as any).lastName}`
+                          : (user as any)?.email?.split('@')[0] || 'Użytkownik'
                         }
                       </span>
                     </Button>
@@ -111,8 +111,16 @@ export default function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      onClick={() => window.location.href = '/api/logout'}
-                      className="text-red-600"
+                      className="text-red-600 cursor-pointer"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        // Clear any local storage
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        // Use dev logout in development, regular logout in production
+                        const logoutUrl = window.location.hostname === 'localhost' ? '/api/dev-logout' : '/api/logout';
+                        window.location.href = logoutUrl;
+                      }}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Wyloguj się

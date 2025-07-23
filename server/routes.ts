@@ -26,6 +26,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const authMiddleware = isDevelopment ? (req: any, res: any, next: any) => next() : isAuthenticated;
 
+  // Development logout route - override the auth logout for development
+  app.get("/api/dev-logout", (req, res) => {
+    // Clear session and redirect to home in development
+    if (req.session) {
+      req.session.destroy(() => {
+        res.clearCookie('connect.sid');
+        res.redirect('/');
+      });
+    } else {
+      res.redirect('/');
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
