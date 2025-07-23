@@ -295,7 +295,9 @@ export default function Admin() {
 
   const updateEquipmentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<z.infer<typeof equipmentSchema>> }) => {
+      console.log("updateEquipmentMutation called with:", { id, data });
       const response = await apiRequest(`/api/equipment/${id}`, "PUT", data);
+      console.log("API response:", response);
       return response.json();
     },
     onSuccess: () => {
@@ -601,7 +603,7 @@ export default function Admin() {
 
   const updatePricingSchemaMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: number } & z.infer<typeof pricingSchemaSchema>) => {
-      const response = await apiRequest("PATCH", `/api/pricing-schemas/${id}`, data);
+      const response = await apiRequest(`/api/pricing-schemas/${id}`, "PATCH", data);
       return response.json();
     },
     onSuccess: () => {
@@ -880,9 +882,14 @@ export default function Admin() {
   };
 
   const onSubmitEquipment = (data: z.infer<typeof equipmentSchema>) => {
+    console.log("Form submitted with data:", data);
+    console.log("Selected equipment:", selectedEquipment);
+    
     if (selectedEquipment) {
+      console.log("Calling updateEquipmentMutation with:", { id: selectedEquipment.id, data });
       updateEquipmentMutation.mutate({ id: selectedEquipment.id, data });
     } else {
+      console.log("Calling createEquipmentMutation with:", data);
       createEquipmentMutation.mutate(data);
     }
   };
