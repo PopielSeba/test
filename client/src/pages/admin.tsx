@@ -798,8 +798,9 @@ export default function Admin() {
   });
 
   const handleEditEquipment = (equipment: Equipment) => {
+    console.log("handleEditEquipment called with:", equipment);
     setSelectedEquipment(equipment);
-    equipmentForm.reset({
+    const formData = {
       name: equipment.name,
       description: equipment.description || "",
       model: equipment.model || "",
@@ -813,7 +814,9 @@ export default function Admin() {
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
       fuelTankCapacity: equipment.fuelTankCapacity,
-    });
+    };
+    console.log("Resetting form with data:", formData);
+    equipmentForm.reset(formData);
     setIsEquipmentDialogOpen(true);
   };
 
@@ -1153,7 +1156,11 @@ export default function Admin() {
                           </DialogTitle>
                         </DialogHeader>
                         <Form {...equipmentForm}>
-                          <form onSubmit={equipmentForm.handleSubmit(onSubmitEquipment)} className="space-y-4">
+                          <form onSubmit={(e) => {
+                            console.log("Form submit event triggered");
+                            console.log("Form errors:", equipmentForm.formState.errors);
+                            equipmentForm.handleSubmit(onSubmitEquipment)(e);
+                          }} className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                               <FormField
                                 control={equipmentForm.control}
@@ -1406,7 +1413,11 @@ export default function Admin() {
                               <Button 
                                 type="submit" 
                                 disabled={createEquipmentMutation.isPending || updateEquipmentMutation.isPending}
-
+                                onClick={() => {
+                                  console.log("Button clicked!");
+                                  console.log("Is form valid:", equipmentForm.formState.isValid);
+                                  console.log("Form values:", equipmentForm.getValues());
+                                }}
                               >
                                 {selectedEquipment 
                                   ? (updateEquipmentMutation.isPending ? "Aktualizowanie..." : "Aktualizuj")
