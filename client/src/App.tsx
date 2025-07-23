@@ -19,6 +19,7 @@ import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import GuestQuote from "@/pages/guest-quote";
 import PendingApproval from "@/pages/pending-approval";
+import Clients from "@/pages/clients";
 import Navbar from "@/components/navbar";
 
 function Router() {
