@@ -1084,9 +1084,11 @@ function generateQuoteHTML(quote: any) {
           <h3>Dane wyceny:</h3>
           <p><strong>Numer:</strong> ${quote.quoteNumber}</p>
           <p><strong>Data utworzenia:</strong> ${formatDate(quote.createdAt)}</p>
-          <p><strong>Utworzył:</strong> ${quote.createdBy.firstName && quote.createdBy.lastName 
-            ? `${quote.createdBy.firstName} ${quote.createdBy.lastName}`
-            : quote.createdBy.email || 'Nieznany użytkownik'}</p>
+          <p><strong>Utworzył:</strong> ${quote.createdBy 
+            ? (quote.createdBy.firstName && quote.createdBy.lastName 
+                ? `${quote.createdBy.firstName} ${quote.createdBy.lastName}`
+                : quote.createdBy.email || 'Nieznany użytkownik')
+            : 'Wycena gościnna'}</p>
         </div>
       </div>
 
