@@ -205,7 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const equipment = await storage.createEquipment(equipmentData);
       res.json({
         ...equipment,
-        message: "Sprzęt został utworzony z domyślnymi cenami 100 zł/dzień. Zaktualizuj ceny w sekcji 'Cenniki sprzętu'."
+        message: "Sprzęt został utworzony z domyślnymi cenami 100 zł/dzień (0% rabaty). Zaktualizuj ceny w sekcji 'Cenniki sprzętu'."
       });
     } catch (error) {
       console.error("Error creating equipment:", error);

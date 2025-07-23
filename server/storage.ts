@@ -555,6 +555,7 @@ export class DatabaseStorage implements IStorage {
               category: row.equipment_categories,
               pricing: [], // Would need separate query for pricing
               additionalEquipment: [],
+              serviceItems: [],
             },
           });
         }
