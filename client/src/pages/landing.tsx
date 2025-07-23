@@ -21,7 +21,7 @@ export default function Landing() {
               Dostęp wymaga logowania
             </h2>
             <p className="text-white/80 mb-4">
-              Aby uzyskać dostęp do systemu zarządzania wynajmem sprzętu, konieczne jest zalogowanie się przez Replit.
+              Aby uzyskać dostęp do systemu zarządzania wynajmem sprzętu, konieczne jest zalogowanie się przez Replit lub utworzenie lokalnego konta.
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function Landing() {
 
         <div className="mt-16 text-center text-white/80">
           <p className="text-sm">
-            Bezpieczny system logowania przez Replit Auth
+            Bezpieczny system logowania przez Replit Auth lub lokalne konto
           </p>
         </div>
       </div>
