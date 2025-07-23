@@ -288,20 +288,19 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           let totalServiceCost = 0;
           
           // Get service items cost (materials/parts)
-          const serviceItems = item.totalServiceItemsCost || 0;
+          const serviceItems = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
           
           // Calculate service worker cost based on hours and intervals
           if (serviceCosts && selectedEquipment) {
-            const serviceIntervalMonths = parseInt(serviceCosts.serviceIntervalMonths) || 12;
-            const workerHours = parseFloat(serviceCosts.workerHours) || 2.0;
-            const workerCostPerHour = parseFloat(serviceCosts.workerCostPerHour) || 100.0;
+            const serviceIntervalMonths = parseInt((serviceCosts as any).serviceIntervalMonths) || 12;
+            const workerHours = parseFloat((serviceCosts as any).workerHours) || 2.0;
+            const workerCostPerHour = parseFloat((serviceCosts as any).workerCostPerHour) || 100.0;
             
             // Calculate expected operating hours for rental period
             const hoursPerDay = item.hoursPerDay || 8;
             const expectedHours = item.rentalPeriodDays * hoursPerDay;
             
             // Calculate service cost proportional to operating hours
-            // Service is typically needed every 500 hours for most equipment
             const serviceIntervalHours = serviceIntervalMonths * 30 * 8; // Convert months to hours (assuming 8h/day, 30 days/month)
             const serviceWorkerCost = workerHours * workerCostPerHour;
             
@@ -354,7 +353,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.numberOfTechnicians,
     item.serviceRatePerTechnician,
     item.includeServiceItems,
-    item.totalServiceItemsCost,
+    item.serviceItem1Cost,
+    item.serviceItem2Cost, 
+    item.serviceItem3Cost,
     serviceCosts,
     selectedEquipment,
 
@@ -938,12 +939,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   <div className="mt-3 p-3 bg-muted/50 rounded text-sm">
                     <h5 className="font-medium mb-2">Szczegóły kalkulacji serwisu:</h5>
                     <div className="space-y-1 text-muted-foreground">
-                      <div>Interwał serwisu: {serviceCosts.serviceIntervalMonths} miesięcy</div>
-                      <div>Czas pracy serwisu: {serviceCosts.workerHours}h @ {serviceCosts.workerCostPerHour} zł/h</div>
+                      <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalMonths} miesięcy</div>
+                      <div>Czas pracy serwisu: {(serviceCosts as any).workerHours}h @ {(serviceCosts as any).workerCostPerHour} zł/h</div>
                       <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)}h</div>
-                      <div>Koszt serwisu na motogodzinę: {serviceCosts.workerHours && serviceCosts.workerCostPerHour ? 
-                        ((parseFloat(serviceCosts.workerHours) * parseFloat(serviceCosts.workerCostPerHour)) / 
-                         (parseInt(serviceCosts.serviceIntervalMonths) * 30 * 8)).toFixed(4) : 0} zł/h</div>
+                      <div>Koszt serwisu na motogodzinę: {(serviceCosts as any).workerHours && (serviceCosts as any).workerCostPerHour ? 
+                        ((parseFloat((serviceCosts as any).workerHours) * parseFloat((serviceCosts as any).workerCostPerHour)) / 
+                         (parseInt((serviceCosts as any).serviceIntervalMonths) * 30 * 8)).toFixed(4) : 0} zł/h</div>
                     </div>
                   </div>
                 )}
