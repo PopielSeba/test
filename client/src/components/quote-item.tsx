@@ -263,11 +263,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           installationCost = travelCost + serviceCost;
         }
 
-        // Calculate maintenance cost - only include if maintenance is enabled
-        let maintenanceCost = 0;
-        if (item.includeMaintenanceCost) {
-          maintenanceCost = item.totalMaintenanceCost || 0;
-        }
+        // Maintenance costs removed per user request
 
         // Calculate additional equipment and accessories cost
         const additionalCost = item.additionalCost || 0;
@@ -279,8 +275,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           serviceItemsCost = item.totalServiceItemsCost || 0;
         }
         
-        // Total price is just the sum of all components (no additional discount needed)
-        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + maintenanceCost + serviceItemsCost + additionalCost + accessoriesCost;
+        // Total price (maintenance costs removed per user request)
+        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + serviceItemsCost + additionalCost + accessoriesCost;
         
 
 
@@ -293,7 +289,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           totalPrice,
           totalFuelCost: fuelCost,
           totalInstallationCost: installationCost,
-          totalMaintenanceCost: maintenanceCost,
+          totalMaintenanceCost: 0,
           totalServiceItemsCost: serviceItemsCost,
           additionalCost,
           accessoriesCost,
@@ -315,8 +311,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.numberOfTechnicians,
     item.serviceRatePerTechnician,
 
-    item.includeMaintenanceCost,
-    item.totalMaintenanceCost,
+
     
     item.includeServiceItems,
     item.totalServiceItemsCost,
@@ -379,9 +374,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           fuelPricePerLiter: 6.50, // Default fuel price PLN/liter
           hoursPerDay: 8,
           totalFuelCost: 0,
-          includeMaintenanceCost: false, // User can enable manually
-          maintenanceCostPerPeriod: 0,
-          expectedMaintenanceHours: 0
+          // Maintenance costs removed per user request
         };
       }
       
@@ -439,59 +432,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     }).format(amount);
   };
 
-  const updateMaintenanceCost = (updatedItem: QuoteItemData) => {
-    if (!updatedItem.includeMaintenanceCost) {
-      onUpdate({ 
-        ...updatedItem, 
-        totalMaintenanceCost: 0,
-        // Reset all maintenance-related values
-        serviceWorkHours: undefined,
-        serviceWorkRatePerHour: undefined,
-        fuelFilter1Cost: undefined,
-        fuelFilter2Cost: undefined,
-        oilFilterCost: undefined,
-        airFilter1Cost: undefined,
-        airFilter2Cost: undefined,
-        engineFilterCost: undefined,
-        oilCost: undefined,
-        oilQuantityLiters: undefined
-      });
-      return;
-    }
-
-    // Calculate total filters cost using defaults
-    const filtersCost = 
-      (updatedItem.fuelFilter1Cost || 49) +
-      (updatedItem.fuelFilter2Cost || 118) +
-      (updatedItem.oilFilterCost || 45) +
-      (updatedItem.airFilter1Cost || 105) +
-      (updatedItem.airFilter2Cost || 54) +
-      (updatedItem.engineFilterCost || 150);
-    
-    // Calculate oil cost using defaults - oilCost is already total cost, not per liter
-    const oilTotalCost = updatedItem.oilCost || 162.44;
-    
-    // Calculate service work cost using actual user input or defaults
-    const serviceWorkCost = (updatedItem.serviceWorkHours !== undefined ? updatedItem.serviceWorkHours : 2) * (updatedItem.serviceWorkRatePerHour !== undefined ? updatedItem.serviceWorkRatePerHour : 100);
-    
-    // No travel cost for maintenance
-    
-    // Total maintenance cost for 500 hours
-    const maintenanceCostPer500h = filtersCost + oilTotalCost + serviceWorkCost;
-    
-    // Calculate how much of maintenance cost applies to rental period
-    const expectedHours = updatedItem.expectedMaintenanceHours !== undefined ? updatedItem.expectedMaintenanceHours : (updatedItem.rentalPeriodDays * (updatedItem.hoursPerDay || 8));
-    const intervalHours = updatedItem.maintenanceIntervalHours || 500;
-    
-    let totalCost = 0;
-    if (expectedHours > 0) {
-      totalCost = (maintenanceCostPer500h / intervalHours) * expectedHours;
-    }
-    
-
-
-    onUpdate({ ...updatedItem, totalMaintenanceCost: totalCost });
-  };
+  // updateMaintenanceCost function removed per user request
 
   return (
     <Card className="border border-border">
@@ -938,8 +879,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           </div>
         )}
 
-        {/* Maintenance/Exploitation Cost Section (for generators, lighting towers, and air conditioners) */}
-        {hasMaintenanceCosts && (
+        {/* Maintenance costs section removed per user request */}
+        {false && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
               <Checkbox 
@@ -1018,7 +959,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.fuelFilter1Cost || 49}
                       onChange={(e) => {
                         const cost = parseFloat(e.target.value) || 49;
-                        updateMaintenanceCost({ ...item, fuelFilter1Cost: cost });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="49.00"
                     />
@@ -1034,7 +975,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.fuelFilter2Cost || 118}
                       onChange={(e) => {
                         const cost = parseFloat(e.target.value) || 118;
-                        updateMaintenanceCost({ ...item, fuelFilter2Cost: cost });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="118.00"
                     />
@@ -1050,7 +991,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.oilFilterCost || 45}
                       onChange={(e) => {
                         const cost = parseFloat(e.target.value) || 45;
-                        updateMaintenanceCost({ ...item, oilFilterCost: cost });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="45.00"
                     />
@@ -1066,7 +1007,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.airFilter1Cost || 105}
                       onChange={(e) => {
                         const cost = parseFloat(e.target.value) || 105;
-                        updateMaintenanceCost({ ...item, airFilter1Cost: cost });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="105.00"
                     />
@@ -1082,7 +1023,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.airFilter2Cost || 54}
                       onChange={(e) => {
                         const cost = parseFloat(e.target.value) || 54;
-                        updateMaintenanceCost({ ...item, airFilter2Cost: cost });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="54.00"
                     />
@@ -1098,7 +1039,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.engineFilterCost || 150}
                       onChange={(e) => {
                         const cost = parseFloat(e.target.value) || 150;
-                        updateMaintenanceCost({ ...item, engineFilterCost: cost });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="150.00"
                     />
@@ -1140,7 +1081,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                           value={item.oilCost || 162.44}
                           onChange={(e) => {
                             const cost = parseFloat(e.target.value) || 162.44;
-                            updateMaintenanceCost({ ...item, oilCost: cost });
+                            // Maintenance costs removed per user request
                           }}
                           placeholder="162.44"
                         />
@@ -1156,7 +1097,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                           value={item.oilQuantityLiters || 14.7}
                           onChange={(e) => {
                             const quantity = parseFloat(e.target.value) || 14.7;
-                            updateMaintenanceCost({ ...item, oilQuantityLiters: quantity });
+                            // Maintenance costs removed per user request
                           }}
                           placeholder="14.7"
                         />
@@ -1182,7 +1123,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.serviceWorkHours ?? 2}
                       onChange={(e) => {
                         const hours = parseFloat(e.target.value);
-                        updateMaintenanceCost({ ...item, serviceWorkHours: isNaN(hours) ? 2 : hours });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="0"
                     />
@@ -1198,7 +1139,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.serviceWorkRatePerHour ?? 100}
                       onChange={(e) => {
                         const rate = parseFloat(e.target.value);
-                        updateMaintenanceCost({ ...item, serviceWorkRatePerHour: isNaN(rate) ? 100 : rate });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="0.00"
                     />
@@ -1217,7 +1158,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.expectedMaintenanceHours || (item.rentalPeriodDays * (item.hoursPerDay || 8))}
                       onChange={(e) => {
                         const hours = parseInt(e.target.value) || 0;
-                        updateMaintenanceCost({ ...item, expectedMaintenanceHours: hours });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="Dni × godz/dzień"
                     />
@@ -1235,7 +1176,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       value={item.maintenanceIntervalHours || 500}
                       onChange={(e) => {
                         const interval = parseInt(e.target.value) || 500;
-                        updateMaintenanceCost({ ...item, maintenanceIntervalHours: interval });
+                        // Maintenance costs removed per user request
                       }}
                       placeholder="500"
                     />

@@ -11,7 +11,7 @@ import {
   insertClientSchema,
   insertQuoteSchema,
   insertQuoteItemSchema,
-  insertMaintenanceDefaultsSchema,
+
   insertPricingSchemaSchema,
 
 } from "@shared/schema";

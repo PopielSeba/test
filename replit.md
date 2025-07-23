@@ -51,6 +51,10 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Simplified maintenance cost calculations**: System now uses hardcoded default values (filters: 49, 118, 45, 105, 54, 150 zł; oil: 162.44 zł; service: 2h @ 100 zł/h) instead of database-driven defaults
 - **Cleaned up codebase**: Removed all maintenance defaults components, queries, and references from frontend and backend
 - **Updated database schema**: Successfully dropped maintenance_defaults table from production database
+- **MAJOR SIMPLIFICATION**: Completely removed ALL maintenance/service cost functionality per user request
+- **Eliminated all service costing**: No filter replacement costs, oil change costs, or service worker costs in quotes
+- **Pure equipment rental pricing**: System now focuses exclusively on basic equipment rental costs without any service/maintenance considerations
+- **Removed maintenance sections**: All UI sections for filters, oil costs, service work hours, and exploitation costs completely removed
 
 
 
