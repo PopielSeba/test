@@ -50,6 +50,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       devLoggedOut = false;
       res.json({ success: true, message: "Logged in successfully" });
     });
+    
+    // Override callback to reset logout flag on successful auth
+    app.get("/api/callback", (req, res, next) => {
+      // Reset logout flag on successful callback
+      devLoggedOut = false;
+      
+      // Continue with original callback logic
+      next();
+    });
   }
 
   // Auth middleware - setup auth in both dev and prod, but with different logout behavior
@@ -59,7 +68,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
       if (isDevelopment) {
-        // Check if user is logged out in development
+        // Check if we have a real authenticated user from Replit
+        if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+          // Reset the logout flag if user is authenticated via Replit
+          devLoggedOut = false;
+          
+          const userId = req.user.claims.sub;
+          const user = await storage.getUser(userId);
+          
+          // Check if user is approved
+          if (user && user.status !== 'approved') {
+            return res.status(403).json({ 
+              message: "Account pending approval", 
+              status: user.status,
+              user: user 
+            });
+          }
+          
+          return res.json(user);
+        }
+        
+        // Check if user is logged out in development (mock mode)
         if (devLoggedOut) {
           return res.status(401).json({ message: "Unauthorized" });
         }
