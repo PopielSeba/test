@@ -1323,8 +1323,8 @@ export default function Admin() {
                                   />
                                 )}
 
-                                {/* Equipment with fuel consumption - show for agregat, nagrzewnic, and maszt */}
-                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic") || selectedCategoryName.includes("maszt")) && (
+                                {/* Equipment with fuel consumption - show for agregat, nagrzewnic, and maszty oświetleniowe */}
+                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic") || selectedCategoryName.includes("oświetlen")) && (
                                   <>
                                     <FormField
                                       control={equipmentForm.control}
@@ -1332,13 +1332,13 @@ export default function Admin() {
                                       render={({ field }) => (
                                         <FormItem>
                                           <FormLabel>
-                                            {selectedCategoryName.includes("maszt") ? "Spalanie paliwa (l/h)" : "Spalanie przy 75% obciążenia (l/h)"}
+                                            {selectedCategoryName.includes("oświetlen") ? "Spalanie paliwa (l/h)" : "Spalanie przy 75% obciążenia (l/h)"}
                                           </FormLabel>
                                           <FormControl>
                                             <Input 
                                               type="number" 
                                               step="0.1"
-                                              placeholder={selectedCategoryName.includes("maszt") ? "np. 4.2" : "np. 35.3"}
+                                              placeholder={selectedCategoryName.includes("oświetlen") ? "np. 4.2" : "np. 35.3"}
                                               {...field}
                                             />
                                           </FormControl>
@@ -1355,7 +1355,7 @@ export default function Admin() {
                                           <FormControl>
                                             <Input 
                                               type="number" 
-                                              placeholder={selectedCategoryName.includes("maszt") ? "np. 60" : "np. 350"}
+                                              placeholder={selectedCategoryName.includes("oświetlen") ? "np. 60" : "np. 350"}
                                               {...field}
                                             />
                                           </FormControl>
