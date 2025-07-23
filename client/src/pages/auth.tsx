@@ -35,7 +35,15 @@ export default function Auth() {
     setError("");
 
     try {
-      const response = await apiRequest("POST", "/api/auth/login", loginData);
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginData),
+        credentials: "include",
+      });
+
       const data = await response.json();
 
       if (response.ok) {
@@ -48,7 +56,8 @@ export default function Auth() {
         setError(data.message || "Błąd logowania");
       }
     } catch (err) {
-      setError("Wystąpił błąd podczas logowania");
+      console.error("Login error:", err);
+      setError("Wystąpił błąd podczas logowania: " + (err as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +82,20 @@ export default function Auth() {
     }
 
     try {
-      const response = await apiRequest("POST", "/api/auth/register", {
-        email: registerData.email,
-        password: registerData.password,
-        firstName: registerData.firstName,
-        lastName: registerData.lastName,
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: registerData.email,
+          password: registerData.password,
+          firstName: registerData.firstName,
+          lastName: registerData.lastName,
+        }),
+        credentials: "include",
       });
+
       const data = await response.json();
 
       if (response.ok) {
@@ -95,7 +112,8 @@ export default function Auth() {
         setError(data.message || "Błąd rejestracji");
       }
     } catch (err) {
-      setError("Wystąpił błąd podczas rejestracji");
+      console.error("Registration error:", err);
+      setError("Wystąpił błąd podczas rejestracji: " + (err as Error).message);
     } finally {
       setIsLoading(false);
     }
