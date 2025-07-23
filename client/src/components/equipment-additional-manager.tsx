@@ -41,7 +41,7 @@ export default function EquipmentAdditionalManager({ equipmentId, equipmentName 
 
   const createMutation = useMutation({
     mutationFn: async (data: { type: string; name: string; price: string; position: number }) => {
-      const response = await apiRequest("POST", "/api/equipment-additional", {
+      const response = await apiRequest("/api/equipment-additional", "POST", {
         equipmentId,
         ...data,
       });
@@ -76,7 +76,7 @@ export default function EquipmentAdditionalManager({ equipmentId, equipmentName 
 
   const updateMutation = useMutation({
     mutationFn: async (data: { id: number; name: string; price: string }) => {
-      const response = await apiRequest("PATCH", `/api/equipment-additional/${data.id}`, {
+      const response = await apiRequest(`/api/equipment-additional/${data.id}`, "PATCH", {
         name: data.name,
         price: data.price,
       });
@@ -111,7 +111,7 @@ export default function EquipmentAdditionalManager({ equipmentId, equipmentName 
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/equipment-additional/${id}`);
+      const response = await apiRequest(`/api/equipment-additional/${id}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {

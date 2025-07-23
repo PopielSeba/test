@@ -75,6 +75,8 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed equipment deletion issues**: Resolved foreign key constraint errors by properly removing all related service costs, items, pricing, and additional data before permanent deletion
 - **Fixed quote deletion authorization**: Removed authentication requirement for quote deletion in development mode while maintaining security in production
 - **Updated company branding**: Changed company name to "Sebastian Popiel :: PPP :: Program" throughout application
+- **FIXED equipment additional/accessories saving**: Corrected apiRequest parameter order in equipment-additional-manager.tsx component to resolve "Nie udało się dodać pozycji" errors
+- **Equipment additional functionality fully operational**: All CRUD operations for additional equipment and accessories now work properly in admin panel
 
 
 
