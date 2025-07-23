@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Settings, Calculator } from "lucide-react";
+import { Settings, Calculator, UserPlus, Info } from "lucide-react";
 
 export default function Landing() {
   return (
@@ -25,7 +25,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button 
               size="lg" 
               className="bg-white text-primary hover:bg-gray-100 font-semibold px-8 py-3 text-lg"
@@ -33,6 +33,28 @@ export default function Landing() {
             >
               Zaloguj się do systemu
             </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="bg-white/10 text-white border-white/20 hover:bg-white/20 font-semibold px-8 py-3 text-lg backdrop-blur-sm"
+              onClick={() => window.location.href = '/api/login'}
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              Nowy użytkownik
+            </Button>
+          </div>
+
+          <div className="mt-6 bg-blue-500/20 backdrop-blur-sm rounded-lg p-4 max-w-2xl mx-auto">
+            <div className="flex items-start space-x-3">
+              <Info className="w-5 h-5 text-blue-200 mt-0.5 flex-shrink-0" />
+              <div className="text-left">
+                <h3 className="font-semibold text-white mb-1">Informacja dla nowych użytkowników</h3>
+                <p className="text-blue-100 text-sm">
+                  Po pierwszym logowaniu Twoje konto wymaga zatwierdzenia przez administratora. 
+                  Po akceptacji otrzymasz pełen dostęp do systemu wycen sprzętu.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
