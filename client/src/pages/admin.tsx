@@ -94,7 +94,7 @@ function EquipmentMaintenanceDefaultsCard({ equipment }: { equipment: Equipment[
 
   // Filtruj tylko urządzenia z kategoriami które mają maintenance costs
   const equipmentWithMaintenance = equipment.filter(item => 
-    ['Agregaty prądotwórcze', 'Maszty oświetleniowe', 'Klimatyzacje'].includes(item.category.name)
+    item.category && ['Agregaty prądotwórcze', 'Maszty oświetleniowe', 'Klimatyzacje'].includes(item.category.name)
   );
 
   // Query do pobierania maintenance defaults dla wybranego urządzenia
