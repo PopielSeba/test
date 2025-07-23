@@ -656,38 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Maintenance Defaults API  
-  app.get('/api/maintenance-defaults/:category', isAuthenticated, async (req, res) => {
-    try {
-      const category = req.params.category;
-      const defaults = await storage.getMaintenanceDefaults(category);
-      res.json(defaults);
-    } catch (error) {
-      console.error("Error fetching maintenance defaults:", error);
-      res.status(500).json({ message: "Failed to fetch maintenance defaults" });
-    }
-  });
 
-  app.get('/api/maintenance-defaults', isAuthenticated, async (req, res) => {
-    try {
-      const defaults = await storage.getAllMaintenanceDefaults();
-      res.json(defaults);
-    } catch (error) {
-      console.error("Error fetching maintenance defaults:", error);
-      res.status(500).json({ message: "Failed to fetch maintenance defaults" });
-    }
-  });
-
-  app.put('/api/maintenance-defaults/:category', isAuthenticated, async (req, res) => {
-    try {
-      const category = req.params.category;
-      const updatedDefaults = await storage.updateMaintenanceDefaults(category, req.body);
-      res.json(updatedDefaults);
-    } catch (error) {
-      console.error("Error updating maintenance defaults:", error);
-      res.status(500).json({ message: "Failed to update maintenance defaults" });
-    }
-  });
 
   // Pricing schemas routes
   app.get('/api/pricing-schemas', async (req, res) => {

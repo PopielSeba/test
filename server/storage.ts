@@ -7,7 +7,7 @@ import {
   clients,
   quotes,
   quoteItems,
-  maintenanceDefaults,
+
   pricingSchemas,
 
   type User,
@@ -28,8 +28,7 @@ import {
   type InsertClient,
   type InsertQuote,
   type InsertQuoteItem,
-  type MaintenanceDefaults,
-  type InsertMaintenanceDefaults,
+
   type PricingSchema,
   type InsertPricingSchema,
 } from "@shared/schema";
@@ -93,10 +92,7 @@ export interface IStorage {
   deleteQuoteItem(id: number): Promise<void>;
   getQuoteItems(quoteId: number): Promise<QuoteItem[]>;
 
-  // Maintenance defaults
-  getMaintenanceDefaults(categoryName: string): Promise<MaintenanceDefaults | undefined>;
-  getAllMaintenanceDefaults(): Promise<MaintenanceDefaults[]>;
-  updateMaintenanceDefaults(categoryName: string, defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
+
 
   // Pricing schemas
   getPricingSchemas(): Promise<PricingSchema[]>;
@@ -655,47 +651,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(quoteItems).where(eq(quoteItems.quoteId, quoteId));
   }
 
-  // Maintenance defaults operations
-  async getMaintenanceDefaults(categoryName: string): Promise<MaintenanceDefaults | undefined> {
-    const [defaults] = await db
-      .select()
-      .from(maintenanceDefaults)
-      .where(eq(maintenanceDefaults.categoryName, categoryName))
-      .limit(1);
-    return defaults;
-  }
 
-  async getAllMaintenanceDefaults(): Promise<MaintenanceDefaults[]> {
-    return await db.select().from(maintenanceDefaults);
-  }
-
-  async updateMaintenanceDefaults(categoryName: string, defaultsData: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults> {
-    // Check if record exists for this category
-    const existing = await this.getMaintenanceDefaults(categoryName);
-    
-    if (existing) {
-      // Update existing record
-      const [updated] = await db
-        .update(maintenanceDefaults)
-        .set({
-          ...defaultsData,
-          updatedAt: new Date(),
-        })
-        .where(eq(maintenanceDefaults.id, existing.id))
-        .returning();
-      return updated;
-    } else {
-      // Create new record for this category
-      const [created] = await db
-        .insert(maintenanceDefaults)
-        .values({
-          ...defaultsData,
-          categoryName,
-        })
-        .returning();
-      return created;
-    }
-  }
 
   // Pricing schemas
   async getPricingSchemas(): Promise<PricingSchema[]> {

@@ -139,42 +139,7 @@ export const quotes = pgTable("quotes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Maintenance cost defaults configuration
-export const maintenanceDefaults = pgTable("maintenance_defaults", {
-  id: serial("id").primaryKey(),
-  // Equipment category for which these defaults apply
-  categoryName: varchar("category_name", { length: 50 }).notNull(), // 'Agregaty prądotwórcze' or 'Maszty oświetleniowe'
-  // Filter costs
-  fuelFilter1Name: varchar("fuel_filter_1_name").notNull().default("Filtr Paliwa 1"),
-  fuelFilter1Cost: decimal("fuel_filter_1_cost", { precision: 8, scale: 2 }).notNull().default("49.00"),
-  fuelFilter2Name: varchar("fuel_filter_2_name").notNull().default("Filtr Paliwa 2"),
-  fuelFilter2Cost: decimal("fuel_filter_2_cost", { precision: 8, scale: 2 }).notNull().default("118.00"),
-  oilFilterName: varchar("oil_filter_name").notNull().default("Filtr Oleju"),
-  oilFilterCost: decimal("oil_filter_cost", { precision: 8, scale: 2 }).notNull().default("45.00"),
-  airFilter1Name: varchar("air_filter_1_name").notNull().default("Filtr Powietrza 1"),
-  airFilter1Cost: decimal("air_filter_1_cost", { precision: 8, scale: 2 }).notNull().default("105.00"),
-  airFilter2Name: varchar("air_filter_2_name").notNull().default("Filtr Powietrza 2"),
-  airFilter2Cost: decimal("air_filter_2_cost", { precision: 8, scale: 2 }).notNull().default("54.00"),
-  engineFilterName: varchar("engine_filter_name").notNull().default("Filtr Silnika"),
-  engineFilterCost: decimal("engine_filter_cost", { precision: 8, scale: 2 }).notNull().default("150.00"),
-  // Oil defaults
-  oilCost: decimal("oil_cost", { precision: 8, scale: 2 }).notNull().default("162.44"),
-  oilQuantity: decimal("oil_quantity", { precision: 6, scale: 2 }).notNull().default("14.7"),
-  // Service work defaults
-  serviceWorkHours: decimal("service_work_hours", { precision: 6, scale: 2 }).notNull().default("0.00"),
-  serviceWorkRate: decimal("service_work_rate", { precision: 8, scale: 2 }).notNull().default("0.00"),
-  // Maintenance interval
-  maintenanceInterval: integer("maintenance_interval").notNull().default(500),
-  // Service items for heaters (keeping original precision to avoid data loss)
-  serviceItem1Name: varchar("service_item_1_name", { length: 100 }).default("Przegląd serwisowy"),
-  serviceItem1Cost: decimal("service_item_1_cost", { precision: 10, scale: 2 }).default("0.00"),
-  serviceItem2Name: varchar("service_item_2_name", { length: 100 }).default("Dojazd"),
-  serviceItem2Cost: decimal("service_item_2_cost", { precision: 10, scale: 2 }).default("0.00"),
-  serviceItem3Name: varchar("service_item_3_name", { length: 100 }).default("Wymiana palnika"),
-  serviceItem3Cost: decimal("service_item_3_cost", { precision: 10, scale: 2 }).default("0.00"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+
 
 // Quote items
 export const quoteItems = pgTable("quote_items", {
@@ -318,7 +283,7 @@ export const insertEquipmentPricingSchema = createInsertSchema(equipmentPricing)
 export const insertClientSchema = createInsertSchema(clients);
 export const insertQuoteSchema = createInsertSchema(quotes);
 export const insertQuoteItemSchema = createInsertSchema(quoteItems);
-export const insertMaintenanceDefaultsSchema = createInsertSchema(maintenanceDefaults);
+
 export const insertEquipmentAdditionalSchema = createInsertSchema(equipmentAdditional);
 export const insertPricingSchemaSchema = createInsertSchema(pricingSchemas);
 
@@ -329,7 +294,7 @@ export const selectEquipmentPricingSchema = createSelectSchema(equipmentPricing)
 export const selectClientSchema = createSelectSchema(clients);
 export const selectQuoteSchema = createSelectSchema(quotes);
 export const selectQuoteItemSchema = createSelectSchema(quoteItems);
-export const selectMaintenanceDefaultsSchema = createSelectSchema(maintenanceDefaults);
+
 export const selectEquipmentAdditionalSchema = createSelectSchema(equipmentAdditional);
 export const selectPricingSchemaSchema = createSelectSchema(pricingSchemas);
 
@@ -349,8 +314,7 @@ export type InsertQuote = z.infer<typeof insertQuoteSchema>;
 export type Quote = z.infer<typeof selectQuoteSchema>;
 export type InsertQuoteItem = z.infer<typeof insertQuoteItemSchema>;
 export type QuoteItem = z.infer<typeof selectQuoteItemSchema>;
-export type InsertMaintenanceDefaults = z.infer<typeof insertMaintenanceDefaultsSchema>;
-export type MaintenanceDefaults = z.infer<typeof selectMaintenanceDefaultsSchema>;
+
 export type InsertEquipmentAdditional = z.infer<typeof insertEquipmentAdditionalSchema>;
 export type EquipmentAdditional = z.infer<typeof selectEquipmentAdditionalSchema>;
 export type InsertPricingSchema = z.infer<typeof insertPricingSchemaSchema>;

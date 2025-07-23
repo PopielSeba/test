@@ -46,6 +46,12 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed service work hour calculations**: System now uses actual user-inputted service hours instead of hardcoded values for all equipment categories
 - **Unified maintenance cost system**: All equipment categories (klimatyzacje, nagrzewnice, agregaty, maszty, kurtyny, wyciągi) now have standardized service work defaults (2h @ 100 zł/h)
 
+### January 23, 2025
+- **Completely removed maintenance defaults functionality**: Eliminated maintenance_defaults table and all related API endpoints per user request
+- **Simplified maintenance cost calculations**: System now uses hardcoded default values (filters: 49, 118, 45, 105, 54, 150 zł; oil: 162.44 zł; service: 2h @ 100 zł/h) instead of database-driven defaults
+- **Cleaned up codebase**: Removed all maintenance defaults components, queries, and references from frontend and backend
+- **Updated database schema**: Successfully dropped maintenance_defaults table from production database
+
 
 
 ## User Preferences
