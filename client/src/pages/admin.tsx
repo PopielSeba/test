@@ -219,7 +219,7 @@ export default function Admin() {
       power: "",
       quantity: 1,
       availableQuantity: 1,
-      categoryId: 23, // Use first available category ID
+      categoryId: 23,
     },
   });
 
@@ -862,7 +862,7 @@ export default function Admin() {
       power: "",
       quantity: 1,
       availableQuantity: 1,
-      categoryId: 23, // Use valid category ID
+      categoryId: 23,
       fuelConsumption75: undefined,
       dimensions: "",
       weight: "",
@@ -1181,7 +1181,7 @@ export default function Admin() {
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Kategoria</FormLabel>
-                                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value > 0 ? field.value.toString() : ""}>
+                                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value ? field.value.toString() : ""}>
                                       <FormControl>
                                         <SelectTrigger>
                                           <SelectValue placeholder="Wybierz kategorię" />
