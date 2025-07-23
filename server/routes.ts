@@ -1066,7 +1066,7 @@ function generateQuoteHTML(quote: any) {
     <body>
       <button class="print-button no-print" onclick="window.print()">🖨️ Drukuj</button>
       <div class="header">
-        <div class="company-logo">Sebastian Popiel</div>
+        <div class="company-logo">Sebastian Popiel :: PPP :: Program</div>
         <div class="quote-title">Wycena sprzętu</div>
       </div>
 
@@ -1118,7 +1118,7 @@ function generateQuoteHTML(quote: any) {
 
       <div class="footer">
         <p>Wycena wygenerowana: ${formatDate(new Date().toISOString())}</p>
-        <p>Sebastian Popiel - Wynajem sprzętu</p>
+        <p>Sebastian Popiel :: PPP :: Program - Wynajem sprzętu</p>
       </div>
     </body>
     </html>

@@ -48,7 +48,7 @@ export default function Navbar() {
               <div className="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center mr-3">
                 <Settings className="w-6 h-6" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">Sebastian Popiel</h1>
+              <h1 className="text-xl font-bold text-foreground">Sebastian Popiel :: PPP :: Program</h1>
             </Link>
           </div>
           
