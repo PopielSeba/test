@@ -105,6 +105,34 @@ interface PricingSchema {
   isActive: boolean;
 }
 
+interface EquipmentMaintenanceDefaults {
+  id: number;
+  equipmentId: number;
+  fuelFilter1Name: string;
+  fuelFilter1Cost: string;
+  fuelFilter2Name: string;
+  fuelFilter2Cost: string;
+  oilFilterName: string;
+  oilFilterCost: string;
+  airFilter1Name: string;
+  airFilter1Cost: string;
+  airFilter2Name: string;
+  airFilter2Cost: string;
+  engineFilterName: string;
+  engineFilterCost: string;
+  oilCost: string;
+  oilQuantity: string;
+  serviceWorkHours: string;
+  serviceWorkRate: string;
+  maintenanceInterval: number;
+  serviceItem1Name?: string;
+  serviceItem1Cost?: string;
+  serviceItem2Name?: string;
+  serviceItem2Cost?: string;
+  serviceItem3Name?: string;
+  serviceItem3Cost?: string;
+}
+
 interface QuoteItemProps {
   item: QuoteItemData;
   equipment: Equipment[];
@@ -153,10 +181,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
   const isAirConditioner = selectedEquipment?.category.name === 'Klimatyzacje';
   const hasMaintenanceCosts = isGenerator || isLightingTower || isAirConditioner;
 
-  // Query to get maintenance defaults for the current equipment category
-  const { data: maintenanceDefaults } = useQuery({
-    queryKey: ["/api/maintenance-defaults", selectedEquipment?.category.name],
-    enabled: !!selectedEquipment?.category.name && hasMaintenanceCosts,
+  // Query to get equipment-specific maintenance defaults
+  const { data: maintenanceDefaults } = useQuery<EquipmentMaintenanceDefaults>({
+    queryKey: ["/api/equipment", item.equipmentId, "maintenance-defaults"],
+    enabled: !!item.equipmentId && item.equipmentId > 0 && hasMaintenanceCosts,
     retry: false,
   });
 
@@ -834,9 +862,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     if (maintenanceDefaults && selectedEquipment?.category?.name === 'Nagrzewnice') {
                       updatedItem = {
                         ...updatedItem,
-                        serviceItem1Cost: updatedItem.serviceItem1Cost || parseFloat(maintenanceDefaults.serviceItem1Cost) || 0,
-                        serviceItem2Cost: updatedItem.serviceItem2Cost || parseFloat(maintenanceDefaults.serviceItem2Cost) || 0,
-                        serviceItem3Cost: updatedItem.serviceItem3Cost || parseFloat(maintenanceDefaults.serviceItem3Cost) || 0,
+                        serviceItem1Cost: updatedItem.serviceItem1Cost || parseFloat(maintenanceDefaults.serviceItem1Cost ?? "0") || 0,
+                        serviceItem2Cost: updatedItem.serviceItem2Cost || parseFloat(maintenanceDefaults.serviceItem2Cost ?? "0") || 0,
+                        serviceItem3Cost: updatedItem.serviceItem3Cost || parseFloat(maintenanceDefaults.serviceItem3Cost ?? "0") || 0,
                       };
                     }
                     
@@ -846,7 +874,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     updatedItem.totalServiceItemsCost = 0;
                   }
                   
-                  updatedItem.includeServiceItems = checked;
+                  updatedItem.includeServiceItems = checked === true;
                   onUpdate(updatedItem);
                 }}
               />
@@ -869,7 +897,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {maintenanceDefaults?.serviceItem1Name || 'Pozycja 1'}
+                    {maintenanceDefaults?.serviceItem1Name ?? 'Pozycja 1'}
                   </label>
                   <Input
                     type="number"
@@ -890,7 +918,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {maintenanceDefaults?.serviceItem2Name || 'Pozycja 2'}
+                    {maintenanceDefaults?.serviceItem2Name ?? 'Pozycja 2'}
                   </label>
                   <Input
                     type="number"
@@ -911,7 +939,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {maintenanceDefaults?.serviceItem3Name || 'Pozycja 3'}
+                    {maintenanceDefaults?.serviceItem3Name ?? 'Pozycja 3'}
                   </label>
                   <Input
                     type="number"
