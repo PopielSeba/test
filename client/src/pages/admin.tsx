@@ -282,9 +282,10 @@ export default function Admin() {
         }, 500);
         return;
       }
+      console.error("Błąd tworzenia sprzętu:", error);
       toast({
         title: "Błąd",
-        description: "Nie udało się dodać sprzętu",
+        description: `Nie udało się dodać sprzętu: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -813,23 +814,37 @@ export default function Admin() {
   };
 
   const handleCopyEquipment = (equipment: Equipment) => {
-    setSelectedEquipment(null); // Clear selected to create new equipment
-    equipmentForm.reset({
-      name: `${equipment.name} (kopia)`,
-      description: equipment.description || "",
-      model: equipment.model || "",
-      power: equipment.power || "",
-      quantity: equipment.quantity,
-      availableQuantity: equipment.quantity, // Set available to same as quantity for new equipment
-      categoryId: equipment.category.id,
-      fuelConsumption75: equipment.fuelConsumption75,
-      dimensions: equipment.dimensions || "",
-      weight: equipment.weight || "",
-      engine: equipment.engine || "",
-      alternator: equipment.alternator || "",
-      fuelTankCapacity: equipment.fuelTankCapacity,
-    });
-    setIsEquipmentDialogOpen(true);
+    console.log("Kopiowanie sprzętu:", equipment);
+    try {
+      setSelectedEquipment(null); // Clear selected to create new equipment
+      
+      const formData = {
+        name: `${equipment.name} (kopia)`,
+        description: equipment.description || "",
+        model: equipment.model || "",
+        power: equipment.power || "",
+        quantity: equipment.quantity,
+        availableQuantity: equipment.quantity, // Set available to same as quantity for new equipment
+        categoryId: equipment.category.id,
+        fuelConsumption75: equipment.fuelConsumption75,
+        dimensions: equipment.dimensions || "",
+        weight: equipment.weight || "",
+        engine: equipment.engine || "",
+        alternator: equipment.alternator || "",
+        fuelTankCapacity: equipment.fuelTankCapacity,
+      };
+      
+      console.log("Dane do skopiowania:", formData);
+      equipmentForm.reset(formData);
+      setIsEquipmentDialogOpen(true);
+    } catch (error) {
+      console.error("Błąd podczas kopiowania sprzętu:", error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się skopiować sprzętu",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCloseEquipmentDialog = () => {
