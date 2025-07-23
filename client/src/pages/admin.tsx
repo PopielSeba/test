@@ -826,12 +826,12 @@ export default function Admin() {
         quantity: equipment.quantity,
         availableQuantity: equipment.quantity, // Set available to same as quantity for new equipment
         categoryId: equipment.category.id,
-        fuelConsumption75: equipment.fuelConsumption75,
+        fuelConsumption75: equipment.fuelConsumption75 ? parseFloat(equipment.fuelConsumption75) : undefined,
         dimensions: equipment.dimensions || "",
         weight: equipment.weight || "",
         engine: equipment.engine || "",
         alternator: equipment.alternator || "",
-        fuelTankCapacity: equipment.fuelTankCapacity,
+        fuelTankCapacity: equipment.fuelTankCapacity ? parseInt(equipment.fuelTankCapacity.toString()) : undefined,
       };
       
       console.log("Dane do skopiowania:", formData);
@@ -880,6 +880,7 @@ export default function Admin() {
   };
 
   const onSubmitEquipment = (data: z.infer<typeof equipmentSchema>) => {
+    console.log("Wysyłanie danych sprzętu:", data);
     if (selectedEquipment) {
       updateEquipmentMutation.mutate({ id: selectedEquipment.id, data });
     } else {
