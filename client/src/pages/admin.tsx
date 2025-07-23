@@ -1824,7 +1824,7 @@ export default function Admin() {
                               pricingSchemaForm.reset({
                                 name: schema.name,
                                 description: schema.description || "",
-                                calculationMethod: schema.calculationMethod,
+                                calculationMethod: schema.calculationMethod as "first_day" | "progressive",
                                 isDefault: schema.isDefault,
                               });
                               setIsPricingSchemaDialogOpen(true);
