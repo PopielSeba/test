@@ -39,7 +39,7 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
   const [serviceCostsForm, setServiceCostsForm] = useState({
     serviceIntervalMonths: 0,
     workerHours: 2,
-    workerCostPerHour: "100",
+    workerCostPerHour: 100,
   });
 
   // Local state for service items
@@ -57,8 +57,8 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
     if (serviceCosts) {
       setServiceCostsForm({
         serviceIntervalMonths: serviceCosts.serviceIntervalMonths,
-        workerHours: serviceCosts.workerHours,
-        workerCostPerHour: serviceCosts.workerCostPerHour,
+        workerHours: parseFloat(serviceCosts.workerHours.toString()),
+        workerCostPerHour: parseFloat(serviceCosts.workerCostPerHour.toString()),
       });
     }
   }, [serviceCosts]);
@@ -155,8 +155,8 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
     updateServiceCostsMutation.mutate({
       equipmentId: equipment.id,
       serviceIntervalMonths: serviceCostsForm.serviceIntervalMonths,
-      workerHours: Number(serviceCostsForm.workerHours),
-      workerCostPerHour: serviceCostsForm.workerCostPerHour,
+      workerHours: serviceCostsForm.workerHours.toString(),
+      workerCostPerHour: serviceCostsForm.workerCostPerHour.toString(),
     });
   };
 
@@ -243,7 +243,7 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
                 value={serviceCostsForm.workerCostPerHour}
                 onChange={(e) => setServiceCostsForm(prev => ({
                   ...prev,
-                  workerCostPerHour: e.target.value
+                  workerCostPerHour: parseFloat(e.target.value) || 0
                 }))}
                 min="0"
                 step="0.01"

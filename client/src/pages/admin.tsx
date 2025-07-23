@@ -21,7 +21,8 @@ import {
   UserX,
   Shield,
   AlertTriangle,
-  Copy
+  Copy,
+  ChevronUp
 } from "lucide-react";
 import {
   Table,
@@ -2292,10 +2293,24 @@ export default function Admin() {
       <div className="mb-8" data-service-costs-section>
         {selectedEquipmentForServiceCosts && (
           <ServiceCostsManager
-            equipment={selectedEquipmentForServiceCosts}
+            equipment={selectedEquipmentForServiceCosts as any}
             onClose={() => setSelectedEquipmentForServiceCosts(null)}
           />
         )}
+      </div>
+
+      {/* Scroll to Top Button */}
+      <div className="flex justify-center mb-8">
+        <Button
+          variant="outline"
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center space-x-2 px-6 py-3"
+        >
+          <ChevronUp className="w-4 h-4" />
+          <span>Do góry</span>
+        </Button>
       </div>
 
     </div>
