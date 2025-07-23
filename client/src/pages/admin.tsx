@@ -848,12 +848,12 @@ export default function Admin() {
         quantity: equipment.quantity,
         availableQuantity: equipment.quantity, // Set available to same as quantity for new equipment
         categoryId: equipment.category.id,
-        fuelConsumption75: equipment.fuelConsumption75 ? parseFloat(String(equipment.fuelConsumption75)) : undefined,
+        fuelConsumption75: equipment.fuelConsumption75 ? equipment.fuelConsumption75.toString() : "",
         dimensions: equipment.dimensions || "",
         weight: equipment.weight || "",
         engine: equipment.engine || "",
         alternator: equipment.alternator || "",
-        fuelTankCapacity: equipment.fuelTankCapacity ? parseInt(String(equipment.fuelTankCapacity)) : undefined,
+        fuelTankCapacity: equipment.fuelTankCapacity ? equipment.fuelTankCapacity.toString() : "",
       };
       
       equipmentForm.reset(formData);
@@ -912,8 +912,8 @@ export default function Admin() {
     };
     
     if (selectedEquipment) {
-      console.log("Calling updateEquipmentMutation with:", { id: selectedEquipment.id, equipment: processedData });
-      updateEquipmentMutation.mutate({ id: selectedEquipment.id, equipment: processedData });
+      console.log("Calling updateEquipmentMutation with:", { id: selectedEquipment.id, data: processedData });
+      updateEquipmentMutation.mutate({ id: selectedEquipment.id, data: processedData });
     } else {
       console.log("Calling createEquipmentMutation with:", processedData);
       createEquipmentMutation.mutate(processedData);

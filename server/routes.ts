@@ -223,8 +223,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const equipmentData = insertEquipmentSchema.partial().parse(req.body);
-      const equipment = await storage.updateEquipment(id, equipmentData);
+      console.log("Update equipment request body:", req.body);
+      
+      // Handle both direct body and nested equipment field
+      const equipmentData = req.body.equipment || req.body;
+      console.log("Equipment data for update:", equipmentData);
+      
+      const parsedData = insertEquipmentSchema.partial().parse(equipmentData);
+      const equipment = await storage.updateEquipment(id, parsedData);
       res.json(equipment);
     } catch (error) {
       console.error("Error updating equipment:", error);
