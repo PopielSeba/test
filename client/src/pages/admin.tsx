@@ -502,7 +502,7 @@ export default function Admin() {
 
   const updatePricingMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: number; pricePerDay?: string; discountPercent?: string }) => {
-      const response = await apiRequest("PATCH", `/api/equipment-pricing/${id}`, data);
+      const response = await apiRequest(`/api/equipment-pricing/${id}`, "PATCH", data);
       return response.json();
     },
     onSuccess: () => {
