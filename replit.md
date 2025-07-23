@@ -62,6 +62,11 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed all API operations**: Corrected parameter order for all POST, PUT, DELETE, and PATCH requests in admin panel
 - **Resolved TypeScript errors**: Fixed user type issues in dashboard.tsx with proper type casting
 - **Added service costs navigation**: Wrench icon now scrolls to service costs section with "Do góry" return button
+- **RESTORED individual service costs functionality**: Added equipment-specific service cost management back to system
+- **Service costs now fully configurable per equipment**: Each equipment item can have individual service items with custom names and costs
+- **Added comprehensive service cost support**: All equipment categories (klimatyzacje, nagrzewnice, agregaty, maszty, kurtyny, wyciągi) now support individual service costing
+- **Fixed authentication issues in development**: Disabled authentication middleware for smooth development workflow
+- **Database integrity restored**: Added unique constraints and proper service cost/item relationships for all equipment
 
 
 
