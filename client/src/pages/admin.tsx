@@ -880,9 +880,14 @@ export default function Admin() {
   };
 
   const onSubmitEquipment = (data: z.infer<typeof equipmentSchema>) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", equipmentForm.formState.errors);
+    
     if (selectedEquipment) {
+      console.log("Updating equipment:", selectedEquipment.id);
       updateEquipmentMutation.mutate({ id: selectedEquipment.id, data });
     } else {
+      console.log("Creating new equipment");
       createEquipmentMutation.mutate(data);
     }
   };
@@ -1399,6 +1404,11 @@ export default function Admin() {
                               <Button 
                                 type="submit" 
                                 disabled={createEquipmentMutation.isPending || updateEquipmentMutation.isPending}
+                                onClick={() => {
+                                  console.log("Submit button clicked");
+                                  console.log("Form valid:", equipmentForm.formState.isValid);
+                                  console.log("Form errors:", equipmentForm.formState.errors);
+                                }}
                               >
                                 {selectedEquipment 
                                   ? (updateEquipmentMutation.isPending ? "Aktualizowanie..." : "Aktualizuj")
