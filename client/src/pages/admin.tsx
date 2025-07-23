@@ -826,12 +826,12 @@ export default function Admin() {
         quantity: equipment.quantity,
         availableQuantity: equipment.quantity, // Set available to same as quantity for new equipment
         categoryId: equipment.category.id,
-        fuelConsumption75: equipment.fuelConsumption75 ? parseFloat(equipment.fuelConsumption75) : undefined,
+        fuelConsumption75: equipment.fuelConsumption75 ? parseFloat(String(equipment.fuelConsumption75)) : undefined,
         dimensions: equipment.dimensions || "",
         weight: equipment.weight || "",
         engine: equipment.engine || "",
         alternator: equipment.alternator || "",
-        fuelTankCapacity: equipment.fuelTankCapacity ? parseInt(equipment.fuelTankCapacity.toString()) : undefined,
+        fuelTankCapacity: equipment.fuelTankCapacity ? parseInt(String(equipment.fuelTankCapacity)) : undefined,
       };
       
       console.log("Dane do skopiowania:", formData);
