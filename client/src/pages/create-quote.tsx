@@ -391,6 +391,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
       
       // Create new quote items
       for (const item of quoteItems) {
+        console.log("Creating quote item:", item);
         const itemData = {
           quoteId: quote.id,
           equipmentId: item.equipmentId,
@@ -420,7 +421,9 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           totalServiceItemsCost: (item.totalServiceItemsCost || 0).toString(),
         };
         
-        await apiRequest("POST", "/api/quote-items", itemData);
+        console.log("Item data being sent:", itemData);
+        const response = await apiRequest("/api/quote-items", "POST", itemData);
+        console.log("Quote item created successfully:", response);
       }
       
       toast({
