@@ -4,19 +4,44 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
+    queryFn: async () => {
+      const response = await fetch("/api/auth/user", {
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        return null; // Not authenticated
+      }
+
+      if (response.status === 403) {
+        // Account pending approval
+        const data = await response.json();
+        if (data.needsApproval && data.user) {
+          return {
+            ...data.user,
+            needsApproval: true,
+          };
+        }
+        throw new Error("Access forbidden");
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    },
   });
 
-  // Check if error is due to pending approval
-  const needsApproval = error && (error as any).message?.includes("Account pending approval");
-  
-  // If user is pending approval, return user data from error response
-  const pendingUser = needsApproval ? (error as any).user : null;
+  const needsApproval = user?.needsApproval === true;
+  const isAuthenticated = !!user;
+  const isApproved = user?.isApproved === true;
 
   return {
-    user: user || pendingUser,
+    user,
     isLoading,
-    isAuthenticated: !!user || needsApproval,
+    isAuthenticated,
     needsApproval,
-    isApproved: (user || pendingUser)?.isApproved ?? false,
+    isApproved,
   };
 }

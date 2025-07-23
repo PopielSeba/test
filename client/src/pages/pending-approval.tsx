@@ -5,7 +5,13 @@ import { Clock, Mail, Shield, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PendingApproval() {
-  const { user } = useAuth();
+  const { user, needsApproval } = useAuth();
+
+  // If user is approved, redirect to home
+  if (user && user.isApproved) {
+    window.location.href = "/";
+    return null;
+  }
 
   const handleLogout = () => {
     window.location.href = "/api/logout";

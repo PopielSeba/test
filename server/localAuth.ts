@@ -37,8 +37,9 @@ export function setupLocalAuth(app: Express) {
     try {
       if (obj.type === 'replit') {
         const user = await storage.getUser(obj.id);
-        done(null, { claims: { sub: obj.id }, ...user });
+        done(null, { claims: { sub: obj.id } });
       } else {
+        // Always fetch fresh user data for local users to get latest approval status
         const user = await storage.getUser(obj.id);
         done(null, user);
       }
@@ -167,6 +168,16 @@ export function setupLocalAuth(app: Express) {
         });
       });
     })(req, res, next);
+  });
+
+  // Local logout route  
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.status(200).json({ message: "Logged out successfully" });
+    });
   });
 }
 

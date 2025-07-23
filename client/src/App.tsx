@@ -22,7 +22,7 @@ import PendingApproval from "@/pages/pending-approval";
 import Navbar from "@/components/navbar";
 
 function Router() {
-  const { isAuthenticated, isLoading, user, needsApproval } = useAuth();
+  const { isAuthenticated, isLoading, user, needsApproval, isApproved } = useAuth();
 
   if (isLoading) {
     return (
@@ -48,7 +48,7 @@ function Router() {
   }
 
   // Check if user needs approval (authenticated but not approved)
-  if (user && !(user as any).isApproved) {
+  if (isAuthenticated && (needsApproval || !isApproved)) {
     return (
       <div className="min-h-screen bg-background">
         <PendingApproval />
@@ -66,6 +66,7 @@ function Router() {
         <Route path="/quotes/:id" component={QuoteDetail} />
         <Route path="/quotes/:id/edit" component={EditQuote} />
         <Route path="/create-quote" component={() => <CreateQuote />} />
+        <Route path="/clients" component={Clients} />
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />
