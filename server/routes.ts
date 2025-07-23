@@ -26,40 +26,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register development logout BEFORE auth setup to override it
   if (isDevelopment) {
     app.get("/api/logout", (req, res) => {
-      // If user is authenticated via Replit, logout properly
-      if (req.isAuthenticated && req.isAuthenticated()) {
-        req.logout((err) => {
-          if (err) {
-            console.error('Logout error:', err);
+      console.log('Logout called, authenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
+      console.log('Session exists:', !!req.session);
+      console.log('Session ID:', req.sessionID);
+      
+      // Clear user from session manually
+      if (req.session) {
+        delete req.session.passport;
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
           }
-          // Also destroy session
-          if (req.session) {
-            req.session.destroy((sessionErr) => {
-              if (sessionErr) {
-                console.error('Session destroy error:', sessionErr);
-              }
-              res.clearCookie('connect.sid', { path: '/' });
-              res.clearCookie('connect.sid');
+          
+          // Also try to destroy session completely
+          req.session.destroy((destroyErr) => {
+            if (destroyErr) {
+              console.error('Session destroy error:', destroyErr);
+            }
+            
+            // Clear all cookies
+            res.clearCookie('connect.sid', { path: '/', httpOnly: true });
+            res.clearCookie('connect.sid');
+            
+            // Force logout if passport is available
+            if (req.logout) {
+              req.logout((logoutErr) => {
+                if (logoutErr) {
+                  console.error('Passport logout error:', logoutErr);
+                }
+                res.json({ success: true, message: "Logged out successfully" });
+              });
+            } else {
               res.json({ success: true, message: "Logged out successfully" });
-            });
-          } else {
-            res.json({ success: true, message: "Logged out successfully" });
-          }
+            }
+          });
         });
       } else {
-        // Clear session if it exists (for mock users)
-        if (req.session) {
-          req.session.destroy((err) => {
-            if (err) {
-              console.error('Session destroy error:', err);
-            }
-            res.clearCookie('connect.sid', { path: '/' });
-            res.clearCookie('connect.sid');
-            res.json({ success: true, message: "Logged out successfully" });
-          });
-        } else {
-          res.json({ success: true, message: "Logged out successfully" });
-        }
+        res.json({ success: true, message: "Logged out successfully" });
       }
     });
   }
@@ -71,6 +74,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
       if (isDevelopment) {
+        console.log('Auth check - authenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
+        console.log('Auth check - user exists:', !!req.user);
+        console.log('Auth check - session exists:', !!req.session);
+        console.log('Auth check - session passport:', req.session?.passport);
+        
         // Check if we have a real authenticated user from Replit
         if (req.isAuthenticated && req.isAuthenticated() && req.user) {
           const userId = req.user.claims.sub;
@@ -88,8 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(user);
         }
         
-        // Return mock user in development only if no session exists
-        if (!req.session || Object.keys(req.session).length <= 1) {
+        // Return mock user in development only if no session passport data exists
+        if (!req.session || !req.session.passport) {
           return res.json({
             id: "dev-user",
             email: "dev@localhost",
