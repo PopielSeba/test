@@ -84,6 +84,7 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **GUEST ACCESS COMPLETELY REMOVED**: No guest quote creation or equipment browsing without authentication
 - **LANDING PAGE AUTHENTICATION REQUIRED**: Updated landing page to clearly communicate authentication requirement
 - **PROPER ROUTE PROTECTION**: Frontend router now properly redirects unauthenticated users to landing page with login prompt
+- **ADMIN USER SETUP**: Configured s.popiel.doa@gmail.com as system administrator with full access rights
 
 
 
