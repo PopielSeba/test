@@ -89,8 +89,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Added user approval database fields**: isApproved, approvedAt, approvedById fields to users table with proper migration
 - **Created pending users management**: Admin panel now shows section for approving/rejecting new users
 - **Built approval workflow**: New users see waiting page, admins can approve/reject from admin panel
-- **Enhanced landing page**: Added "Nowy użytkownik" button with information about approval process
+- **Enhanced landing page**: Added "Nowy użytkownik" button with information about approval process - cleaned up duplicate elements per user feedback
 - **Complete user lifecycle management**: From registration through approval to full system access
+- **User interface improvements**: Removed duplicate buttons and information sections on landing page for cleaner presentation
 
 
 
