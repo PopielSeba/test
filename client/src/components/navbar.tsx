@@ -9,7 +9,8 @@ import {
   Plus, 
   LogOut,
   User,
-  Bell
+  Bell,
+  Users
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ export default function Navbar() {
 
   if (isAuthenticated && user?.role === 'admin') {
     navItems.push({ path: "/quotes", label: "Wyceny", icon: FileText });
+    navItems.push({ path: "/users", label: "Użytkownicy", icon: Users });
     navItems.push({ path: "/admin", label: "Admin", icon: Settings });
   }
 

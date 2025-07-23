@@ -36,12 +36,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: "dev@localhost",
           firstName: "Development",
           lastName: "User",
-          role: "admin"
+          role: "admin",
+          status: "approved"
         });
       }
       
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      
+      // Check if user is approved
+      if (user && user.status !== 'approved') {
+        return res.status(403).json({ 
+          message: "Account pending approval", 
+          status: user.status,
+          user: user 
+        });
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -50,8 +61,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+  app.get('/api/users', authMiddleware, async (req: any, res) => {
     try {
+      if (isDevelopment) {
+        // Return mock users list in development
+        return res.json([
+          {
+            id: "dev-user",
+            email: "dev@localhost",
+            firstName: "Development",
+            lastName: "User",
+            role: "admin",
+            status: "approved"
+          }
+        ]);
+      }
+      
       const currentUser = await storage.getUser(req.user.claims.sub);
       if (currentUser?.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
@@ -62,6 +87,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.patch('/api/users/:id/status', authMiddleware, async (req: any, res) => {
+    try {
+      if (isDevelopment) {
+        // Mock response in development
+        return res.json({ 
+          id: req.params.id, 
+          status: req.body.status,
+          message: "User status updated successfully" 
+        });
+      }
+      
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { status } = req.body;
+      const userId = req.params.id;
+      
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const user = await storage.updateUserStatus(userId, status);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
     }
   });
 
