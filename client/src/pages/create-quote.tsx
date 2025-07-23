@@ -248,7 +248,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
 
   const createClientMutation = useMutation({
     mutationFn: async (clientData: z.infer<typeof clientSchema>) => {
-      const response = await apiRequest("POST", "/api/clients", clientData);
+      const response = await apiRequest("/api/clients", "POST", clientData);
       return response.json();
     },
   });
@@ -257,7 +257,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
     mutationFn: async (quoteData: any) => {
       const method = editingQuote ? "PUT" : "POST";
       const url = editingQuote ? `/api/quotes/${editingQuote.id}` : "/api/quotes";
-      const response = await apiRequest(method, url, quoteData);
+      const response = await apiRequest(url, method, quoteData);
       return response.json();
     },
     onSuccess: () => {
@@ -361,7 +361,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
       
       if (editingQuote) {
         // Update existing client data
-        const updateClientResponse = await apiRequest("PUT", `/api/clients/${editingQuote.client.id}`, clientData);
+        const updateClientResponse = await apiRequest(`/api/clients/${editingQuote.client.id}`, "PUT", clientData);
         const updatedClient = await updateClientResponse.json();
         clientId = updatedClient.id;
       } else {
@@ -385,7 +385,7 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
       if (editingQuote) {
         // Delete existing quote items first
         for (const existingItem of editingQuote.items) {
-          await apiRequest("DELETE", `/api/quote-items/${existingItem.id}`, null);
+          await apiRequest(`/api/quote-items/${existingItem.id}`, "DELETE", null);
         }
       }
       
