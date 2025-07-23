@@ -259,7 +259,7 @@ export default function Admin() {
 
   const createEquipmentMutation = useMutation({
     mutationFn: async (data: z.infer<typeof equipmentSchema>) => {
-      const response = await apiRequest("POST", "/api/equipment", data);
+      const response = await apiRequest("/api/equipment", "POST", data);
       return response.json();
     },
     onSuccess: async (data) => {
@@ -295,7 +295,7 @@ export default function Admin() {
 
   const updateEquipmentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<z.infer<typeof equipmentSchema>> }) => {
-      const response = await apiRequest("PUT", `/api/equipment/${id}`, data);
+      const response = await apiRequest(`/api/equipment/${id}`, "PUT", data);
       return response.json();
     },
     onSuccess: () => {
@@ -328,7 +328,7 @@ export default function Admin() {
 
   const deleteEquipmentMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/equipment/${id}`);
+      const response = await apiRequest(`/api/equipment/${id}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -361,7 +361,7 @@ export default function Admin() {
 
   const permanentDeleteEquipmentMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/equipment/${id}/permanent`);
+      const response = await apiRequest(`/api/equipment/${id}/permanent`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -394,7 +394,7 @@ export default function Admin() {
 
   const createCategoryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof categorySchema>) => {
-      const response = await apiRequest("POST", "/api/equipment-categories", data);
+      const response = await apiRequest("/api/equipment-categories", "POST", data);
       return response.json();
     },
     onSuccess: () => {
@@ -428,7 +428,7 @@ export default function Admin() {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/equipment-categories/${id}`);
+      const response = await apiRequest(`/api/equipment-categories/${id}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -468,7 +468,7 @@ export default function Admin() {
 
   const createPricingMutation = useMutation({
     mutationFn: async (data: z.infer<typeof pricingSchema>) => {
-      const response = await apiRequest("POST", "/api/equipment-pricing", data);
+      const response = await apiRequest("/api/equipment-pricing", "POST", data);
       return response.json();
     },
     onSuccess: () => {
@@ -534,7 +534,7 @@ export default function Admin() {
 
   const deletePricingMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/equipment-pricing/${id}`);
+      const response = await apiRequest(`/api/equipment-pricing/${id}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -567,7 +567,7 @@ export default function Admin() {
   // Pricing Schema Mutations
   const createPricingSchemaMutation = useMutation({
     mutationFn: async (data: z.infer<typeof pricingSchemaSchema>) => {
-      const response = await apiRequest("POST", "/api/pricing-schemas", data);
+      const response = await apiRequest("/api/pricing-schemas", "POST", data);
       return response.json();
     },
     onSuccess: () => {
@@ -635,7 +635,7 @@ export default function Admin() {
 
   const deletePricingSchemaMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/pricing-schemas/${id}`);
+      const response = await apiRequest(`/api/pricing-schemas/${id}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {
@@ -669,7 +669,7 @@ export default function Admin() {
 
   const updateUserRoleMutation = useMutation({
     mutationFn: async ({ id, role }: { id: string; role: string }) => {
-      const response = await apiRequest("PUT", `/api/users/${id}/role`, { role });
+      const response = await apiRequest(`/api/users/${id}/role`, "PUT", { role });
       return response.json();
     },
     onSuccess: () => {
@@ -701,7 +701,7 @@ export default function Admin() {
 
   const toggleUserActiveMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("PUT", `/api/users/${id}/toggle-active`);
+      const response = await apiRequest(`/api/users/${id}/toggle-active`, "PUT");
       return response.json();
     },
     onSuccess: () => {
@@ -733,7 +733,7 @@ export default function Admin() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/users/${id}`);
+      const response = await apiRequest(`/api/users/${id}`, "DELETE");
       return response.json();
     },
     onSuccess: () => {

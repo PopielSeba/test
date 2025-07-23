@@ -29,7 +29,7 @@ function Router() {
         <Route path="/quotes" component={Quotes} />
         <Route path="/quotes/:id" component={QuoteDetail} />
         <Route path="/quotes/:id/edit" component={EditQuote} />
-        <Route path="/create-quote" component={CreateQuote} />
+        <Route path="/create-quote" component={() => <CreateQuote />} />
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />

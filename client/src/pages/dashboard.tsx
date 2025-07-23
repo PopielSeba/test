@@ -46,7 +46,7 @@ export default function Dashboard() {
 
   const { data: quotes = [], isLoading: quotesLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
-    enabled: !!user && user.role === 'admin', // Only fetch quotes for logged-in admins
+    enabled: !!user && (user as any)?.role === 'admin', // Only fetch quotes for logged-in admins
   });
 
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery<Equipment[]>({
@@ -96,7 +96,7 @@ export default function Dashboard() {
     }
   ];
 
-  if (user?.role === 'admin') {
+  if ((user as any)?.role === 'admin') {
     quickActions.push({
       title: "Panel admina",
       description: "Zarządzaj sprzętem i użytkownikami",
@@ -143,7 +143,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
-            Witaj{user?.firstName || user?.email ? `, ${user?.firstName || user?.email}` : ''}!
+            Witaj{(user as any)?.firstName || (user as any)?.email ? `, ${(user as any)?.firstName || (user as any)?.email}` : ''}!
           </h1>
           <p className="text-muted-foreground mt-2">
             Zarządzaj ofertami i sprzętem
@@ -182,9 +182,9 @@ export default function Dashboard() {
 
 
 
-        <div className={`grid grid-cols-1 ${user && user.role === 'admin' ? 'lg:grid-cols-2' : ''} gap-8`}>
+        <div className={`grid grid-cols-1 ${user && (user as any)?.role === 'admin' ? 'lg:grid-cols-2' : ''} gap-8`}>
           {/* Recent Quotes - Only for logged-in admins */}
-          {user && user.role === 'admin' && (
+          {user && (user as any)?.role === 'admin' && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Ostatnie oferty</CardTitle>
