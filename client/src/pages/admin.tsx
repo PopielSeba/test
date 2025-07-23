@@ -282,10 +282,9 @@ export default function Admin() {
         }, 500);
         return;
       }
-      console.error("Błąd tworzenia sprzętu:", error);
       toast({
         title: "Błąd",
-        description: `Nie udało się dodać sprzętu: ${error.message}`,
+        description: "Nie udało się dodać sprzętu",
         variant: "destructive",
       });
     },
@@ -814,7 +813,6 @@ export default function Admin() {
   };
 
   const handleCopyEquipment = (equipment: Equipment) => {
-    console.log("Kopiowanie sprzętu:", equipment);
     try {
       setSelectedEquipment(null); // Clear selected to create new equipment
       
@@ -834,7 +832,6 @@ export default function Admin() {
         fuelTankCapacity: equipment.fuelTankCapacity ? parseInt(String(equipment.fuelTankCapacity)) : undefined,
       };
       
-      console.log("Dane do skopiowania:", formData);
       equipmentForm.reset(formData);
       setIsEquipmentDialogOpen(true);
     } catch (error) {
@@ -880,7 +877,6 @@ export default function Admin() {
   };
 
   const onSubmitEquipment = (data: z.infer<typeof equipmentSchema>) => {
-    console.log("Wysyłanie danych sprzętu:", data);
     if (selectedEquipment) {
       updateEquipmentMutation.mutate({ id: selectedEquipment.id, data });
     } else {

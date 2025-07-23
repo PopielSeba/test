@@ -55,6 +55,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Eliminated all service costing**: No filter replacement costs, oil change costs, or service worker costs in quotes
 - **Pure equipment rental pricing**: System now focuses exclusively on basic equipment rental costs without any service/maintenance considerations
 - **Removed maintenance sections**: All UI sections for filters, oil costs, service work hours, and exploitation costs completely removed
+- **Fixed equipment copying functionality**: Resolved TypeScript errors and data type conversion issues that prevented copying of lighting masts and other equipment
+- **Enhanced dollar icon functionality**: Changed dollar sign ($) button to serve as shortcut to pricing edit section with smooth scrolling
+- **Improved error handling**: Added proper type conversion for fuel consumption and tank capacity fields during equipment copying
 
 
 
