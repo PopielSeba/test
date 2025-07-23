@@ -9,8 +9,7 @@ import {
   Plus, 
   LogOut,
   User,
-  Bell,
-  Users
+  Bell
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,9 +34,8 @@ export default function Navbar() {
     { path: "/create-quote", label: "Nowa Wycena", icon: Plus },
   ];
 
-  if (isAuthenticated && (user as any)?.role === 'admin') {
+  if (isAuthenticated && user?.role === 'admin') {
     navItems.push({ path: "/quotes", label: "Wyceny", icon: FileText });
-    navItems.push({ path: "/users", label: "Użytkownicy", icon: Users });
     navItems.push({ path: "/admin", label: "Admin", icon: Settings });
   }
 
@@ -83,15 +81,15 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2 h-10">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={(user as any)?.profileImageUrl || undefined} />
+                        <AvatarImage src={user?.profileImageUrl || undefined} />
                         <AvatarFallback className="bg-primary text-white">
                           <User className="w-4 h-4" />
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm font-medium text-foreground">
-                        {(user as any)?.firstName && (user as any)?.lastName 
-                          ? `${(user as any).firstName} ${(user as any).lastName}`
-                          : (user as any)?.email?.split('@')[0] || 'Użytkownik'
+                        {user?.firstName && user?.lastName 
+                          ? `${user.firstName} ${user.lastName}`
+                          : user?.email?.split('@')[0] || 'Użytkownik'
                         }
                       </span>
                     </Button>
@@ -111,30 +109,8 @@ export default function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
-                      className="text-red-600 cursor-pointer"
-                      onSelect={async (e) => {
-                        e.preventDefault();
-                        // Clear any local storage
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        
-                        // Call logout endpoint and wait for response
-                        try {
-                          const response = await fetch('/api/logout', { 
-                            method: 'GET',
-                            credentials: 'include'
-                          });
-                          
-                          if (response.ok) {
-                            // Force page reload to clear all state
-                            window.location.reload();
-                          }
-                        } catch (error) {
-                          console.error('Logout error:', error);
-                          // Force reload even on error
-                          window.location.reload();
-                        }
-                      }}
+                      onClick={() => window.location.href = '/api/logout'}
+                      className="text-red-600"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
                       Wyloguj się
@@ -144,10 +120,7 @@ export default function Navbar() {
               </>
             ) : (
               <Button 
-                onClick={() => {
-                  // Always use /api/login - works for both dev and prod
-                  window.location.href = '/api/login';
-                }}
+                onClick={() => window.location.href = '/api/login'}
                 variant="default"
               >
                 Zaloguj się

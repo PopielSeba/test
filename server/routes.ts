@@ -19,111 +19,29 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
   // Development mode bypass
   const isDevelopment = process.env.NODE_ENV === 'development';
   const authMiddleware = isDevelopment ? (req: any, res: any, next: any) => next() : isAuthenticated;
-
-  // Register development logout BEFORE auth setup to override it
-  if (isDevelopment) {
-    app.get("/api/logout", (req, res) => {
-      console.log('Logout called, authenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
-      console.log('Session exists:', !!req.session);
-      console.log('Session ID:', req.sessionID);
-      
-      // Clear user from session manually
-      if (req.session) {
-        delete req.session.passport;
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error('Session save error:', saveErr);
-          }
-          
-          // Also try to destroy session completely
-          req.session.destroy((destroyErr) => {
-            if (destroyErr) {
-              console.error('Session destroy error:', destroyErr);
-            }
-            
-            // Clear all cookies
-            res.clearCookie('connect.sid', { path: '/', httpOnly: true });
-            res.clearCookie('connect.sid');
-            
-            // Force logout if passport is available
-            if (req.logout) {
-              req.logout((logoutErr) => {
-                if (logoutErr) {
-                  console.error('Passport logout error:', logoutErr);
-                }
-                res.json({ success: true, message: "Logged out successfully" });
-              });
-            } else {
-              res.json({ success: true, message: "Logged out successfully" });
-            }
-          });
-        });
-      } else {
-        res.json({ success: true, message: "Logged out successfully" });
-      }
-    });
-  }
-
-  // Auth middleware - setup auth in both dev and prod, but with different logout behavior
-  await setupAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
       if (isDevelopment) {
-        console.log('Auth check - authenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
-        console.log('Auth check - user exists:', !!req.user);
-        console.log('Auth check - session exists:', !!req.session);
-        console.log('Auth check - session passport:', req.session?.passport);
-        
-        // Check if we have a real authenticated user from Replit
-        if (req.isAuthenticated && req.isAuthenticated() && req.user) {
-          const userId = req.user.claims.sub;
-          const user = await storage.getUser(userId);
-          
-          // Check if user is approved
-          if (user && user.status !== 'approved') {
-            return res.status(403).json({ 
-              message: "Account pending approval", 
-              status: user.status,
-              user: user 
-            });
-          }
-          
-          return res.json(user);
-        }
-        
-        // Return mock user in development only if no session passport data exists
-        if (!req.session || !req.session.passport) {
-          return res.json({
-            id: "dev-user",
-            email: "dev@localhost",
-            firstName: "Development",
-            lastName: "User",
-            role: "admin",
-            status: "approved"
-          });
-        }
-        
-        // If session exists but no authenticated user, return unauthorized
-        return res.status(401).json({ message: "Unauthorized" });
+        // Return mock user in development
+        return res.json({
+          id: "dev-user",
+          email: "dev@localhost",
+          firstName: "Development",
+          lastName: "User",
+          role: "admin"
+        });
       }
       
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
-      // Check if user is approved
-      if (user && user.status !== 'approved') {
-        return res.status(403).json({ 
-          message: "Account pending approval", 
-          status: user.status,
-          user: user 
-        });
-      }
-      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -132,22 +50,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get('/api/users', authMiddleware, async (req: any, res) => {
+  app.get('/api/users', isAuthenticated, async (req: any, res) => {
     try {
-      if (isDevelopment) {
-        // Return mock users list in development
-        return res.json([
-          {
-            id: "dev-user",
-            email: "dev@localhost",
-            firstName: "Development",
-            lastName: "User",
-            role: "admin",
-            status: "approved"
-          }
-        ]);
-      }
-      
       const currentUser = await storage.getUser(req.user.claims.sub);
       if (currentUser?.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
@@ -158,37 +62,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  app.patch('/api/users/:id/status', authMiddleware, async (req: any, res) => {
-    try {
-      if (isDevelopment) {
-        // Mock response in development
-        return res.json({ 
-          id: req.params.id, 
-          status: req.body.status,
-          message: "User status updated successfully" 
-        });
-      }
-      
-      const currentUser = await storage.getUser(req.user.claims.sub);
-      if (currentUser?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-      
-      const { status } = req.body;
-      const userId = req.params.id;
-      
-      if (!['pending', 'approved', 'rejected'].includes(status)) {
-        return res.status(400).json({ message: "Invalid status" });
-      }
-      
-      const user = await storage.updateUserStatus(userId, status);
-      res.json(user);
-    } catch (error) {
-      console.error("Error updating user status:", error);
-      res.status(500).json({ message: "Failed to update user status" });
     }
   });
 
