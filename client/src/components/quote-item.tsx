@@ -803,13 +803,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           )}
         </div>
 
-        {/* Service Items Enable Section (for equipment that supports service costs) */}
-        {(selectedEquipment?.category?.name === 'Nagrzewnice' || 
-          selectedEquipment?.category?.name === 'Klimatyzacje' ||
-          selectedEquipment?.category?.name === 'Agregaty prądotwórcze' ||
-          selectedEquipment?.category?.name === 'Maszty oświetleniowe' ||
-          selectedEquipment?.category?.name === 'Kurtyny powietrzne' ||
-          selectedEquipment?.category?.name === 'Wyciągi spalin') && (
+        {/* Service Items Enable Section (for all equipment categories) */}
+        {selectedEquipment && (
           <div className="mt-4">
             <div className="flex items-center space-x-2 mb-3">
               <Checkbox 
@@ -819,9 +814,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   let updatedItem = { ...item };
                   
                   if (checked) {
-                    // Load default values from service items or use fallback defaults for any supported category
-                    const supportedCategories = ['Nagrzewnice', 'Klimatyzacje', 'Agregaty prądotwórcze', 'Maszty oświetleniowe', 'Kurtyny powietrzne', 'Wyciągi spalin'];
-                    if (selectedEquipment?.category?.name && supportedCategories.includes(selectedEquipment.category.name)) {
+                    // Load default values from service items or use fallback defaults for all equipment
+                    if (selectedEquipment) {
                       updatedItem = {
                         ...updatedItem,
                         serviceItem1Cost: updatedItem.serviceItem1Cost || ((serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 200),
@@ -847,13 +841,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           </div>
         )}
 
-        {/* Service Items Configuration Section (for equipment that supports service costs) */}
-        {(selectedEquipment?.category?.name === 'Nagrzewnice' || 
-          selectedEquipment?.category?.name === 'Klimatyzacje' ||
-          selectedEquipment?.category?.name === 'Agregaty prądotwórcze' ||
-          selectedEquipment?.category?.name === 'Maszty oświetleniowe' ||
-          selectedEquipment?.category?.name === 'Kurtyny powietrzne' ||
-          selectedEquipment?.category?.name === 'Wyciągi spalin') && item.includeServiceItems && (
+        {/* Service Items Configuration Section (for all equipment) */}
+        {selectedEquipment && item.includeServiceItems && (
           <div className="mt-4">
             <div className="space-y-4 bg-muted p-4 rounded-lg">
               <div className="flex items-center space-x-2">
@@ -944,7 +933,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)}h</div>
                       <div>Koszt serwisu na motogodzinę: {(serviceCosts as any).workerHours && (serviceCosts as any).workerCostPerHour ? 
                         ((parseFloat((serviceCosts as any).workerHours) * parseFloat((serviceCosts as any).workerCostPerHour)) / 
-                         (parseInt((serviceCosts as any).serviceIntervalMonths) * 30 * 8)).toFixed(4) : 0} zł/h</div>
+                         (parseInt((serviceCosts as any).serviceIntervalMonths) * 30 * 8)).toFixed(4) : '0'} zł/h</div>
                     </div>
                   </div>
                 )}
