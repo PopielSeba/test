@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
+import Auth from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import Equipment from "@/pages/equipment";
 import Quotes from "@/pages/quotes";
@@ -39,6 +40,7 @@ function Router() {
       <div className="min-h-screen bg-background">
         <Switch>
           <Route path="/" component={Landing} />
+          <Route path="/auth" component={Auth} />
           <Route component={() => <Landing />} />
         </Switch>
       </div>

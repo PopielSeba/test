@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isApproved } from "./replitAuth";
+import { setupLocalAuth } from "./localAuth";
 import { z } from "zod";
 import {
   insertEquipmentCategorySchema,
@@ -21,14 +22,32 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  setupLocalAuth(app);
 
   // Remove development mode bypass - require authentication for all protected routes
 
+  // Unified auth middleware
+  const unifiedAuth = async (req: any, res: any, next: any) => {
+    // Check if user is authenticated via Replit or Local
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    return res.status(401).json({ message: "Unauthorized" });
+  };
+
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', unifiedAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      let user;
+      
+      // Check if it's Replit auth user
+      if (req.user.claims) {
+        const userId = req.user.claims.sub;
+        user = await storage.getUser(userId);
+      } else {
+        // Local auth user
+        user = req.user;
+      }
       
       // If user exists but is not approved, return 403 with special flag
       if (user && !user.isApproved) {
@@ -47,9 +66,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get('/api/users', isAuthenticated, async (req: any, res) => {
+  app.get('/api/users', unifiedAuth, async (req: any, res) => {
     try {
-      const currentUser = await storage.getUser(req.user.claims.sub);
+      let currentUser;
+      if (req.user.claims) {
+        currentUser = await storage.getUser(req.user.claims.sub);
+      } else {
+        currentUser = req.user;
+      }
+      
       if (currentUser?.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
