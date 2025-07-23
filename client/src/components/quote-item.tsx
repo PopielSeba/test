@@ -849,6 +849,47 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 <Settings className="w-4 h-4 text-muted-foreground" />
                 <h4 className="font-medium text-foreground">Koszty serwisowe</h4>
               </div>
+
+              {/* Operating Hours Per Day Configuration */}
+              <div className="mb-4 p-3 bg-background rounded border">
+                <h5 className="text-sm font-medium text-foreground mb-2">Założenia pracy urządzenia</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Godziny pracy dziennie
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      min="1"
+                      max="24"
+                      value={item.hoursPerDay || 8}
+                      onChange={(e) => {
+                        const hours = parseFloat(e.target.value) || 8;
+                        onUpdate({
+                          ...item,
+                          hoursPerDay: hours
+                        });
+                      }}
+                      placeholder="8"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Standardowo: 8h/dzień (1 zmiana), 16h/dzień (2 zmiany), 24h/dzień (ciągła praca)
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Łączne motogodziny
+                    </label>
+                    <div className="text-lg font-medium text-foreground bg-muted p-2 rounded border">
+                      {(item.rentalPeriodDays * (item.hoursPerDay || 8)).toFixed(0)}h
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {item.rentalPeriodDays} dni × {item.hoursPerDay || 8}h/dzień
+                    </p>
+                  </div>
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
