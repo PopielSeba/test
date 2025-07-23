@@ -12,7 +12,6 @@ import {
   insertQuoteSchema,
   insertQuoteItemSchema,
   insertMaintenanceDefaultsSchema,
-  insertEquipmentMaintenanceDefaultsSchema,
   insertPricingSchemaSchema,
 
 } from "@shared/schema";
@@ -687,42 +686,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating maintenance defaults:", error);
       res.status(500).json({ message: "Failed to update maintenance defaults" });
-    }
-  });
-
-  // Equipment-specific maintenance defaults endpoints
-  app.get('/api/equipment/:id/maintenance-defaults', async (req, res) => {
-    try {
-      const equipmentId = parseInt(req.params.id);
-      const defaults = await storage.getEquipmentMaintenanceDefaults(equipmentId);
-      res.json(defaults);
-    } catch (error) {
-      console.error("Error fetching equipment maintenance defaults:", error);
-      res.status(500).json({ message: "Failed to fetch equipment maintenance defaults" });
-    }
-  });
-
-  app.put('/api/equipment/:id/maintenance-defaults', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = await storage.getUser(req.user.claims.sub);
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied. Admin role required." });
-      }
-
-      const equipmentId = parseInt(req.params.id);
-      const validatedData = insertEquipmentMaintenanceDefaultsSchema.parse({
-        equipmentId,
-        ...req.body
-      });
-
-      const result = await storage.upsertEquipmentMaintenanceDefaults(validatedData);
-      res.json(result);
-    } catch (error) {
-      console.error("Error updating equipment maintenance defaults:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update equipment maintenance defaults" });
     }
   });
 

@@ -8,7 +8,6 @@ import {
   quotes,
   quoteItems,
   maintenanceDefaults,
-  equipmentMaintenanceDefaults,
   pricingSchemas,
 
   type User,
@@ -31,8 +30,6 @@ import {
   type InsertQuoteItem,
   type MaintenanceDefaults,
   type InsertMaintenanceDefaults,
-  type EquipmentMaintenanceDefaults,
-  type InsertEquipmentMaintenanceDefaults,
   type PricingSchema,
   type InsertPricingSchema,
 } from "@shared/schema";
@@ -100,10 +97,6 @@ export interface IStorage {
   getMaintenanceDefaults(categoryName: string): Promise<MaintenanceDefaults | undefined>;
   getAllMaintenanceDefaults(): Promise<MaintenanceDefaults[]>;
   updateMaintenanceDefaults(categoryName: string, defaults: Partial<InsertMaintenanceDefaults>): Promise<MaintenanceDefaults>;
-
-  // Equipment-specific maintenance defaults
-  getEquipmentMaintenanceDefaults(equipmentId: number): Promise<EquipmentMaintenanceDefaults | undefined>;
-  upsertEquipmentMaintenanceDefaults(defaults: InsertEquipmentMaintenanceDefaults): Promise<EquipmentMaintenanceDefaults>;
 
   // Pricing schemas
   getPricingSchemas(): Promise<PricingSchema[]>;
@@ -731,30 +724,6 @@ export class DatabaseStorage implements IStorage {
 
   async deletePricingSchema(id: number): Promise<void> {
     await db.delete(pricingSchemas).where(eq(pricingSchemas.id, id));
-  }
-
-  // Equipment-specific maintenance defaults
-  async getEquipmentMaintenanceDefaults(equipmentId: number): Promise<EquipmentMaintenanceDefaults | undefined> {
-    const [defaults] = await db
-      .select()
-      .from(equipmentMaintenanceDefaults)
-      .where(eq(equipmentMaintenanceDefaults.equipmentId, equipmentId));
-    return defaults;
-  }
-
-  async upsertEquipmentMaintenanceDefaults(defaultsData: InsertEquipmentMaintenanceDefaults): Promise<EquipmentMaintenanceDefaults> {
-    const [result] = await db
-      .insert(equipmentMaintenanceDefaults)
-      .values(defaultsData)
-      .onConflictDoUpdate({
-        target: equipmentMaintenanceDefaults.equipmentId,
-        set: {
-          ...defaultsData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return result;
   }
 }
 

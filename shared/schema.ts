@@ -176,31 +176,6 @@ export const maintenanceDefaults = pgTable("maintenance_defaults", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Equipment-specific maintenance defaults table
-export const equipmentMaintenanceDefaults = pgTable("equipment_maintenance_defaults", {
-  id: serial("id").primaryKey(),
-  equipmentId: integer("equipment_id").references(() => equipment.id, { onDelete: "cascade" }).notNull().unique(),
-  fuelFilter1Name: varchar("fuel_filter_1_name", { length: 100 }).default("Filtr paliwa 1"),
-  fuelFilter1Cost: decimal("fuel_filter_1_cost", { precision: 10, scale: 2 }).default("49.00"),
-  fuelFilter2Name: varchar("fuel_filter_2_name", { length: 100 }).default("Filtr paliwa 2"),
-  fuelFilter2Cost: decimal("fuel_filter_2_cost", { precision: 10, scale: 2 }).default("118.00"),
-  oilFilterName: varchar("oil_filter_name", { length: 100 }).default("Filtr oleju"),
-  oilFilterCost: decimal("oil_filter_cost", { precision: 10, scale: 2 }).default("45.00"),
-  airFilter1Name: varchar("air_filter_1_name", { length: 100 }).default("Filtr powietrza 1"),
-  airFilter1Cost: decimal("air_filter_1_cost", { precision: 10, scale: 2 }).default("105.00"),
-  airFilter2Name: varchar("air_filter_2_name", { length: 100 }).default("Filtr powietrza 2"),
-  airFilter2Cost: decimal("air_filter_2_cost", { precision: 10, scale: 2 }).default("54.00"),
-  engineFilterName: varchar("engine_filter_name", { length: 100 }).default("Filtr silnika"),
-  engineFilterCost: decimal("engine_filter_cost", { precision: 10, scale: 2 }).default("150.00"),
-  oilCost: decimal("oil_cost", { precision: 10, scale: 2 }).default("162.44"),
-  oilQuantity: decimal("oil_quantity", { precision: 10, scale: 2 }).default("14.7"),
-  serviceWorkHours: decimal("service_work_hours", { precision: 10, scale: 2 }).default("2.0"),
-  serviceWorkRate: decimal("service_work_rate", { precision: 10, scale: 2 }).default("100.0"),
-  maintenanceInterval: integer("maintenance_interval").default(500),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 // Quote items
 export const quoteItems = pgTable("quote_items", {
   id: serial("id").primaryKey(),
@@ -344,7 +319,6 @@ export const insertClientSchema = createInsertSchema(clients);
 export const insertQuoteSchema = createInsertSchema(quotes);
 export const insertQuoteItemSchema = createInsertSchema(quoteItems);
 export const insertMaintenanceDefaultsSchema = createInsertSchema(maintenanceDefaults);
-export const insertEquipmentMaintenanceDefaultsSchema = createInsertSchema(equipmentMaintenanceDefaults);
 export const insertEquipmentAdditionalSchema = createInsertSchema(equipmentAdditional);
 export const insertPricingSchemaSchema = createInsertSchema(pricingSchemas);
 
@@ -356,7 +330,6 @@ export const selectClientSchema = createSelectSchema(clients);
 export const selectQuoteSchema = createSelectSchema(quotes);
 export const selectQuoteItemSchema = createSelectSchema(quoteItems);
 export const selectMaintenanceDefaultsSchema = createSelectSchema(maintenanceDefaults);
-export const selectEquipmentMaintenanceDefaultsSchema = createSelectSchema(equipmentMaintenanceDefaults);
 export const selectEquipmentAdditionalSchema = createSelectSchema(equipmentAdditional);
 export const selectPricingSchemaSchema = createSelectSchema(pricingSchemas);
 
@@ -378,8 +351,6 @@ export type InsertQuoteItem = z.infer<typeof insertQuoteItemSchema>;
 export type QuoteItem = z.infer<typeof selectQuoteItemSchema>;
 export type InsertMaintenanceDefaults = z.infer<typeof insertMaintenanceDefaultsSchema>;
 export type MaintenanceDefaults = z.infer<typeof selectMaintenanceDefaultsSchema>;
-export type InsertEquipmentMaintenanceDefaults = z.infer<typeof insertEquipmentMaintenanceDefaultsSchema>;
-export type EquipmentMaintenanceDefaults = z.infer<typeof selectEquipmentMaintenanceDefaultsSchema>;
 export type InsertEquipmentAdditional = z.infer<typeof insertEquipmentAdditionalSchema>;
 export type EquipmentAdditional = z.infer<typeof selectEquipmentAdditionalSchema>;
 export type InsertPricingSchema = z.infer<typeof insertPricingSchemaSchema>;
