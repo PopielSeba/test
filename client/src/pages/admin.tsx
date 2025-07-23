@@ -110,20 +110,19 @@ interface PricingSchema {
 
 const equipmentSchema = z.object({
   name: z.string().min(1, "Nazwa jest wymagana"),
-  description: z.string().optional(),
-  model: z.string().optional(),
-  power: z.string().optional(),
+  description: z.string().default(""),
+  model: z.string().default(""),
+  power: z.string().default(""),
   quantity: z.number().min(0, "Ilość musi być nieujemna"),
   availableQuantity: z.number().min(0, "Dostępna ilość musi być nieujemna"),
   categoryId: z.number().min(1, "Kategoria jest wymagana"),
   // Technical specifications for generators
   fuelConsumption75: z.number().optional(),
-  dimensions: z.string().optional(),
-  weight: z.string().optional(),
-  engine: z.string().optional(),
-  alternator: z.string().optional(),
+  dimensions: z.string().default(""),
+  weight: z.string().default(""),
+  engine: z.string().default(""),
+  alternator: z.string().default(""),
   fuelTankCapacity: z.number().optional(),
-
 });
 
 const categorySchema = z.object({
@@ -801,22 +800,33 @@ export default function Admin() {
     console.log("handleEditEquipment called with:", equipment);
     setSelectedEquipment(equipment);
     const formData = {
-      name: equipment.name,
+      name: equipment.name || "",
       description: equipment.description || "",
       model: equipment.model || "",
       power: equipment.power || "",
-      quantity: equipment.quantity,
-      availableQuantity: equipment.availableQuantity,
-      categoryId: equipment.category.id,
-      fuelConsumption75: equipment.fuelConsumption75,
+      quantity: equipment.quantity || 1,
+      availableQuantity: equipment.availableQuantity || 1,
+      categoryId: equipment.category?.id || 23,
+      fuelConsumption75: equipment.fuelConsumption75 || undefined,
       dimensions: equipment.dimensions || "",
       weight: equipment.weight || "",
       engine: equipment.engine || "",
       alternator: equipment.alternator || "",
-      fuelTankCapacity: equipment.fuelTankCapacity,
+      fuelTankCapacity: equipment.fuelTankCapacity || undefined,
     };
     console.log("Resetting form with data:", formData);
+    console.log("Category ID being set:", formData.categoryId);
     equipmentForm.reset(formData);
+    
+    // Force form validation after reset
+    setTimeout(() => {
+      console.log("Form state after reset:", {
+        values: equipmentForm.getValues(),
+        errors: equipmentForm.formState.errors,
+        isValid: equipmentForm.formState.isValid
+      });
+    }, 100);
+    
     setIsEquipmentDialogOpen(true);
   };
 
