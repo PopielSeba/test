@@ -81,6 +81,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Enhanced security architecture**: New users require admin approval before accessing application
 - **Created user management interface**: Administrators can approve/reject pending users through dedicated panel
 - **Fixed admin access for s.popiel.doa@gmail.com**: Updated status from pending to approved for main administrator account
+- **RESOLVED logout functionality in development**: Implemented proper logout mechanism using server-side flag instead of session management
+- **Fixed development authentication flow**: Users can now properly logout and login again without external authentication conflicts
+- **Enhanced development UX**: Login button in development automatically resets logout state and refreshes application
 
 
 

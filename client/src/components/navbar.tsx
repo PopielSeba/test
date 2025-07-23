@@ -144,7 +144,19 @@ export default function Navbar() {
               </>
             ) : (
               <Button 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={async () => {
+                  // In development, reset the logout flag first
+                  if (window.location.hostname === 'localhost') {
+                    try {
+                      await fetch('/api/dev-login');
+                    } catch (error) {
+                      console.error('Dev login error:', error);
+                    }
+                    window.location.reload();
+                  } else {
+                    window.location.href = '/api/login';
+                  }
+                }}
                 variant="default"
               >
                 Zaloguj się
