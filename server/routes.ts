@@ -30,18 +30,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set logout flag for development
       devLoggedOut = true;
       
-      // Clear session if it exists
-      if (req.session) {
-        req.session.destroy((err) => {
+      // If user is authenticated via Replit, logout properly
+      if (req.isAuthenticated && req.isAuthenticated()) {
+        req.logout((err) => {
           if (err) {
-            console.error('Session destroy error:', err);
+            console.error('Logout error:', err);
           }
-          res.clearCookie('connect.sid', { path: '/' });
-          res.clearCookie('connect.sid');
-          res.json({ success: true, message: "Logged out successfully" });
+          // Also destroy session
+          if (req.session) {
+            req.session.destroy((sessionErr) => {
+              if (sessionErr) {
+                console.error('Session destroy error:', sessionErr);
+              }
+              res.clearCookie('connect.sid', { path: '/' });
+              res.clearCookie('connect.sid');
+              res.json({ success: true, message: "Logged out successfully" });
+            });
+          } else {
+            res.json({ success: true, message: "Logged out successfully" });
+          }
         });
       } else {
-        res.json({ success: true, message: "Logged out successfully" });
+        // Clear session if it exists (for mock users)
+        if (req.session) {
+          req.session.destroy((err) => {
+            if (err) {
+              console.error('Session destroy error:', err);
+            }
+            res.clearCookie('connect.sid', { path: '/' });
+            res.clearCookie('connect.sid');
+            res.json({ success: true, message: "Logged out successfully" });
+          });
+        } else {
+          res.json({ success: true, message: "Logged out successfully" });
+        }
       }
     });
     
