@@ -22,24 +22,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Development mode bypass
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const authMiddleware = isDevelopment ? (req: any, res: any, next: any) => next() : isAuthenticated;
+  // Remove development mode bypass - require authentication for all protected routes
 
   // Auth routes
-  app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      if (isDevelopment) {
-        // Return mock user in development
-        return res.json({
-          id: "dev-user",
-          email: "dev@localhost",
-          firstName: "Development",
-          lastName: "User",
-          role: "admin"
-        });
-      }
-      
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       res.json(user);
@@ -126,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment Categories
-  app.get('/api/equipment-categories', async (req, res) => {
+  app.get('/api/equipment-categories', isAuthenticated, async (req, res) => {
     try {
       const categories = await storage.getEquipmentCategories();
       res.json(categories);
@@ -185,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/equipment', async (req, res) => {
+  app.get('/api/equipment', isAuthenticated, async (req, res) => {
     try {
       const equipment = await storage.getEquipment();
       res.json(equipment);
@@ -209,14 +196,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/equipment', async (req: any, res) => {
+  app.post('/api/equipment', isAuthenticated, async (req: any, res) => {
     try {
-      // Skip authentication in development
-      if (process.env.NODE_ENV !== 'development') {
-        const user = await storage.getUser(req.user?.claims?.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const equipmentData = insertEquipmentSchema.parse(req.body);
@@ -231,14 +215,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/equipment/:id', async (req: any, res) => {
+  app.put('/api/equipment/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // Skip authentication in development
-      if (process.env.NODE_ENV !== 'development') {
-        const user = await storage.getUser(req.user?.claims?.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -251,14 +232,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/equipment/:id/quantity', async (req: any, res) => {
+  app.patch('/api/equipment/:id/quantity', isAuthenticated, async (req: any, res) => {
     try {
-      // Skip authentication in development
-      if (process.env.NODE_ENV !== 'development') {
-        const user = await storage.getUser(req.user?.claims?.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -280,17 +258,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/equipment/:id', async (req: any, res) => {
+  app.delete('/api/equipment/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // In development mode, allow equipment deletion without authentication
-      if (process.env.NODE_ENV === 'production') {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -302,17 +274,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/equipment/:id/permanent', async (req: any, res) => {
+  app.delete('/api/equipment/:id/permanent', isAuthenticated, async (req: any, res) => {
     try {
-      // In development mode, allow permanent equipment deletion without authentication
-      if (process.env.NODE_ENV === 'production') {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -375,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment Additional and Accessories
-  app.get('/api/equipment/:id/additional', async (req, res) => {
+  app.get('/api/equipment/:id/additional', isAuthenticated, async (req, res) => {
     try {
       const equipmentId = parseInt(req.params.id);
       let additional = await storage.getEquipmentAdditional(equipmentId);
@@ -399,17 +365,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/equipment-additional', async (req: any, res) => {
+  app.post('/api/equipment-additional', isAuthenticated, async (req: any, res) => {
     try {
-      // In development mode, allow equipment additional creation without authentication
-      if (process.env.NODE_ENV === 'production') {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const additionalData = insertEquipmentAdditionalSchema.parse(req.body);
@@ -421,17 +381,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/equipment-additional/:id', async (req: any, res) => {
+  app.patch('/api/equipment-additional/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // In development mode, allow equipment additional updates without authentication
-      if (process.env.NODE_ENV === 'production') {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -444,17 +398,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/equipment-additional/:id', async (req: any, res) => {
+  app.delete('/api/equipment-additional/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // In development mode, allow equipment additional deletion without authentication
-      if (process.env.NODE_ENV === 'production') {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -467,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clients
-  app.get('/api/clients', async (req, res) => {
+  app.get('/api/clients', isAuthenticated, async (req, res) => {
     try {
       const clients = await storage.getClients();
       res.json(clients);
@@ -477,7 +425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/clients', async (req, res) => {
+  app.post('/api/clients', isAuthenticated, async (req, res) => {
     try {
       const clientData = insertClientSchema.parse(req.body);
       const client = await storage.createClient(clientData);
@@ -537,21 +485,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/quotes', async (req: any, res) => {
+  app.post('/api/quotes', isAuthenticated, async (req: any, res) => {
     try {
-      // Skip authentication in development or allow guest quotes
-      let userId = null;
-      if (process.env.NODE_ENV === 'development' || !req.user) {
-        userId = null;
-      } else {
-        userId = req.user?.claims?.sub;
-      }
-
+      const userId = req.user.claims.sub;
       const quoteData = insertQuoteSchema.parse({
         ...req.body,
         createdById: userId,
         quoteNumber: `WYC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-        isGuestQuote: !userId,
+        isGuestQuote: false,
       });
       const quote = await storage.createQuote(quoteData);
       res.json(quote);
@@ -620,17 +561,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/quotes/:id', async (req: any, res) => {
+  app.delete('/api/quotes/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // In development mode, allow quote deletion without authentication
-      if (process.env.NODE_ENV === 'production') {
-        if (!req.isAuthenticated()) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied. Admin role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
       }
 
       const id = parseInt(req.params.id);
@@ -680,14 +615,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quote Items - accessible to admin and employee roles, or guest in development
-  app.post('/api/quote-items', async (req: any, res) => {
+  app.post('/api/quote-items', isAuthenticated, async (req: any, res) => {
     try {
-      // Skip authentication in development
-      if (process.env.NODE_ENV !== 'development' && req.user) {
-        const user = await storage.getUser(req.user.claims.sub);
-        if (user?.role !== 'admin' && user?.role !== 'employee') {
-          return res.status(403).json({ message: "Access denied. Admin or employee role required." });
-        }
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin' && user?.role !== 'employee') {
+        return res.status(403).json({ message: "Access denied. Admin or employee role required." });
       }
 
       const itemData = insertQuoteItemSchema.parse(req.body);
@@ -737,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Pricing schemas routes
-  app.get('/api/pricing-schemas', async (req, res) => {
+  app.get('/api/pricing-schemas', isAuthenticated, async (req, res) => {
     try {
       const schemas = await storage.getPricingSchemas();
       res.json(schemas);
@@ -747,7 +679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/pricing-schemas/:id', async (req, res) => {
+  app.get('/api/pricing-schemas/:id', isAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;
       const schema = await storage.getPricingSchemaById(parseInt(id));
@@ -763,13 +695,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/pricing-schemas', isAuthenticated, async (req: any, res) => {
     try {
-      // Allow development access
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (!isDevelopment) {
-        const currentUser = await storage.getUser(req.user.claims.sub);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied" });
-        }
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
       }
 
       const validatedData = insertPricingSchemaSchema.parse(req.body);
@@ -783,13 +711,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/pricing-schemas/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // Allow development access
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (!isDevelopment) {
-        const currentUser = await storage.getUser(req.user.claims.sub);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied" });
-        }
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
       }
 
       const { id } = req.params;
@@ -804,13 +728,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/pricing-schemas/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // Allow development access
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      if (!isDevelopment) {
-        const currentUser = await storage.getUser(req.user.claims.sub);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Access denied" });
-        }
+      const currentUser = await storage.getUser(req.user.claims.sub);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
       }
 
       const { id } = req.params;
@@ -823,7 +743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment service costs endpoints
-  app.get('/api/equipment/:id/service-costs', async (req, res) => {
+  app.get('/api/equipment/:id/service-costs', isAuthenticated, async (req, res) => {
     try {
       const equipmentId = parseInt(req.params.id);
       const serviceCosts = await storage.getEquipmentServiceCosts(equipmentId);
@@ -855,7 +775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Equipment service items endpoints
-  app.get('/api/equipment/:id/service-items', async (req, res) => {
+  app.get('/api/equipment/:id/service-items', isAuthenticated, async (req, res) => {
     try {
       const equipmentId = parseInt(req.params.id);
       const serviceItems = await storage.getEquipmentServiceItems(equipmentId);

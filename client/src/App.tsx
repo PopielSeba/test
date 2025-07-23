@@ -20,6 +20,30 @@ import GuestQuote from "@/pages/guest-quote";
 import Navbar from "@/components/navbar";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Ładowanie...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Switch>
+          <Route path="/" component={Landing} />
+          <Route component={() => <Landing />} />
+        </Switch>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -33,8 +57,6 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />
-        <Route path="/guest-quote" component={GuestQuote} />
-        <Route path="/landing" component={Landing} />
         <Route component={NotFound} />
       </Switch>
     </div>
