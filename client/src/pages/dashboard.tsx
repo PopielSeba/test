@@ -184,7 +184,7 @@ export default function Dashboard() {
 
         <div className={`grid grid-cols-1 ${user && (user as any)?.role === 'admin' ? 'lg:grid-cols-2' : ''} gap-8`}>
           {/* Recent Quotes - Only for logged-in admins */}
-          {user && (user as any)?.role === 'admin' && (
+          {user && (user as any)?.role === 'admin' ? (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Ostatnie oferty</CardTitle>
@@ -230,7 +230,7 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
           {/* Equipment Categories */}
           <Card>

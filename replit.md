@@ -58,6 +58,10 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed equipment copying functionality**: Resolved TypeScript errors and data type conversion issues that prevented copying of lighting masts and other equipment
 - **Enhanced dollar icon functionality**: Changed dollar sign ($) button to serve as shortcut to pricing edit section with smooth scrolling
 - **Improved error handling**: Added proper type conversion for fuel consumption and tank capacity fields during equipment copying
+- **CRITICAL FIX: Fixed equipment update functionality**: Corrected apiRequest parameter ordering (url, method, data) throughout admin.tsx - resolved "Aktualizuj" button not working
+- **Fixed all API operations**: Corrected parameter order for all POST, PUT, DELETE, and PATCH requests in admin panel
+- **Resolved TypeScript errors**: Fixed user type issues in dashboard.tsx with proper type casting
+- **Added service costs navigation**: Wrench icon now scrolls to service costs section with "Do góry" return button
 
 
 
