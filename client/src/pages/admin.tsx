@@ -116,13 +116,13 @@ const equipmentSchema = z.object({
   quantity: z.number().min(0, "Ilość musi być nieujemna"),
   availableQuantity: z.number().min(0, "Dostępna ilość musi być nieujemna"),
   categoryId: z.number().min(1, "Kategoria jest wymagana"),
-  // Technical specifications for generators - converted from string inputs
-  fuelConsumption75: z.string().transform(val => val === "" ? undefined : parseFloat(val)).optional(),
+  // Technical specifications - keep as strings for form compatibility
+  fuelConsumption75: z.string().default(""),
   dimensions: z.string().default(""),
   weight: z.string().default(""),
   engine: z.string().default(""),
   alternator: z.string().default(""),
-  fuelTankCapacity: z.string().transform(val => val === "" ? undefined : parseFloat(val)).optional(),
+  fuelTankCapacity: z.string().default(""),
 });
 
 const categorySchema = z.object({
@@ -904,12 +904,19 @@ export default function Admin() {
     console.log("Form submitted with data:", data);
     console.log("Selected equipment:", selectedEquipment);
     
+    // Convert string fields to numbers where needed for API
+    const processedData = {
+      ...data,
+      fuelConsumption75: data.fuelConsumption75 ? parseFloat(data.fuelConsumption75) : undefined,
+      fuelTankCapacity: data.fuelTankCapacity ? parseFloat(data.fuelTankCapacity) : undefined,
+    };
+    
     if (selectedEquipment) {
-      console.log("Calling updateEquipmentMutation with:", { id: selectedEquipment.id, data });
-      updateEquipmentMutation.mutate({ id: selectedEquipment.id, data });
+      console.log("Calling updateEquipmentMutation with:", { id: selectedEquipment.id, equipment: processedData });
+      updateEquipmentMutation.mutate({ id: selectedEquipment.id, equipment: processedData });
     } else {
-      console.log("Calling createEquipmentMutation with:", data);
-      createEquipmentMutation.mutate(data);
+      console.log("Calling createEquipmentMutation with:", processedData);
+      createEquipmentMutation.mutate(processedData);
     }
   };
 
@@ -1316,8 +1323,8 @@ export default function Admin() {
                                   />
                                 )}
 
-                                {/* Generator-specific fields */}
-                                {selectedCategoryName.includes("agregat") && (
+                                {/* Generator and heater-specific fields - show for agregat and nagrzewnic */}
+                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic")) && (
                                   <>
                                     <FormField
                                       control={equipmentForm.control}
