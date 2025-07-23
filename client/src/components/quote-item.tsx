@@ -284,7 +284,39 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         // Calculate service items cost - only include if service items are enabled
         let serviceItemsCost = 0;
         if (item.includeServiceItems) {
-          serviceItemsCost = item.totalServiceItemsCost || 0;
+          // Calculate service cost based on operating hours and service intervals
+          let totalServiceCost = 0;
+          
+          // Get service items cost (materials/parts)
+          const serviceItems = item.totalServiceItemsCost || 0;
+          
+          // Calculate service worker cost based on hours and intervals
+          if (serviceCosts && selectedEquipment) {
+            const serviceIntervalMonths = parseInt(serviceCosts.serviceIntervalMonths) || 12;
+            const workerHours = parseFloat(serviceCosts.workerHours) || 2.0;
+            const workerCostPerHour = parseFloat(serviceCosts.workerCostPerHour) || 100.0;
+            
+            // Calculate expected operating hours for rental period
+            const hoursPerDay = item.hoursPerDay || 8;
+            const expectedHours = item.rentalPeriodDays * hoursPerDay;
+            
+            // Calculate service cost proportional to operating hours
+            // Service is typically needed every 500 hours for most equipment
+            const serviceIntervalHours = serviceIntervalMonths * 30 * 8; // Convert months to hours (assuming 8h/day, 30 days/month)
+            const serviceWorkerCost = workerHours * workerCostPerHour;
+            
+            // Calculate proportional service cost for rental period
+            if (expectedHours > 0 && serviceIntervalHours > 0) {
+              const serviceCostProportional = (serviceWorkerCost / serviceIntervalHours) * expectedHours;
+              totalServiceCost = serviceItems + serviceCostProportional;
+            } else {
+              totalServiceCost = serviceItems;
+            }
+          } else {
+            totalServiceCost = serviceItems;
+          }
+          
+          serviceItemsCost = totalServiceCost;
         }
         
         // Total price (maintenance costs removed per user request)
@@ -316,12 +348,15 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.fuelConsumptionLH, 
     item.fuelPricePerLiter, 
     item.hoursPerDay, 
-
     item.includeInstallationCost, 
     item.installationDistanceKm, 
     item.travelRatePerKm,
     item.numberOfTechnicians,
     item.serviceRatePerTechnician,
+    item.includeServiceItems,
+    item.totalServiceItemsCost,
+    serviceCosts,
+    selectedEquipment,
 
 
     
@@ -897,6 +932,21 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
                   {formatCurrency(item.totalServiceItemsCost || 0)}
                 </div>
+                
+                {/* Service calculation details */}
+                {serviceCosts && (
+                  <div className="mt-3 p-3 bg-muted/50 rounded text-sm">
+                    <h5 className="font-medium mb-2">Szczegóły kalkulacji serwisu:</h5>
+                    <div className="space-y-1 text-muted-foreground">
+                      <div>Interwał serwisu: {serviceCosts.serviceIntervalMonths} miesięcy</div>
+                      <div>Czas pracy serwisu: {serviceCosts.workerHours}h @ {serviceCosts.workerCostPerHour} zł/h</div>
+                      <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)}h</div>
+                      <div>Koszt serwisu na motogodzinę: {serviceCosts.workerHours && serviceCosts.workerCostPerHour ? 
+                        ((parseFloat(serviceCosts.workerHours) * parseFloat(serviceCosts.workerCostPerHour)) / 
+                         (parseInt(serviceCosts.serviceIntervalMonths) * 30 * 8)).toFixed(4) : 0} zł/h</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
