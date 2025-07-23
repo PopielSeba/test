@@ -21,15 +21,11 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Development mode bypass
   const isDevelopment = process.env.NODE_ENV === 'development';
-  let devLoggedOut = false; // Simple flag for development logout state
   const authMiddleware = isDevelopment ? (req: any, res: any, next: any) => next() : isAuthenticated;
 
   // Register development logout BEFORE auth setup to override it
   if (isDevelopment) {
     app.get("/api/logout", (req, res) => {
-      // Set logout flag for development
-      devLoggedOut = true;
-      
       // If user is authenticated via Replit, logout properly
       if (req.isAuthenticated && req.isAuthenticated()) {
         req.logout((err) => {
@@ -66,21 +62,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
     });
-    
-    // Reset login state endpoint for development
-    app.get("/api/dev-login", (req, res) => {
-      devLoggedOut = false;
-      res.json({ success: true, message: "Logged in successfully" });
-    });
-    
-    // Override callback to reset logout flag on successful auth
-    app.get("/api/callback", (req, res, next) => {
-      // Reset logout flag on successful callback
-      devLoggedOut = false;
-      
-      // Continue with original callback logic
-      next();
-    });
   }
 
   // Auth middleware - setup auth in both dev and prod, but with different logout behavior
@@ -92,9 +73,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isDevelopment) {
         // Check if we have a real authenticated user from Replit
         if (req.isAuthenticated && req.isAuthenticated() && req.user) {
-          // Reset the logout flag if user is authenticated via Replit
-          devLoggedOut = false;
-          
           const userId = req.user.claims.sub;
           const user = await storage.getUser(userId);
           
@@ -110,20 +88,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(user);
         }
         
-        // Check if user is logged out in development (mock mode)
-        if (devLoggedOut) {
-          return res.status(401).json({ message: "Unauthorized" });
+        // Return mock user in development only if no session exists
+        if (!req.session || Object.keys(req.session).length <= 1) {
+          return res.json({
+            id: "dev-user",
+            email: "dev@localhost",
+            firstName: "Development",
+            lastName: "User",
+            role: "admin",
+            status: "approved"
+          });
         }
         
-        // Return mock user in development
-        return res.json({
-          id: "dev-user",
-          email: "dev@localhost",
-          firstName: "Development",
-          lastName: "User",
-          role: "admin",
-          status: "approved"
-        });
+        // If session exists but no authenticated user, return unauthorized
+        return res.status(401).json({ message: "Unauthorized" });
       }
       
       const userId = req.user.claims.sub;

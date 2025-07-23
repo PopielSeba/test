@@ -144,18 +144,9 @@ export default function Navbar() {
               </>
             ) : (
               <Button 
-                onClick={async () => {
-                  // In development, reset the logout flag first
-                  if (window.location.hostname === 'localhost') {
-                    try {
-                      await fetch('/api/dev-login');
-                    } catch (error) {
-                      console.error('Dev login error:', error);
-                    }
-                    window.location.reload();
-                  } else {
-                    window.location.href = '/api/login';
-                  }
+                onClick={() => {
+                  // Always use /api/login - works for both dev and prod
+                  window.location.href = '/api/login';
                 }}
                 variant="default"
               >
