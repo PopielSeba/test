@@ -34,6 +34,9 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").notNull().default("employee"), // admin, employee
   isActive: boolean("is_active").default(true).notNull(),
+  isApproved: boolean("is_approved").default(false).notNull(), // admin approval required
+  approvedAt: timestamp("approved_at"),
+  approvedById: varchar("approved_by_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

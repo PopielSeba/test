@@ -990,6 +990,26 @@ export default function Admin() {
           <p className="text-muted-foreground mt-2">Zarządzaj sprzętem, cenami i ustawieniami systemu</p>
         </div>
 
+        {/* Pending Users Section */}
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center">
+                  <AlertTriangle className="w-5 h-5 mr-2 text-orange-500" />
+                  Użytkownicy oczekujący na akceptację
+                </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Nowi użytkownicy wymagają zatwierdzenia przez administratora
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <PendingUsersSection />
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="mb-6">
           <Card>
             <CardHeader>
@@ -2360,6 +2380,188 @@ export default function Admin() {
     </div>
   );
 }
+
+///////////////////// Pending Users Component /////////////////////
+function PendingUsersSection() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Query for pending users
+  const { data: pendingUsers = [], isLoading: pendingLoading } = useQuery({
+    queryKey: ["/api/users/pending"],
+  });
+
+  // Approve user mutation
+  const approveUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest(`/api/users/${id}/approve`, "POST");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Użytkownik został zaakceptowany",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zaakceptować użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reject user mutation
+  const rejectUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest(`/api/users/${id}/reject`, "DELETE");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Sukces",
+        description: "Użytkownik został odrzucony i usunięty",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się odrzucić użytkownika",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleRejectUser = (id: string, name: string) => {
+    if (confirm(`Czy na pewno chcesz odrzucić i usunąć użytkownika "${name}"? Tej operacji nie można cofnąć.`)) {
+      rejectUserMutation.mutate(id);
+    }
+  };
+
+  if (pendingLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (pendingUsers.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <p className="text-muted-foreground">Brak użytkowników oczekujących na akceptację</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Użytkownik</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Data rejestracji</TableHead>
+            <TableHead>Akcje</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pendingUsers.map((user: any) => (
+            <TableRow key={user.id}>
+              <TableCell>
+                <div className="flex items-center space-x-2">
+                  <div>
+                    <p className="font-medium">
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.email?.split('@')[0] || 'Nieznany użytkownik'
+                      }
+                    </p>
+                    {user.profileImageUrl && (
+                      <img 
+                        src={user.profileImageUrl} 
+                        alt="Avatar" 
+                        className="w-6 h-6 rounded-full inline-block ml-2"
+                      />
+                    )}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pl-PL') : 'Nieznana'}
+                </span>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => approveUserMutation.mutate(user.id)}
+                    disabled={approveUserMutation.isPending || rejectUserMutation.isPending}
+                    title="Zaakceptuj użytkownika"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <UserCheck className="w-4 h-4 mr-1" />
+                    Akceptuj
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleRejectUser(
+                      user.id, 
+                      user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.email?.split('@')[0] || 'Nieznany użytkownik'
+                    )}
+                    disabled={approveUserMutation.isPending || rejectUserMutation.isPending}
+                    title="Odrzuć użytkownika"
+                  >
+                    <UserX className="w-4 h-4 mr-1" />
+                    Odrzuć
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+///////////////////// End Pending Users Component /////////////////////
 
 // MaintenanceDefaultsCard component removed per user request
 

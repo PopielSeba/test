@@ -17,10 +17,11 @@ import Profile from "@/pages/profile";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import GuestQuote from "@/pages/guest-quote";
+import PendingApproval from "@/pages/pending-approval";
 import Navbar from "@/components/navbar";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user, needsApproval } = useAuth();
 
   if (isLoading) {
     return (
@@ -40,6 +41,15 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route component={() => <Landing />} />
         </Switch>
+      </div>
+    );
+  }
+
+  // Check if user needs approval (authenticated but not approved)
+  if (user && !(user as any).isApproved) {
+    return (
+      <div className="min-h-screen bg-background">
+        <PendingApproval />
       </div>
     );
   }

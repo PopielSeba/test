@@ -46,7 +46,10 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getPendingUsers(): Promise<User[]>;
   updateUserRole(id: string, role: string): Promise<User>;
+  approveUser(id: string, approvedById: string): Promise<User>;
+  rejectUser(id: string): Promise<void>;
   toggleUserActive(id: string): Promise<User>;
   deleteUser(id: string): Promise<void>;
 
@@ -141,7 +144,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(users.createdAt);
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getPendingUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.isApproved, false))
+      .orderBy(desc(users.createdAt));
   }
 
   async updateUserRole(id: string, role: string): Promise<User> {
@@ -151,6 +162,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async approveUser(id: string, approvedById: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        isApproved: true, 
+        approvedAt: new Date(),
+        approvedById,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async rejectUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   async toggleUserActive(id: string): Promise<User> {

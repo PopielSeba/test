@@ -57,12 +57,17 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  // Check if user already exists
+  const existingUser = await storage.getUser(claims["sub"]);
+  
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    // New users need approval, existing users keep their approval status
+    isApproved: existingUser?.isApproved ?? false,
   });
 }
 
@@ -153,5 +158,25 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   } catch (error) {
     res.status(401).json({ message: "Unauthorized" });
     return;
+  }
+};
+
+// Middleware for checking user approval status
+export const isApproved: RequestHandler = async (req, res, next) => {
+  const user = req.user as any;
+  
+  try {
+    const dbUser = await storage.getUser(user.claims.sub);
+    
+    if (!dbUser?.isApproved) {
+      return res.status(403).json({ 
+        message: "Account pending approval", 
+        needsApproval: true 
+      });
+    }
+    
+    return next();
+  } catch (error) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
