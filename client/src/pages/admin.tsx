@@ -2288,13 +2288,16 @@ export default function Admin() {
         </Dialog>
       </div>
 
-      {/* Service Costs Manager */}
-      {selectedEquipmentForServiceCosts && (
-        <ServiceCostsManager
-          equipment={selectedEquipmentForServiceCosts}
-          onClose={() => setSelectedEquipmentForServiceCosts(null)}
-        />
-      )}
+      {/* Service Costs Section */}
+      <div className="mb-8" data-service-costs-section>
+        {selectedEquipmentForServiceCosts && (
+          <ServiceCostsManager
+            equipment={selectedEquipmentForServiceCosts}
+            onClose={() => setSelectedEquipmentForServiceCosts(null)}
+          />
+        )}
+      </div>
+
     </div>
   );
 }

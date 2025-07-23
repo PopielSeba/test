@@ -194,7 +194,7 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto" data-service-costs-section>
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>Koszty serwisu - {equipment.name}</CardTitle>
