@@ -21,12 +21,16 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Development mode bypass
   const isDevelopment = process.env.NODE_ENV === 'development';
+  let devLoggedOut = false; // Simple flag for development logout state
   const authMiddleware = isDevelopment ? (req: any, res: any, next: any) => next() : isAuthenticated;
 
   // Register development logout BEFORE auth setup to override it
   if (isDevelopment) {
     app.get("/api/logout", (req, res) => {
-      // Clear session and redirect to home in development
+      // Set logout flag for development
+      devLoggedOut = true;
+      
+      // Clear session if it exists
       if (req.session) {
         req.session.destroy((err) => {
           if (err) {
@@ -34,11 +38,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           res.clearCookie('connect.sid', { path: '/' });
           res.clearCookie('connect.sid');
-          res.redirect('/');
+          res.json({ success: true, message: "Logged out successfully" });
         });
       } else {
-        res.redirect('/');
+        res.json({ success: true, message: "Logged out successfully" });
       }
+    });
+    
+    // Reset login state endpoint for development
+    app.get("/api/dev-login", (req, res) => {
+      devLoggedOut = false;
+      res.json({ success: true, message: "Logged in successfully" });
     });
   }
 
@@ -49,8 +59,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
       if (isDevelopment) {
-        // Check if session exists and has been cleared
-        if (!req.session || req.session.loggedOut) {
+        // Check if user is logged out in development
+        if (devLoggedOut) {
           return res.status(401).json({ message: "Unauthorized" });
         }
         

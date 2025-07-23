@@ -120,16 +120,20 @@ export default function Navbar() {
                         
                         // Call logout endpoint and wait for response
                         try {
-                          await fetch('/api/logout', { 
+                          const response = await fetch('/api/logout', { 
                             method: 'GET',
                             credentials: 'include'
                           });
+                          
+                          if (response.ok) {
+                            // Force page reload to clear all state
+                            window.location.reload();
+                          }
                         } catch (error) {
                           console.error('Logout error:', error);
+                          // Force reload even on error
+                          window.location.reload();
                         }
-                        
-                        // Force page reload to clear all state
-                        window.location.href = '/';
                       }}
                     >
                       <LogOut className="w-4 h-4 mr-2" />
