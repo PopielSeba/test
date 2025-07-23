@@ -46,7 +46,7 @@ export default function Dashboard() {
 
   const { data: quotes = [], isLoading: quotesLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
-    enabled: !!user && (user as any)?.role === 'admin', // Only fetch quotes for logged-in admins
+    enabled: !!user, // Fetch quotes for all logged-in users
   });
 
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery<Equipment[]>({
@@ -182,9 +182,9 @@ export default function Dashboard() {
 
 
 
-        <div className={`grid grid-cols-1 ${user && (user as any)?.role === 'admin' ? 'lg:grid-cols-2' : ''} gap-8`}>
-          {/* Recent Quotes - Only for logged-in admins */}
-          {user && (user as any)?.role === 'admin' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Quotes - For all logged-in users */}
+          {user ? (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Ostatnie oferty</CardTitle>

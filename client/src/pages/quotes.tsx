@@ -62,23 +62,23 @@ export default function Quotes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Redirect non-admin users
+  // All authenticated users can access quotes
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || ((user as any)?.role !== 'admin' && (user as any)?.role !== 'employee'))) {
+    if (!authLoading && !isAuthenticated) {
       toast({
-        title: "Brak uprawnień",
-        description: "Dostęp do wycen jest dostępny tylko dla pracowników i administratorów.",
+        title: "Wymagane logowanie",
+        description: "Dostęp do wycen wymaga zalogowania.",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/auth";
       }, 1000);
     }
-  }, [isAuthenticated, user, authLoading, toast]);
+  }, [isAuthenticated, authLoading, toast]);
 
   const { data: quotes = [], isLoading } = useQuery<Quote[]>({
     queryKey: ["/api/quotes"],
-    enabled: isAuthenticated && (user as any)?.role === 'admin',
+    enabled: isAuthenticated,
   });
 
   const deleteQuoteMutation = useMutation({
@@ -124,8 +124,8 @@ export default function Quotes() {
     return <div className="flex justify-center items-center h-64">Sprawdzanie uprawnień...</div>;
   }
 
-  // Don't render if user is not admin
-  if (!isAuthenticated || (user as any)?.role !== 'admin') {
+  // Don't render if user is not authenticated
+  if (!isAuthenticated) {
     return null;
   }
 

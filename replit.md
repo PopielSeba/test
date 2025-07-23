@@ -100,6 +100,11 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **RESTORED Replit Auth functionality**: Fixed authentication system to support both Replit and local auth simultaneously
 - **Fixed pending approval workflow**: Users now see proper waiting page instead of infinite loading loops
 - **Unified serialization system**: Both authentication methods work seamlessly with proper session management
+- **IMPLEMENTED FULL QUOTE ACCESS FOR ALL USERS**: Removed admin/employee restrictions from quote functionality - all authenticated users can now create, view, edit, and print quotes
+- **Updated server-side permissions**: Modified all quote and quote-item endpoints to allow access for any authenticated user
+- **Enhanced navigation menu**: Added "Wyceny" menu item for all users, maintaining "Admin" access only for administrators
+- **Fixed dashboard quotes display**: All authenticated users now see recent quotes section and statistics
+- **Maintained admin-only restrictions**: Only quote deletion remains restricted to administrators for data integrity
 
 
 
