@@ -38,10 +38,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
-  // Auth middleware - this will register the production logout endpoint
-  if (!isDevelopment) {
-    await setupAuth(app);
-  }
+  // Auth middleware - setup auth in both dev and prod, but with different logout behavior
+  await setupAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
