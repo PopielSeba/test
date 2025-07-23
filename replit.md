@@ -67,6 +67,11 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Added comprehensive service cost support**: All equipment categories (klimatyzacje, nagrzewnice, agregaty, maszty, kurtyny, wyciągi) now support individual service costing
 - **Fixed authentication issues in development**: Disabled authentication middleware for smooth development workflow
 - **Database integrity restored**: Added unique constraints and proper service cost/item relationships for all equipment
+- **RESOLVED infinite loop bug in service cost calculations**: Fixed critical issue where prices continuously increased due to calculation loops
+- **Universal service cost access**: Extended service cost functionality to ALL equipment categories, removing category restrictions
+- **Added configurable daily working hours**: Users can now set custom working hours per day (1-24h) for accurate motohour calculations
+- **Enhanced service cost calculations**: System now uses proportional calculations based on actual engine hours and service intervals
+- **Improved user experience**: Added helpful hints for standard work shifts (8h=1 shift, 16h=2 shifts, 24h=continuous operation)
 
 
 
