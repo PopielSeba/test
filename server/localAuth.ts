@@ -22,31 +22,8 @@ async function comparePasswords(supplied: string, stored: string): Promise<boole
 }
 
 export function setupLocalAuth(app: Express) {
-  // Set up passport serialization for local users
-  passport.serializeUser((user: any, done) => {
-    if (user.claims) {
-      // Replit user
-      done(null, { type: 'replit', id: user.claims.sub });
-    } else {
-      // Local user
-      done(null, { type: 'local', id: user.id });
-    }
-  });
-
-  passport.deserializeUser(async (obj: any, done) => {
-    try {
-      if (obj.type === 'replit') {
-        const user = await storage.getUser(obj.id);
-        done(null, { claims: { sub: obj.id } });
-      } else {
-        // Always fetch fresh user data for local users to get latest approval status
-        const user = await storage.getUser(obj.id);
-        done(null, user);
-      }
-    } catch (error) {
-      done(error);
-    }
-  });
+  // We override the serialize/deserialize ONLY for local users
+  // The replitAuth.ts handles Replit users via its own serialization
 
   passport.use('local-login',
     new LocalStrategy(
