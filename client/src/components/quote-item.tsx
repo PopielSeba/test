@@ -161,6 +161,18 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     enabled: !!item.equipmentId && item.equipmentId > 0,
   });
 
+  // Query to get service costs for the selected equipment
+  const { data: serviceCosts } = useQuery({
+    queryKey: ["/api/equipment", item.equipmentId, "service-costs"],
+    enabled: !!item.equipmentId && item.equipmentId > 0,
+  });
+
+  // Query to get service items for the selected equipment
+  const { data: serviceItems = [] } = useQuery({
+    queryKey: ["/api/equipment", item.equipmentId, "service-items"],
+    enabled: !!item.equipmentId && item.equipmentId > 0,
+  });
+
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
@@ -766,13 +778,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   let updatedItem = { ...item };
                   
                   if (checked) {
-                    // Load default values from API if available
-                    if (maintenanceDefaults && selectedEquipment?.category?.name === 'Nagrzewnice') {
+                    // Load default values from service items or use fallback defaults
+                    if (selectedEquipment?.category?.name === 'Nagrzewnice') {
                       updatedItem = {
                         ...updatedItem,
-                        serviceItem1Cost: updatedItem.serviceItem1Cost || parseFloat(maintenanceDefaults.serviceItem1Cost) || 0,
-                        serviceItem2Cost: updatedItem.serviceItem2Cost || parseFloat(maintenanceDefaults.serviceItem2Cost) || 0,
-                        serviceItem3Cost: updatedItem.serviceItem3Cost || parseFloat(maintenanceDefaults.serviceItem3Cost) || 0,
+                        serviceItem1Cost: updatedItem.serviceItem1Cost || (serviceItems[0]?.itemCost ? parseFloat(serviceItems[0].itemCost) : 200),
+                        serviceItem2Cost: updatedItem.serviceItem2Cost || (serviceItems[1]?.itemCost ? parseFloat(serviceItems[1].itemCost) : 100),
+                        serviceItem3Cost: updatedItem.serviceItem3Cost || (serviceItems[2]?.itemCost ? parseFloat(serviceItems[2].itemCost) : 150),
                       };
                     }
                     
@@ -782,7 +794,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     updatedItem.totalServiceItemsCost = 0;
                   }
                   
-                  updatedItem.includeServiceItems = checked;
+                  updatedItem.includeServiceItems = checked as boolean;
                   onUpdate(updatedItem);
                 }}
               />
@@ -805,7 +817,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {'Przegląd serwisowy'}
+                    {serviceItems[0]?.itemName || 'Przegląd serwisowy'}
                   </label>
                   <Input
                     type="number"
@@ -820,13 +832,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         totalServiceItemsCost: totalCost
                       });
                     }}
-                    placeholder="0.00"
+                    placeholder={serviceItems[0]?.itemCost ? parseFloat(serviceItems[0].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {'Dojazd'}
+                    {serviceItems[1]?.itemName || 'Dojazd'}
                   </label>
                   <Input
                     type="number"
@@ -841,13 +853,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         totalServiceItemsCost: totalCost
                       });
                     }}
-                    placeholder="0.00"
+                    placeholder={serviceItems[1]?.itemCost ? parseFloat(serviceItems[1].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {'Wymiana palnika'}
+                    {serviceItems[2]?.itemName || 'Wymiana palnika'}
                   </label>
                   <Input
                     type="number"
@@ -862,7 +874,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         totalServiceItemsCost: totalCost
                       });
                     }}
-                    placeholder="0.00"
+                    placeholder={serviceItems[2]?.itemCost ? parseFloat(serviceItems[2].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
               </div>
