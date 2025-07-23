@@ -22,9 +22,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Development mode bypass
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const authMiddleware = isDevelopment ? (req: any, res: any, next: any) => next() : isAuthenticated;
+
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', authMiddleware, async (req: any, res) => {
     try {
+      if (isDevelopment) {
+        // Return mock user in development
+        return res.json({
+          id: "dev-user",
+          email: "dev@localhost",
+          firstName: "Development",
+          lastName: "User",
+          role: "admin"
+        });
+      }
+      
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       res.json(user);
