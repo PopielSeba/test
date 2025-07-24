@@ -1073,11 +1073,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.serviceItem1Cost || 0}
                     onChange={(e) => {
                       const cost = parseFloat(e.target.value) || 0;
-                      const totalCost = cost + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
+                      // Don't update totalServiceItemsCost here - let useEffect calculate it proportionally
                       onUpdate({
                         ...item,
-                        serviceItem1Cost: cost,
-                        totalServiceItemsCost: totalCost
+                        serviceItem1Cost: cost
                       });
                     }}
                     placeholder={(serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost).toFixed(2) : "0.00"}
@@ -1094,11 +1093,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.serviceItem2Cost || 0}
                     onChange={(e) => {
                       const cost = parseFloat(e.target.value) || 0;
-                      const totalCost = (item.serviceItem1Cost || 0) + cost + (item.serviceItem3Cost || 0);
+                      // Don't update totalServiceItemsCost here - let useEffect calculate it proportionally
                       onUpdate({
                         ...item,
-                        serviceItem2Cost: cost,
-                        totalServiceItemsCost: totalCost
+                        serviceItem2Cost: cost
                       });
                     }}
                     placeholder={(serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost).toFixed(2) : "0.00"}
@@ -1115,11 +1113,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.serviceItem3Cost || 0}
                     onChange={(e) => {
                       const cost = parseFloat(e.target.value) || 0;
-                      const totalCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + cost;
+                      // Don't update totalServiceItemsCost here - let useEffect calculate it proportionally
                       onUpdate({
                         ...item,
-                        serviceItem3Cost: cost,
-                        totalServiceItemsCost: totalCost
+                        serviceItem3Cost: cost
                       });
                     }}
                     placeholder={(serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost).toFixed(2) : "0.00"}
