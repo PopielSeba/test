@@ -94,6 +94,12 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **User interface improvements**: Removed duplicate buttons and information sections on landing page for cleaner presentation
 
 ### January 24, 2025
+- **NAPRAWIONO problemy z pamięcią wyposażenia dodatkowego w edycji**: System teraz poprawnie parsuje wybrane wyposażenie i akcesoria z pola notes oraz automatycznie przelicza ich koszty
+- **Dodano automatyczne obliczanie kosztów**: useEffect monitoruje załadowane dane i synchronizuje koszty wyposażenia dodatkowego z wybranymi elementami
+- **Rozwiązano problem z nazwami usług na wydruku**: System pobiera rzeczywiste nazwy usług z bazy danych zamiast pokazywać hardcoded "wymiana palnika"
+- **Naprawiono formatowanie wartości paliwowej**: Usunięto ostrzeżenia walidacji w polach input poprzez konwersję na string
+
+### January 24, 2025 (wcześniej)
 - **ADDED VEHICLE CATEGORY**: Implemented "Pojazdy" category with kilometer-based fuel consumption calculations
 - **Database schema updates**: Added vehicle-specific fields (fuelConsumptionPer100km, kilometersPerDay, calculationType, serviceIntervalKm) to quote_items and equipment_service_costs tables
 - **Frontend vehicle support**: Updated quote-item.tsx to show different calculation inputs for vehicles (l/100km, km/day) vs traditional equipment (l/h, hours/day)
