@@ -411,12 +411,30 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             } else if (isVehicle) {
               // For vehicles - use kilometer intervals
               const serviceIntervalKm = parseInt((serviceCosts as any).serviceIntervalKm) || 15000;
-              const dailyKm = (item as any).dailyKm || 100;
+              const dailyKm = item.kilometersPerDay || 100;
               const expectedKm = item.rentalPeriodDays * dailyKm;
               
               // Calculate proportional service cost based on actual usage vs interval
               const proportionFactor = expectedKm / serviceIntervalKm;
               totalServiceCost = totalServiceItemsCost * proportionFactor * item.quantity;
+              
+              console.log('Vehicle Service Cost Calculation:', {
+                categoryName: selectedEquipment.category.name,
+                equipmentName: selectedEquipment.name,
+                totalServiceItemsCost,
+                serviceItem1Cost: item.serviceItem1Cost,
+                serviceItem2Cost: item.serviceItem2Cost,
+                serviceItem3Cost: item.serviceItem3Cost,
+                serviceItem4Cost: (item as any).serviceItem4Cost,
+                serviceIntervalKm,
+                dailyKm,
+                rentalDays: item.rentalPeriodDays,
+                expectedKm,
+                proportionFactor,
+                quantity: item.quantity,
+                finalCost: totalServiceCost,
+                note: 'Check if all service items are included'
+              });
             } else {
               // For other equipment - use monthly intervals
               const serviceIntervalMonths = parseInt((serviceCosts as any).serviceIntervalMonths) || 12;
