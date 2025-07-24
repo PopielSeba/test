@@ -43,6 +43,7 @@ interface QuoteItemData {
   serviceItem1Cost?: number;
   serviceItem2Cost?: number;
   serviceItem3Cost?: number;
+  serviceItem4Cost?: number;
   totalServiceItemsCost?: number;
 
   // Maintenance/exploitation cost fields for generators
@@ -122,6 +123,39 @@ interface QuoteItemProps {
 
 
 export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, onRemove, canRemove }: QuoteItemProps) {
+  // Helper functions for handling notes with hidden JSON data
+  const getUserNotes = (notes: string): string => {
+    try {
+      if (notes.startsWith('{"selectedAdditional"')) {
+        const notesData = JSON.parse(notes);
+        return notesData.userNotes || "";
+      }
+      return notes;
+    } catch (e) {
+      return notes;
+    }
+  };
+  
+  const handleNotesChange = (userNotes: string) => {
+    try {
+      let newNotes;
+      if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+        const notesData = JSON.parse(item.notes);
+        newNotes = JSON.stringify({
+          ...notesData,
+          userNotes: userNotes
+        });
+      } else {
+        // If no technical data exists yet, just save user notes directly
+        newNotes = userNotes;
+      }
+      onUpdate({ ...item, notes: newNotes });
+    } catch (e) {
+      // If parsing fails, just save user notes directly
+      onUpdate({ ...item, notes: userNotes });
+    }
+  };
+
   // Initialize selectedCategory based on current equipment
   const currentEquipment = equipment.find(eq => eq.id === item.equipmentId);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(
@@ -168,13 +202,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
   });
 
   // Query to get service costs for the selected equipment
-  const { data: serviceCosts } = useQuery({
+  const { data: serviceCosts } = useQuery<any>({
     queryKey: ["/api/equipment", item.equipmentId, "service-costs"],
     enabled: !!item.equipmentId && item.equipmentId > 0,
   });
 
   // Query to get service items for the selected equipment
-  const { data: serviceItems = [], refetch: refetchServiceItems } = useQuery({
+  const { data: serviceItems = [], refetch: refetchServiceItems } = useQuery<any[]>({
     queryKey: ["/api/equipment", item.equipmentId, "service-items"],
     enabled: !!item.equipmentId && item.equipmentId > 0,
     staleTime: 0, // Always fetch fresh data
@@ -183,15 +217,15 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
   // Auto-populate service costs from database when service items load and costs are enabled but empty
   useEffect(() => {
-    if (item.includeServiceItems && serviceItems && (serviceItems as any[]).length > 0) {
+    if (item.includeServiceItems && serviceItems && serviceItems.length > 0) {
       // Check if values need to be populated (all are 0)
-      const hasEmptyValues = (item.serviceItem1Cost || 0) === 0 && (item.serviceItem2Cost || 0) === 0 && (item.serviceItem3Cost || 0) === 0 && ((item as any).serviceItem4Cost || 0) === 0;
+      const hasEmptyValues = (item.serviceItem1Cost || 0) === 0 && (item.serviceItem2Cost || 0) === 0 && (item.serviceItem3Cost || 0) === 0 && (item.serviceItem4Cost || 0) === 0;
       
       if (hasEmptyValues) {
-        const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 0;
-        const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
-        const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
-        const item4Cost = (serviceItems as any[])[3]?.itemCost ? parseFloat((serviceItems as any[])[3].itemCost) : 0;
+        const item1Cost = serviceItems[0]?.itemCost ? parseFloat(serviceItems[0].itemCost) : 0;
+        const item2Cost = serviceItems[1]?.itemCost ? parseFloat(serviceItems[1].itemCost) : 0;
+        const item3Cost = serviceItems[2]?.itemCost ? parseFloat(serviceItems[2].itemCost) : 0;
+        const item4Cost = serviceItems[3]?.itemCost ? parseFloat(serviceItems[3].itemCost) : 0;
         
         console.log('Auto-populating service costs from database (useEffect):', { 
           serviceItemsLength: serviceItems.length,
@@ -200,7 +234,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           item3Cost,
           item4Cost,
           rawServiceItems: serviceItems,
-          itemNames: (serviceItems as any[]).map(item => item?.itemName)
+          itemNames: serviceItems.map(item => item?.itemName)
         });
         
         if (item1Cost > 0 || item2Cost > 0 || item3Cost > 0 || item4Cost > 0) {
@@ -210,7 +244,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             serviceItem2Cost: item2Cost,
             serviceItem3Cost: item3Cost,
             serviceItem4Cost: item4Cost,
-          } as any);
+          });
         }
       }
     }
@@ -605,12 +639,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
 
 
-  const handleNotesChange = (notes: string) => {
-    onUpdate({
-      ...item,
-      notes,
-    });
-  };
+
 
   const formatCurrency = (amount: number) => {
     if (isNaN(amount)) {
@@ -1245,7 +1274,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])?.[0]?.itemName || 'Pozycja serwisowa 1'}
+                    {serviceItems?.[0]?.itemName || 'Pozycja serwisowa 1'}
                   </label>
                   <Input
                     type="number"
@@ -1259,13 +1288,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         serviceItem1Cost: cost
                       });
                     }}
-                    placeholder={(serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost).toFixed(2) : "0.00"}
+                    placeholder={serviceItems[0]?.itemCost ? parseFloat(serviceItems[0].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])?.[1]?.itemName || 'Pozycja serwisowa 2'}
+                    {serviceItems?.[1]?.itemName || 'Pozycja serwisowa 2'}
                   </label>
                   <Input
                     type="number"
@@ -1279,13 +1308,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         serviceItem2Cost: cost
                       });
                     }}
-                    placeholder={(serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost).toFixed(2) : "0.00"}
+                    placeholder={serviceItems[1]?.itemCost ? parseFloat(serviceItems[1].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])?.[2]?.itemName || 'Pozycja serwisowa 3'}
+                    {serviceItems?.[2]?.itemName || 'Pozycja serwisowa 3'}
                   </label>
                   <Input
                     type="number"
@@ -1299,18 +1328,18 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         serviceItem3Cost: cost
                       });
                     }}
-                    placeholder={(serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost).toFixed(2) : "0.00"}
+                    placeholder={serviceItems[2]?.itemCost ? parseFloat(serviceItems[2].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])?.[3]?.itemName || 'Pozycja serwisowa 4'}
+                    {serviceItems?.[3]?.itemName || 'Pozycja serwisowa 4'}
                   </label>
                   <Input
                     type="number"
                     step="0.01"
-                    value={(item as any).serviceItem4Cost || 0}
+                    value={item.serviceItem4Cost || 0}
                     onChange={(e) => {
                       const cost = parseFloat(e.target.value) || 0;
                       onUpdate({
@@ -1318,7 +1347,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         serviceItem4Cost: cost
                       });
                     }}
-                    placeholder={(serviceItems as any[])[3]?.itemCost ? parseFloat((serviceItems as any[])[3].itemCost).toFixed(2) : "0.00"}
+                    placeholder={serviceItems[3]?.itemCost ? parseFloat(serviceItems[3].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
               </div>
@@ -1338,23 +1367,23 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     <div className="space-y-1 text-muted-foreground">
                       {isVehicle ? (
                         <>
-                          <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalKm || 15000} km</div>
+                          <div>Interwał serwisu: {serviceCosts?.serviceIntervalKm || 15000} km</div>
                           <div>Przewidywane kilometry: {item.rentalPeriodDays * (item.kilometersPerDay || 100)} km</div>
-                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.kilometersPerDay || 100)) / ((serviceCosts as any).serviceIntervalKm || 15000) * 100).toFixed(2)}%</div>
+                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.kilometersPerDay || 100)) / (serviceCosts?.serviceIntervalKm || 15000) * 100).toFixed(2)}%</div>
                           <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       ) : isGenerator || isLightingTower ? (
                         <>
-                          <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalMotohours || 500} mth (motogodzin)</div>
+                          <div>Interwał serwisu: {serviceCosts?.serviceIntervalMotohours || 500} mth (motogodzin)</div>
                           <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)} mth</div>
-                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.hoursPerDay || 8)) / ((serviceCosts as any).serviceIntervalMotohours || 500) * 100).toFixed(2)}%</div>
+                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.hoursPerDay || 8)) / (serviceCosts?.serviceIntervalMotohours || 500) * 100).toFixed(2)}%</div>
                           <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       ) : (
                         <>
-                          <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalMonths || 12} miesięcy</div>
+                          <div>Interwał serwisu: {serviceCosts?.serviceIntervalMonths || 12} miesięcy</div>
                           <div>Okres wynajmu: {item.rentalPeriodDays} dni</div>
-                          <div>Proporcja użytkowania: {(item.rentalPeriodDays / ((serviceCosts as any).serviceIntervalMonths * 30 || 360) * 100).toFixed(2)}%</div>
+                          <div>Proporcja użytkowania: {(item.rentalPeriodDays / (serviceCosts?.serviceIntervalMonths * 30 || 360) * 100).toFixed(2)}%</div>
                           <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       )}
@@ -1744,10 +1773,20 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         newCost -= parseFloat(additional.price);
                       }
                       
+                      // Save selected items info in notes as JSON (hidden from user)
+                      const currentNotes = item.notes || "";
+                      const hiddenData = {
+                        selectedAdditional: newSelected,
+                        selectedAccessories: item.selectedAccessories || [],
+                        userNotes: currentNotes.startsWith('{"selectedAdditional"') ? 
+                          JSON.parse(currentNotes).userNotes || "" : currentNotes
+                      };
+                      
                       onUpdate({
                         ...item,
                         selectedAdditional: newSelected,
-                        additionalCost: Math.max(0, newCost)
+                        additionalCost: Math.max(0, newCost),
+                        notes: JSON.stringify(hiddenData)
                       });
                     }}
                   />
@@ -1816,10 +1855,20 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         newCost -= parseFloat(accessory.price);
                       }
                       
+                      // Save selected items info in notes as JSON (hidden from user)  
+                      const currentNotes = item.notes || "";
+                      const hiddenData = {
+                        selectedAdditional: item.selectedAdditional || [],
+                        selectedAccessories: newSelected,
+                        userNotes: currentNotes.startsWith('{"selectedAdditional"') ? 
+                          JSON.parse(currentNotes).userNotes || "" : currentNotes
+                      };
+                      
                       onUpdate({
                         ...item,
                         selectedAccessories: newSelected,
-                        accessoriesCost: Math.max(0, newCost)
+                        accessoriesCost: Math.max(0, newCost),
+                        notes: JSON.stringify(hiddenData)
                       });
                     }}
                   />
@@ -1838,7 +1887,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-2">Uwagi</label>
           <Textarea
-            value={item.notes || ""}
+            value={getUserNotes(item.notes || "")}
             onChange={(e) => handleNotesChange(e.target.value)}
             placeholder="Dodatkowe uwagi do pozycji"
             rows={2}

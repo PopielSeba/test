@@ -1028,27 +1028,45 @@ function generateQuoteHTML(quote: any) {
     }
 
     // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
-    // Show additional equipment only if costs are > 0 (indicating items were selected)
-    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0 && 
-        (parseFloat(item.additionalCost || '0') > 0 || parseFloat(item.accessoriesCost || '0') > 0)) {
+    // Show selected additional equipment based on data stored in notes field
+    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
+      let selectedAdditionalIds: number[] = [];
+      let selectedAccessoriesIds: number[] = [];
       
-      // For now, show all additional equipment if any cost is present
-      // In future version, we'll properly track selected items in database
-      const additionalItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'additional');
-      const accessoryItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'accessories');
+      // Try to parse selected items from notes field (JSON format)
+      try {
+        if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+          const notesData = JSON.parse(item.notes);
+          selectedAdditionalIds = notesData.selectedAdditional || [];
+          selectedAccessoriesIds = notesData.selectedAccessories || [];
+        }
+      } catch (e) {
+        // If parsing fails, don't show any additional equipment
+      }
       
-      if ((additionalItems.length > 0 && parseFloat(item.additionalCost || '0') > 0) || 
-          (accessoryItems.length > 0 && parseFloat(item.accessoriesCost || '0') > 0)) {
+      // Filter to show only selected items
+      const selectedAdditionalItems = item.equipment.additionalEquipment.filter((add: any) => 
+        add.type === 'additional' && selectedAdditionalIds.includes(add.id)
+      );
+      const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
+        add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
+      );
+      
+      if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
         let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
         
-        if (additionalItems.length > 0 && parseFloat(item.additionalCost || '0') > 0) {
+        if (selectedAdditionalItems.length > 0) {
           additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
-          additionalHTML += `• Koszt wyposażenia dodatkowego: ${formatCurrency(item.additionalCost)}<br>`;
+          selectedAdditionalItems.forEach((add: any) => {
+            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
+          });
         }
         
-        if (accessoryItems.length > 0 && parseFloat(item.accessoriesCost || '0') > 0) {
+        if (selectedAccessoryItems.length > 0) {
           additionalHTML += '<strong>Akcesoria:</strong><br>';
-          additionalHTML += `• Koszt akcesoriów: ${formatCurrency(item.accessoriesCost)}<br>`;
+          selectedAccessoryItems.forEach((add: any) => {
+            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
+          });
         }
         
         detailsRows.push(`
@@ -1061,12 +1079,24 @@ function generateQuoteHTML(quote: any) {
       }
     }
 
-    // Uwagi
-    if (item.notes) {
+    // Uwagi - show only user notes, not technical JSON data
+    let userNotes = "";
+    try {
+      if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+        const notesData = JSON.parse(item.notes);
+        userNotes = notesData.userNotes || "";
+      } else {
+        userNotes = item.notes || "";
+      }
+    } catch (e) {
+      userNotes = item.notes || "";
+    }
+    
+    if (userNotes.trim()) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f5f5f5; font-size: 0.9em;">
-            <strong>📝 Uwagi:</strong> ${item.notes}
+            <strong>📝 Uwagi:</strong> ${userNotes}
           </td>
         </tr>
       `);

@@ -201,6 +201,9 @@ export const quoteItems = pgTable("quote_items", {
   serviceItem3Cost: decimal("service_item_3_cost", { precision: 8, scale: 2 }).default("0.00"),
   serviceItem4Cost: decimal("service_item_4_cost", { precision: 8, scale: 2 }).default("0.00"),
   totalServiceItemsCost: decimal("total_service_items_cost", { precision: 10, scale: 2 }).default("0.00"),
+  // Additional equipment tracking
+  additionalCost: decimal("additional_cost", { precision: 10, scale: 2 }).default("0.00"),
+  accessoriesCost: decimal("accessories_cost", { precision: 10, scale: 2 }).default("0.00"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
