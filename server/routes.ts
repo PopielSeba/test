@@ -1067,68 +1067,33 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
-    // Show selected additional equipment based on data stored in notes field
-    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
-      let selectedAdditionalIds: number[] = [];
-      let selectedAccessoriesIds: number[] = [];
+    // Wyposażenie dodatkowe i akcesoria - nowa implementacja
+    // Oparta na kolumnach additionalCost i accessoriesCost zamiast parsowania JSON
+    const hasAdditionalCosts = parseFloat(item.additionalCost || 0) > 0;
+    const hasAccessoriesCosts = parseFloat(item.accessoriesCost || 0) > 0;
+    
+    if (hasAdditionalCosts || hasAccessoriesCosts) {
+      let additionalHTML = '';
       
-      // Try to parse selected items from notes field (JSON format)
-      try {
-        if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
-          const notesData = JSON.parse(item.notes);
-          selectedAdditionalIds = notesData.selectedAdditional || [];
-          selectedAccessoriesIds = notesData.selectedAccessories || [];
-          console.log('Print debug - parsed notes:', {
-            selectedAdditionalIds,
-            selectedAccessoriesIds,
-            availableAdditional: item.equipment.additionalEquipment?.map((a: any) => ({ id: a.id, name: a.name, type: a.type, price: a.price })),
-            notesRaw: item.notes
-          });
-        }
-      } catch (e) {
-        // If parsing fails, don't show any additional equipment
-        console.log('Print debug - notes parsing failed:', e);
+      if (hasAdditionalCosts) {
+        additionalHTML += `<strong>Wyposażenie dodatkowe:</strong> ${formatCurrency(parseFloat(item.additionalCost))}<br>`;
       }
       
-      // Filter to show only selected items
-      const selectedAdditionalItems = item.equipment.additionalEquipment.filter((add: any) => 
-        add.type === 'additional' && selectedAdditionalIds.includes(add.id)
-      );
-      const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
-        add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
-      );
-      
-      console.log('Print debug - filtered results:', {
-        selectedAdditionalItems: selectedAdditionalItems.map((a: any) => ({ id: a.id, name: a.name, price: a.price })),
-        selectedAccessoryItems: selectedAccessoryItems.map((a: any) => ({ id: a.id, name: a.name, price: a.price }))
-      });
-      
-      if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
-        let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
-        
-        if (selectedAdditionalItems.length > 0) {
-          additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
-          selectedAdditionalItems.forEach((add: any) => {
-            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
-          });
-        }
-        
-        if (selectedAccessoryItems.length > 0) {
-          additionalHTML += '<strong>Akcesoria:</strong><br>';
-          selectedAccessoryItems.forEach((add: any) => {
-            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
-          });
-        }
-        
-        detailsRows.push(`
-          <tr>
-            <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0f8ff; font-size: 0.9em;">
-              ${additionalHTML}
-            </td>
-          </tr>
-        `);
+      if (hasAccessoriesCosts) {
+        additionalHTML += `<strong>Akcesoria:</strong> ${formatCurrency(parseFloat(item.accessoriesCost))}<br>`;
       }
+      
+      const totalAdditionalCost = (parseFloat(item.additionalCost || 0) + parseFloat(item.accessoriesCost || 0));
+      additionalHTML += `<strong>Razem:</strong> ${formatCurrency(totalAdditionalCost)}`;
+      
+      detailsRows.push(`
+        <tr>
+          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0f8ff; font-size: 0.9em;">
+            <strong>📦 Wyposażenie dodatkowe i akcesoria:</strong><br>
+            ${additionalHTML}
+          </td>
+        </tr>
+      `);
     }
 
     // Uwagi - show only user notes, not technical JSON data
