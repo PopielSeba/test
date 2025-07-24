@@ -1028,23 +1028,31 @@ function generateQuoteHTML(quote: any) {
     }
 
     // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
+    // Only show additional equipment that was actually selected
     if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
-      const additionalItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'additional');
-      const accessoryItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'accessories');
+      const selectedAdditionalIds = item.selectedAdditional || [];
+      const selectedAccessoriesIds = item.selectedAccessories || [];
       
-      if (additionalItems.length > 0 || accessoryItems.length > 0) {
+      const selectedAdditionalItems = item.equipment.additionalEquipment.filter((add: any) => 
+        add.type === 'additional' && selectedAdditionalIds.includes(add.id)
+      );
+      const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
+        add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
+      );
+      
+      if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
         let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
         
-        if (additionalItems.length > 0) {
+        if (selectedAdditionalItems.length > 0) {
           additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
-          additionalItems.forEach((add: any) => {
+          selectedAdditionalItems.forEach((add: any) => {
             additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
           });
         }
         
-        if (accessoryItems.length > 0) {
+        if (selectedAccessoryItems.length > 0) {
           additionalHTML += '<strong>Akcesoria:</strong><br>';
-          accessoryItems.forEach((add: any) => {
+          selectedAccessoryItems.forEach((add: any) => {
             additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
           });
         }

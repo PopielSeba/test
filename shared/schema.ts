@@ -201,6 +201,11 @@ export const quoteItems = pgTable("quote_items", {
   serviceItem3Cost: decimal("service_item_3_cost", { precision: 8, scale: 2 }).default("0.00"),
   serviceItem4Cost: decimal("service_item_4_cost", { precision: 8, scale: 2 }).default("0.00"),
   totalServiceItemsCost: decimal("total_service_items_cost", { precision: 10, scale: 2 }).default("0.00"),
+  // Additional equipment selection fields
+  selectedAdditional: integer("selected_additional").array(), // Array of selected additional equipment IDs
+  selectedAccessories: integer("selected_accessories").array(), // Array of selected accessories IDs
+  additionalCost: decimal("additional_cost", { precision: 10, scale: 2 }).default("0.00"),
+  accessoriesCost: decimal("accessories_cost", { precision: 10, scale: 2 }).default("0.00"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
