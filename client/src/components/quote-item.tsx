@@ -986,11 +986,18 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   if (checked) {
                     // Load default values from service items or use fallback defaults for all equipment
                     if (selectedEquipment) {
+                      console.log('Service items data:', serviceItems);
+                      const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 200;
+                      const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 100;
+                      const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 150;
+                      
+                      console.log('Setting service costs:', { item1Cost, item2Cost, item3Cost });
+                      
                       updatedItem = {
                         ...updatedItem,
-                        serviceItem1Cost: updatedItem.serviceItem1Cost || ((serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 200),
-                        serviceItem2Cost: updatedItem.serviceItem2Cost || ((serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 100),
-                        serviceItem3Cost: updatedItem.serviceItem3Cost || ((serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 150),
+                        serviceItem1Cost: updatedItem.serviceItem1Cost || item1Cost,
+                        serviceItem2Cost: updatedItem.serviceItem2Cost || item2Cost,
+                        serviceItem3Cost: updatedItem.serviceItem3Cost || item3Cost,
                       };
                     }
                     
