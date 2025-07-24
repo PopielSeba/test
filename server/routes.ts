@@ -1042,7 +1042,7 @@ function generateQuoteHTML(quote: any) {
           console.log('Print debug - parsed notes:', {
             selectedAdditionalIds,
             selectedAccessoriesIds,
-            availableAdditional: item.equipment.additionalEquipment?.map(a => ({ id: a.id, name: a.name, type: a.type, price: a.price })),
+            availableAdditional: item.equipment.additionalEquipment?.map((a: any) => ({ id: a.id, name: a.name, type: a.type, price: a.price })),
             notesRaw: item.notes
           });
         }
@@ -1060,8 +1060,8 @@ function generateQuoteHTML(quote: any) {
       );
       
       console.log('Print debug - filtered results:', {
-        selectedAdditionalItems: selectedAdditionalItems.map(a => ({ id: a.id, name: a.name, price: a.price })),
-        selectedAccessoryItems: selectedAccessoryItems.map(a => ({ id: a.id, name: a.name, price: a.price }))
+        selectedAdditionalItems: selectedAdditionalItems.map((a: any) => ({ id: a.id, name: a.name, price: a.price })),
+        selectedAccessoryItems: selectedAccessoryItems.map((a: any) => ({ id: a.id, name: a.name, price: a.price }))
       });
       
       if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {

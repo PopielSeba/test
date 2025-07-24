@@ -881,7 +881,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         step="0.1"
                         min="0"
                         placeholder="np. 35.3"
-                        value={item.fuelConsumptionLH || ""}
+                        value={item.fuelConsumptionLH?.toString() || ""}
                         onChange={(e) => {
                           const consumption = parseFloat(e.target.value) || 0;
                           const hours = item.hoursPerDay || 8;
