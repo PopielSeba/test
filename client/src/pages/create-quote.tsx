@@ -352,9 +352,13 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
 
   const updateQuoteItem = (id: string, updatedItem: QuoteItemData) => {
     console.log('PARENT UPDATE DEBUG: updateQuoteItem called for id:', id, 'with totalServiceItemsCost:', updatedItem.totalServiceItemsCost);
-    setQuoteItems(quoteItems.map(item => 
-      item.id === id ? updatedItem : item
-    ));
+    // Force deep copy to ensure React detects changes
+    const forcedCopy = { ...updatedItem, _forceRender: Date.now() };
+    setQuoteItems(prevItems => 
+      prevItems.map(item => 
+        item.id === id ? forcedCopy : item
+      )
+    );
   };
 
   const calculateTotals = () => {
