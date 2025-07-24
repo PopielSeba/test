@@ -215,30 +215,57 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     gcTime: 0, // Don't cache
   });
 
-  // Calculate additional equipment costs when data loads
+  // Calculate additional equipment costs when data loads or selections change
   useEffect(() => {
-    if (additionalEquipment && additionalEquipment.length > 0 && item.selectedAdditional && item.selectedAdditional.length > 0) {
-      const currentAdditionalCost = item.selectedAdditional.reduce((sum, id) => {
-        const additionalItem = additionalEquipment.find(add => add.id === id && add.type === 'additional');
-        return sum + (additionalItem ? parseFloat(additionalItem.price) : 0);
-      }, 0);
+    if (additionalEquipment && additionalEquipment.length > 0) {
+      let shouldUpdate = false;
+      let updatedItem = { ...item };
       
-      if (currentAdditionalCost !== (item.additionalCost || 0)) {
-        onUpdate({ ...item, additionalCost: currentAdditionalCost });
+      // Calculate additional equipment costs
+      if (item.selectedAdditional && item.selectedAdditional.length > 0) {
+        const currentAdditionalCost = item.selectedAdditional.reduce((sum, id) => {
+          const additionalItem = additionalEquipment.find(add => add.id === id && add.type === 'additional');
+          return sum + (additionalItem ? parseFloat(additionalItem.price) : 0);
+        }, 0);
+        
+        if (currentAdditionalCost !== (item.additionalCost || 0)) {
+          updatedItem.additionalCost = currentAdditionalCost;
+          shouldUpdate = true;
+        }
+      } else if ((item.additionalCost || 0) > 0) {
+        // Reset cost if no items selected
+        updatedItem.additionalCost = 0;
+        shouldUpdate = true;
+      }
+      
+      // Calculate accessories costs
+      if (item.selectedAccessories && item.selectedAccessories.length > 0) {
+        const currentAccessoriesCost = item.selectedAccessories.reduce((sum, id) => {
+          const accessoryItem = additionalEquipment.find(acc => acc.id === id && acc.type === 'accessories');
+          return sum + (accessoryItem ? parseFloat(accessoryItem.price) : 0);
+        }, 0);
+        
+        if (currentAccessoriesCost !== (item.accessoriesCost || 0)) {
+          updatedItem.accessoriesCost = currentAccessoriesCost;
+          shouldUpdate = true;
+        }
+      } else if ((item.accessoriesCost || 0) > 0) {
+        // Reset cost if no items selected
+        updatedItem.accessoriesCost = 0;
+        shouldUpdate = true;
+      }
+      
+      if (shouldUpdate) {
+        console.log('Updating additional costs:', {
+          additionalCost: updatedItem.additionalCost,
+          accessoriesCost: updatedItem.accessoriesCost,
+          selectedAdditional: item.selectedAdditional,
+          selectedAccessories: item.selectedAccessories
+        });
+        onUpdate(updatedItem);
       }
     }
-    
-    if (additionalEquipment && additionalEquipment.length > 0 && item.selectedAccessories && item.selectedAccessories.length > 0) {
-      const currentAccessoriesCost = item.selectedAccessories.reduce((sum, id) => {
-        const accessoryItem = additionalEquipment.find(acc => acc.id === id && acc.type === 'accessories');
-        return sum + (accessoryItem ? parseFloat(accessoryItem.price) : 0);
-      }, 0);
-      
-      if (currentAccessoriesCost !== (item.accessoriesCost || 0)) {
-        onUpdate({ ...item, accessoriesCost: currentAccessoriesCost });
-      }
-    }
-  }, [additionalEquipment, item.selectedAdditional, item.selectedAccessories]);
+  }, [additionalEquipment, item.selectedAdditional, item.selectedAccessories, item.additionalCost, item.accessoriesCost]);
 
   // Auto-populate service costs from database when service items load and costs are enabled but empty
   useEffect(() => {
