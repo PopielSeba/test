@@ -559,7 +559,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           note: 'CRITICAL: Check if totalServiceItemsCost actually updates in state'
         });
         
-        onUpdate({
+        const updatedItem = {
           ...item,
           pricePerDay,
           discountPercent,
@@ -570,7 +570,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           totalServiceItemsCost: serviceItemsCost,
           additionalCost,
           accessoriesCost,
-        });
+        };
+        
+        console.log('CRITICAL DEBUG: onUpdate called with totalServiceItemsCost:', serviceItemsCost, 'vs old:', item.totalServiceItemsCost);
+        onUpdate(updatedItem);
       }
     }
   }, [
