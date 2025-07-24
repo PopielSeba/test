@@ -22,7 +22,8 @@ import {
   Shield,
   AlertTriangle,
   Copy,
-  ChevronUp
+  ChevronUp,
+  RefreshCw
 } from "lucide-react";
 import {
   Table,
@@ -149,6 +150,41 @@ export default function Admin() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Mutation to sync all equipment with admin settings
+  const syncAllEquipmentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("/api/admin/sync-all-equipment", "POST", {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Invalidate all equipment-related queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/equipment/inactive"] });
+      toast({
+        title: "Sukces",
+        description: data.message || "Wszystkie urządzenia zostały zsynchronizowane",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zsynchronizować urządzeń",
+        variant: "destructive",
+      });
+    },
+  });
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [isEquipmentDialogOpen, setIsEquipmentDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -1132,6 +1168,21 @@ export default function Admin() {
                     Zarządzanie sprzętem
                   </CardTitle>
                   <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => syncAllEquipmentMutation.mutate()}
+                      disabled={syncAllEquipmentMutation.isPending}
+                      title="Zsynchronizuj wszystkie urządzenia z ustawieniami panelu admina"
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      {syncAllEquipmentMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      ) : (
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                      )}
+                      Synchronizuj wszystkie
+                    </Button>
                     <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm">

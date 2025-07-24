@@ -425,18 +425,17 @@ export class DatabaseStorage implements IStorage {
   async createEquipment(equipmentData: InsertEquipment): Promise<Equipment> {
     const [result] = await db.insert(equipment).values(equipmentData).returning();
     
-    // Create basic pricing structure that REQUIRES admin to set proper values
-    // All pricing starts at 0% discount - admin must configure actual discounts and prices
+    // Create basic pricing structure with proper discount structure
     const basicPricing = [
       { periodStart: 1, periodEnd: 2, discountPercent: 0 },
-      { periodStart: 3, periodEnd: 7, discountPercent: 0 },
-      { periodStart: 8, periodEnd: 18, discountPercent: 0 },
-      { periodStart: 19, periodEnd: 29, discountPercent: 0 },
-      { periodStart: 30, periodEnd: null, discountPercent: 0 }
+      { periodStart: 3, periodEnd: 7, discountPercent: 10 },
+      { periodStart: 8, periodEnd: 18, discountPercent: 20 },
+      { periodStart: 19, periodEnd: 29, discountPercent: 30 },
+      { periodStart: 30, periodEnd: null, discountPercent: 40 }
     ];
 
     // Create placeholder pricing entries that admin MUST update
-    // Using 100 zł base price with NO discounts - admin must set real values
+    // Using 100 zł base price with standard discount structure
     const basePricePerDay = 100;
     
     for (const tier of basicPricing) {
@@ -447,6 +446,66 @@ export class DatabaseStorage implements IStorage {
         pricePerDay: basePricePerDay.toString(),
         discountPercent: tier.discountPercent.toString()
       });
+    }
+
+    // Get equipment category to determine service configuration
+    const equipmentCategory = await db
+      .select()
+      .from(equipmentCategories)
+      .where(eq(equipmentCategories.id, equipmentData.categoryId))
+      .limit(1);
+
+    if (equipmentCategory.length > 0) {
+      const categoryName = equipmentCategory[0].name;
+      
+      // Create default service cost configuration based on category
+      let serviceConfig: any = {
+        equipmentId: result.id,
+        workerHours: 2.0,
+        workerCostPerHour: 100.00,
+        serviceIntervalMonths: 12
+      };
+
+      // Adjust service configuration based on category
+      if (categoryName === 'Agregaty prądotwórcze') {
+        serviceConfig.serviceIntervalMotohours = 500;
+        serviceConfig.serviceIntervalMonths = null;
+      } else if (categoryName === 'Maszty oświetleniowe') {
+        serviceConfig.serviceIntervalMotohours = 1000;
+        serviceConfig.serviceIntervalMonths = null;
+      } else if (categoryName === 'Pojazdy') {
+        serviceConfig.serviceIntervalKm = 15000;
+        serviceConfig.serviceIntervalMonths = null;
+        serviceConfig.workerHours = 3.0;
+        serviceConfig.workerCostPerHour = 500.00;
+      }
+
+      // Insert service costs configuration
+      await db.insert(equipmentServiceCosts).values(serviceConfig);
+
+      // Create default service items based on category
+      const defaultServiceItems = [
+        { itemName: 'Filtr paliwa', itemCost: 50.00, sortOrder: 1 },
+        { itemName: 'Filtr oleju', itemCost: 75.00, sortOrder: 2 },
+        { itemName: 'Wymiana oleju', itemCost: 120.00, sortOrder: 3 },
+        { itemName: 'Roboczogodziny serwisowe', itemCost: serviceConfig.workerHours * serviceConfig.workerCostPerHour, sortOrder: 4 }
+      ];
+
+      // Adjust service items based on category
+      if (categoryName === 'Pojazdy') {
+        defaultServiceItems[0] = { itemName: 'Filtr paliwa', itemCost: 50.00, sortOrder: 1 };
+        defaultServiceItems[1] = { itemName: 'Filtr oleju', itemCost: 75.00, sortOrder: 2 };
+        defaultServiceItems[2] = { itemName: 'Wymiana oleju', itemCost: 120.00, sortOrder: 3 };
+        defaultServiceItems[3] = { itemName: 'Roboczogodziny serwisowe', itemCost: 1500.00, sortOrder: 4 };
+      }
+
+      // Insert service items
+      for (const serviceItem of defaultServiceItems) {
+        await db.insert(equipmentServiceItems).values({
+          equipmentId: result.id,
+          ...serviceItem
+        });
+      }
     }
 
     // Create default additional equipment entry for immediate access
@@ -851,7 +910,96 @@ export class DatabaseStorage implements IStorage {
             eq(equipmentServiceItems.itemName, 'Roboczogodziny serwisowe')
           )
         );
+    } else {
+      // If no service costs exist, create default configuration
+      const equipmentData = await this.getEquipmentById(equipmentId);
+      if (equipmentData) {
+        await this.createDefaultServiceConfiguration(equipmentId, equipmentData.category.name);
+      }
     }
+  }
+
+  // Helper function to create default service configuration for any equipment/category
+  async createDefaultServiceConfiguration(equipmentId: number, categoryName: string): Promise<void> {
+    // Create default service cost configuration based on category
+    let serviceConfig: any = {
+      equipmentId: equipmentId,
+      workerHours: 2.0,
+      workerCostPerHour: 100.00,
+      serviceIntervalMonths: 12
+    };
+
+    // Adjust service configuration based on category
+    if (categoryName === 'Agregaty prądotwórcze') {
+      serviceConfig.serviceIntervalMotohours = 500;
+      serviceConfig.serviceIntervalMonths = null;
+    } else if (categoryName === 'Maszty oświetleniowe') {
+      serviceConfig.serviceIntervalMotohours = 1000;
+      serviceConfig.serviceIntervalMonths = null;
+    } else if (categoryName === 'Pojazdy') {
+      serviceConfig.serviceIntervalKm = 15000;
+      serviceConfig.serviceIntervalMonths = null;
+      serviceConfig.workerHours = 3.0;
+      serviceConfig.workerCostPerHour = 500.00;
+    }
+
+    // Insert service costs configuration
+    await db.insert(equipmentServiceCosts).values(serviceConfig);
+
+    // Create default service items based on category
+    const defaultServiceItems = [
+      { itemName: 'Filtr paliwa', itemCost: 50.00, sortOrder: 1 },
+      { itemName: 'Filtr oleju', itemCost: 75.00, sortOrder: 2 },
+      { itemName: 'Wymiana oleju', itemCost: 120.00, sortOrder: 3 },
+      { itemName: 'Roboczogodziny serwisowe', itemCost: serviceConfig.workerHours * serviceConfig.workerCostPerHour, sortOrder: 4 }
+    ];
+
+    // Adjust service items based on category
+    if (categoryName === 'Pojazdy') {
+      defaultServiceItems[0] = { itemName: 'Filtr paliwa', itemCost: 50.00, sortOrder: 1 };
+      defaultServiceItems[1] = { itemName: 'Filtr oleju', itemCost: 75.00, sortOrder: 2 };
+      defaultServiceItems[2] = { itemName: 'Wymiana oleju', itemCost: 120.00, sortOrder: 3 };
+      defaultServiceItems[3] = { itemName: 'Roboczogodziny serwisowe', itemCost: 1500.00, sortOrder: 4 };
+    }
+
+    // Insert service items
+    for (const serviceItem of defaultServiceItems) {
+      await db.insert(equipmentServiceItems).values({
+        equipmentId: equipmentId,
+        itemName: serviceItem.itemName,
+        itemCost: serviceItem.itemCost.toString(),
+        sortOrder: serviceItem.sortOrder
+      });
+    }
+  }
+
+  // Function to sync ALL equipment with current admin panel settings
+  async syncAllEquipmentWithAdminSettings(): Promise<void> {
+    console.log('Syncing all equipment with admin panel settings...');
+    
+    // Get all active equipment
+    const allEquipment = await this.getEquipment();
+    
+    for (const equipment of allEquipment) {
+      // Ensure each equipment has service configuration
+      const serviceCosts = await db
+        .select()
+        .from(equipmentServiceCosts)
+        .where(eq(equipmentServiceCosts.equipmentId, equipment.id))
+        .limit(1);
+
+      if (serviceCosts.length === 0) {
+        // Create missing service configuration
+        await this.createDefaultServiceConfiguration(equipment.id, equipment.category.name);
+        console.log(`Created service configuration for ${equipment.name}`);
+      } else {
+        // Sync existing configuration
+        await this.syncServiceWorkHours(equipment.id);
+        console.log(`Synced service configuration for ${equipment.name}`);
+      }
+    }
+    
+    console.log('Finished syncing all equipment with admin panel settings');
   }
 }
 

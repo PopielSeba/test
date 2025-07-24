@@ -906,6 +906,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint to sync all equipment with admin settings
+  app.post('/api/admin/sync-all-equipment', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+
+      await storage.syncAllEquipmentWithAdminSettings();
+      res.json({ message: "Wszystkie urządzenia zostały zsynchronizowane z ustawieniami panelu admina" });
+    } catch (error) {
+      console.error("Error syncing equipment:", error);
+      res.status(500).json({ message: "Failed to sync equipment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
