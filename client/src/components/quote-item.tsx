@@ -177,36 +177,39 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     queryKey: ["/api/equipment", item.equipmentId, "service-items"],
     enabled: !!item.equipmentId && item.equipmentId > 0,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache
   });
 
   // Auto-populate service costs from database when service items load and costs are enabled but empty
   useEffect(() => {
     if (item.includeServiceItems && serviceItems && (serviceItems as any[]).length > 0) {
       // Check if values need to be populated (all are 0)
-      const hasEmptyValues = (item.serviceItem1Cost || 0) === 0 && (item.serviceItem2Cost || 0) === 0 && (item.serviceItem3Cost || 0) === 0;
+      const hasEmptyValues = (item.serviceItem1Cost || 0) === 0 && (item.serviceItem2Cost || 0) === 0 && (item.serviceItem3Cost || 0) === 0 && ((item as any).serviceItem4Cost || 0) === 0;
       
       if (hasEmptyValues) {
         const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 0;
         const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
         const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
+        const item4Cost = (serviceItems as any[])[3]?.itemCost ? parseFloat((serviceItems as any[])[3].itemCost) : 0;
         
         console.log('Auto-populating service costs from database (useEffect):', { 
           serviceItemsLength: serviceItems.length,
           item1Cost, 
           item2Cost, 
           item3Cost,
+          item4Cost,
           rawServiceItems: serviceItems,
           itemNames: (serviceItems as any[]).map(item => item?.itemName)
         });
         
-        if (item1Cost > 0 || item2Cost > 0 || item3Cost > 0) {
+        if (item1Cost > 0 || item2Cost > 0 || item3Cost > 0 || item4Cost > 0) {
           onUpdate({
             ...item,
             serviceItem1Cost: item1Cost,
             serviceItem2Cost: item2Cost,
             serviceItem3Cost: item3Cost,
-          });
+            serviceItem4Cost: item4Cost,
+          } as any);
         }
       }
     }
