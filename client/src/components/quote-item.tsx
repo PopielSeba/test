@@ -553,7 +553,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           equipmentCategory: selectedEquipment?.category?.name,
           quantity: item.quantity,
           totalServiceItemsCost: (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0),
-          note: 'Service cost now properly multiplied by equipment quantity'
+          oldTotalServiceItemsCost: item.totalServiceItemsCost,
+          newTotalServiceItemsCost: serviceItemsCost,
+          hoursPerDay: item.hoursPerDay,
+          note: 'CRITICAL: Check if totalServiceItemsCost actually updates in state'
         });
         
         onUpdate({
@@ -1411,7 +1414,11 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   Całkowity koszt serwisowy
                 </label>
                 <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                  {formatCurrency(item.totalServiceItemsCost || 0)}
+                  {(() => {
+                    const cost = item.totalServiceItemsCost || 0;
+                    console.log('RENDER DEBUG: Displaying totalServiceItemsCost:', cost, 'hoursPerDay:', item.hoursPerDay);
+                    return formatCurrency(cost);
+                  })()}
                 </div>
                 
                 {/* Service calculation details */}
