@@ -1139,21 +1139,16 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       {isGenerator || isLightingTower ? (
                         <>
                           <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalMotohours || 500} mth (motogodzin)</div>
-                          <div>Czas pracy serwisu: {(serviceCosts as any).workerHours}h @ {(serviceCosts as any).workerCostPerHour} zł/h</div>
                           <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)} mth</div>
-                          <div>Koszt serwisu na okres: {(serviceCosts as any).workerHours && (serviceCosts as any).workerCostPerHour && (serviceCosts as any).serviceIntervalMotohours ? 
-                            (((parseFloat((serviceCosts as any).workerHours) * parseFloat((serviceCosts as any).workerCostPerHour)) / 
-                             parseInt((serviceCosts as any).serviceIntervalMotohours || 500)) * 
-                             (item.rentalPeriodDays * (item.hoursPerDay || 8))).toFixed(2) : '0'} zł</div>
+                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.hoursPerDay || 8)) / ((serviceCosts as any).serviceIntervalMotohours || 500) * 100).toFixed(2)}%</div>
+                          <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       ) : (
                         <>
                           <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalMonths || 12} miesięcy</div>
-                          <div>Czas pracy serwisu: {(serviceCosts as any).workerHours}h @ {(serviceCosts as any).workerCostPerHour} zł/h</div>
                           <div>Okres wynajmu: {item.rentalPeriodDays} dni</div>
-                          <div>Koszt serwisu na okres: {(serviceCosts as any).workerHours && (serviceCosts as any).workerCostPerHour && (serviceCosts as any).serviceIntervalMonths ? 
-                            (((parseFloat((serviceCosts as any).workerHours) * parseFloat((serviceCosts as any).workerCostPerHour)) / 
-                             (parseInt((serviceCosts as any).serviceIntervalMonths) * 30)) * item.rentalPeriodDays).toFixed(2) : '0'} zł</div>
+                          <div>Proporcja użytkowania: {(item.rentalPeriodDays / ((serviceCosts as any).serviceIntervalMonths * 30 || 360) * 100).toFixed(2)}%</div>
+                          <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       )}
                     </div>
