@@ -782,6 +782,7 @@ export class DatabaseStorage implements IStorage {
         set: {
           serviceIntervalMonths: serviceCosts.serviceIntervalMonths,
           serviceIntervalKm: (serviceCosts as any).serviceIntervalKm,
+          serviceIntervalMotohours: (serviceCosts as any).serviceIntervalMotohours,
           workerHours: serviceCosts.workerHours,
           workerCostPerHour: serviceCosts.workerCostPerHour,
           updatedAt: new Date(),

@@ -102,6 +102,10 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Fixed database constraints**: Added unique constraint to equipment_service_costs table to resolve upsert conflicts
 - **Sample vehicle added**: Created "Ciężarówka z HDS" with appropriate pricing structure for testing
 - **Automatic category detection**: System automatically detects vehicle category and switches calculation methods accordingly
+- **ENGINE EQUIPMENT SERVICE INTERVALS**: Added motohour-based service intervals for engine equipment
+- **Motohour intervals implemented**: Agregaty prądotwórcze (500 mth), Maszty oświetleniowe (1000 mth) instead of monthly intervals
+- **Smart interval detection**: System automatically shows appropriate interval type based on equipment category (km for vehicles, mth for engines, months for others)
+- **Database schema enhanced**: Added serviceIntervalMotohours field to equipment_service_costs table
 
 
 

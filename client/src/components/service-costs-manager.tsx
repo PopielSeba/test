@@ -39,12 +39,14 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
   const [serviceCostsForm, setServiceCostsForm] = useState({
     serviceIntervalMonths: 0,
     serviceIntervalKm: 0,
+    serviceIntervalMotohours: 0,
     workerHours: 2,
     workerCostPerHour: 100,
   });
 
-  // Check if this is a vehicle (uses kilometers) or traditional equipment (uses months)
+  // Check equipment category for different interval types
   const isVehicle = equipment.category.name === 'Pojazdy';
+  const isEngineEquipment = equipment.category.name === 'Agregaty prądotwórcze' || equipment.category.name === 'Maszty oświetleniowe';
 
   // Local state for service items
   const [localServiceItems, setLocalServiceItems] = useState<EquipmentServiceItems[]>([]);
@@ -62,6 +64,7 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
       setServiceCostsForm({
         serviceIntervalMonths: serviceCosts.serviceIntervalMonths || 0,
         serviceIntervalKm: (serviceCosts as any).serviceIntervalKm || 0,
+        serviceIntervalMotohours: (serviceCosts as any).serviceIntervalMotohours || 0,
         workerHours: parseFloat(serviceCosts.workerHours.toString()),
         workerCostPerHour: parseFloat(serviceCosts.workerCostPerHour.toString()),
       });
@@ -165,6 +168,8 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
     
     if (isVehicle) {
       data.serviceIntervalKm = serviceCostsForm.serviceIntervalKm;
+    } else if (isEngineEquipment) {
+      data.serviceIntervalMotohours = serviceCostsForm.serviceIntervalMotohours;
     } else {
       data.serviceIntervalMonths = serviceCostsForm.serviceIntervalMonths;
     }
@@ -222,21 +227,33 @@ export function ServiceCostsManager({ equipment, onClose }: ServiceCostsManagerP
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="serviceInterval">
-                {isVehicle ? "Interwał serwisu (km)" : "Interwał serwisu (miesiące)"}
+                {isVehicle ? "Interwał serwisu (km)" : 
+                 isEngineEquipment ? "Interwał serwisu (mth)" :
+                 "Interwał serwisu (miesiące)"}
               </Label>
               <Input
                 id="serviceInterval"
                 type="number"
-                value={isVehicle ? serviceCostsForm.serviceIntervalKm : serviceCostsForm.serviceIntervalMonths}
+                value={
+                  isVehicle ? serviceCostsForm.serviceIntervalKm :
+                  isEngineEquipment ? serviceCostsForm.serviceIntervalMotohours :
+                  serviceCostsForm.serviceIntervalMonths
+                }
                 onChange={(e) => setServiceCostsForm(prev => ({
                   ...prev,
                   ...(isVehicle 
                     ? { serviceIntervalKm: parseInt(e.target.value) || 0 }
+                    : isEngineEquipment
+                    ? { serviceIntervalMotohours: parseInt(e.target.value) || 0 }
                     : { serviceIntervalMonths: parseInt(e.target.value) || 0 }
                   )
                 }))}
                 min="0"
-                placeholder={isVehicle ? "np. 15000" : "np. 12"}
+                placeholder={
+                  isVehicle ? "np. 15000" :
+                  isEngineEquipment ? "np. 500" :
+                  "np. 12"
+                }
               />
             </div>
             <div>
