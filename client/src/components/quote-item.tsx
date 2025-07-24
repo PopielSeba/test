@@ -181,23 +181,33 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
   // Auto-populate service costs from database when service items load
   useEffect(() => {
     if (item.includeServiceItems && serviceItems && (serviceItems as any[]).length > 0) {
-      // Only set if current values are 0 (not manually changed)
-      if ((item.serviceItem1Cost || 0) === 0 && (item.serviceItem2Cost || 0) === 0 && (item.serviceItem3Cost || 0) === 0) {
+      // Check if values need to be populated (all are 0)
+      const hasEmptyValues = (item.serviceItem1Cost || 0) === 0 && (item.serviceItem2Cost || 0) === 0 && (item.serviceItem3Cost || 0) === 0;
+      
+      if (hasEmptyValues) {
         const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 0;
         const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
         const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
         
-        console.log('Auto-populating service costs from database:', { item1Cost, item2Cost, item3Cost });
-        
-        onUpdate({
-          ...item,
-          serviceItem1Cost: item1Cost,
-          serviceItem2Cost: item2Cost,
-          serviceItem3Cost: item3Cost,
+        console.log('Auto-populating service costs from database:', { 
+          serviceItemsLength: serviceItems.length,
+          item1Cost, 
+          item2Cost, 
+          item3Cost,
+          rawServiceItems: serviceItems
         });
+        
+        if (item1Cost > 0 || item2Cost > 0 || item3Cost > 0) {
+          onUpdate({
+            ...item,
+            serviceItem1Cost: item1Cost,
+            serviceItem2Cost: item2Cost,
+            serviceItem3Cost: item3Cost,
+          });
+        }
       }
     }
-  }, [serviceItems, item.includeServiceItems, item.serviceItem1Cost, item.serviceItem2Cost, item.serviceItem3Cost, onUpdate, item]);
+  }, [serviceItems, item.includeServiceItems]);
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
