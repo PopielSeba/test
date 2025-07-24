@@ -487,12 +487,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 serviceIntervalMotohours,
                 serviceIntervalFromDB: (serviceCosts as any).serviceIntervalMotohours,
                 expectedMotohours,
-                hoursPerDay,
+                hoursPerDay: item.hoursPerDay, // Use item.hoursPerDay directly
                 rentalDays: item.rentalPeriodDays,
                 quantity: item.quantity,
                 proportionFactor,
                 finalCost: totalServiceCost,
-                note: 'Service cost now properly multiplied by quantity'
+                note: 'DEBUG: Check if hoursPerDay changes trigger recalculation'
               });
             } else if (isVehicle) {
               // For vehicles - use kilometer intervals
