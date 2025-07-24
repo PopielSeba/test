@@ -293,34 +293,63 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           let totalServiceCost = 0;
           
           // Get service items cost (materials/parts)
-          const serviceItems = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
+          const serviceItemsBaseCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
           
           // Calculate service worker cost based on hours and intervals
           if (serviceCosts && selectedEquipment) {
-            const serviceIntervalMonths = parseInt((serviceCosts as any).serviceIntervalMonths) || 12;
-            const workerHours = parseFloat((serviceCosts as any).workerHours) || 2.0;
-            const workerCostPerHour = parseFloat((serviceCosts as any).workerCostPerHour) || 100.0;
+            const isGenerator = selectedEquipment.categoryId === 4; // Agregaty prądotwórcze
+            const isLightingTower = selectedEquipment.categoryId === 3; // Maszty oświetleniowe
+            const isVehicle = selectedEquipment.categoryId === 7; // Pojazdy
             
-            // Calculate expected operating hours for rental period
-            const hoursPerDay = item.hoursPerDay || 8;
-            const expectedHours = item.rentalPeriodDays * hoursPerDay;
-            
-            // Calculate service cost proportional to operating hours
-            const serviceIntervalHours = serviceIntervalMonths * 30 * 8; // Convert months to hours (assuming 8h/day, 30 days/month)
-            const serviceWorkerCost = workerHours * workerCostPerHour;
-            
-            // Calculate proportional service cost for rental period
-            if (expectedHours > 0 && serviceIntervalHours > 0) {
-              const serviceCostProportional = (serviceWorkerCost / serviceIntervalHours) * expectedHours;
-              totalServiceCost = serviceItems + serviceCostProportional;
+            if (isGenerator || isLightingTower) {
+              // For engine equipment - use motohour intervals
+              const serviceIntervalMotohours = parseInt((serviceCosts as any).serviceIntervalMotohours) || 500;
+              const workerHours = parseFloat((serviceCosts as any).workerHours) || 2.0;
+              const workerCostPerHour = parseFloat((serviceCosts as any).workerCostPerHour) || 100.0;
+              
+              const hoursPerDay = item.hoursPerDay || 8;
+              const expectedMotohours = item.rentalPeriodDays * hoursPerDay;
+              
+              // Calculate proportional service cost for rental period based on motohours
+              const serviceWorkerCost = workerHours * workerCostPerHour;
+              const serviceCostProportional = (serviceWorkerCost / serviceIntervalMotohours) * expectedMotohours;
+              
+              totalServiceCost = serviceItemsBaseCost + serviceCostProportional;
+            } else if (isVehicle) {
+              // For vehicles - use kilometer intervals
+              const serviceIntervalKm = parseInt((serviceCosts as any).serviceIntervalKm) || 15000;
+              const workerHours = parseFloat((serviceCosts as any).workerHours) || 2.0;
+              const workerCostPerHour = parseFloat((serviceCosts as any).workerCostPerHour) || 100.0;
+              
+              const dailyKm = item.dailyKm || 100;
+              const expectedKm = item.rentalPeriodDays * dailyKm;
+              
+              // Calculate proportional service cost for rental period based on kilometers
+              const serviceWorkerCost = workerHours * workerCostPerHour;
+              const serviceCostProportional = (serviceWorkerCost / serviceIntervalKm) * expectedKm;
+              
+              totalServiceCost = serviceItemsBaseCost + serviceCostProportional;
             } else {
-              totalServiceCost = serviceItems;
+              // For other equipment - use monthly intervals
+              const serviceIntervalMonths = parseInt((serviceCosts as any).serviceIntervalMonths) || 12;
+              const workerHours = parseFloat((serviceCosts as any).workerHours) || 2.0;
+              const workerCostPerHour = parseFloat((serviceCosts as any).workerCostPerHour) || 100.0;
+              
+              // Calculate proportional service cost for rental period based on days
+              const serviceWorkerCost = workerHours * workerCostPerHour;
+              const serviceIntervalDays = serviceIntervalMonths * 30;
+              const serviceCostProportional = (serviceWorkerCost / serviceIntervalDays) * item.rentalPeriodDays;
+              
+              totalServiceCost = serviceItemsBaseCost + serviceCostProportional;
             }
           } else {
-            totalServiceCost = serviceItems;
+            // No service cost data - only use service items cost
+            totalServiceCost = serviceItemsBaseCost;
           }
           
           serviceItemsCost = totalServiceCost;
+        } else {
+          serviceItemsCost = 0;
         }
         
         // Total price (maintenance costs removed per user request)
@@ -966,8 +995,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       };
                     }
                     
-                    const totalServiceCost = (updatedItem.serviceItem1Cost || 0) + (updatedItem.serviceItem2Cost || 0) + (updatedItem.serviceItem3Cost || 0);
-                    updatedItem.totalServiceItemsCost = totalServiceCost;
+                    // Don't calculate totalServiceItemsCost here - let the useEffect calculate it proportionally
+                    updatedItem.totalServiceItemsCost = 0; // Will be calculated by useEffect
                   } else {
                     updatedItem.totalServiceItemsCost = 0;
                   }
