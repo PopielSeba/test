@@ -351,14 +351,16 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
   };
 
   const updateQuoteItem = (id: string, updatedItem: QuoteItemData) => {
-    console.log('PARENT UPDATE DEBUG: updateQuoteItem called for id:', id, 'with totalServiceItemsCost:', updatedItem.totalServiceItemsCost);
-    // Force deep copy to ensure React detects changes
-    const forcedCopy = { ...updatedItem, _forceRender: Date.now() };
-    setQuoteItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id ? forcedCopy : item
-      )
-    );
+    // Force complete deep copy using JSON serialization to ensure React detects all changes
+    const deepCopy = JSON.parse(JSON.stringify(updatedItem));
+    deepCopy._timestamp = Date.now(); // Add unique identifier to force re-render
+    
+    setQuoteItems(prevItems => {
+      const newItems = prevItems.map(item => 
+        item.id === id ? deepCopy : item
+      );
+      return newItems;
+    });
   };
 
   const calculateTotals = () => {

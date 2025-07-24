@@ -123,7 +123,6 @@ interface QuoteItemProps {
 
 
 export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, onRemove, canRemove }: QuoteItemProps) {
-  console.log('COMPONENT PROPS DEBUG: QuoteItem received props with totalServiceItemsCost:', item.totalServiceItemsCost, 'hoursPerDay:', item.hoursPerDay);
   // Helper functions for handling notes with hidden JSON data
   const getUserNotes = (notes: string): string => {
     try {
@@ -305,7 +304,6 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
-    console.log('USEEFFECT TRIGGER: Main calculation useEffect triggered with hoursPerDay:', item.hoursPerDay, 'totalServiceItemsCost:', item.totalServiceItemsCost);
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
       const pricing = getPricingForPeriod(selectedEquipment, item.rentalPeriodDays);
       if (pricing) {
@@ -483,19 +481,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               const proportionFactor = expectedMotohours / serviceIntervalMotohours;
               totalServiceCost = totalServiceItemsCost * proportionFactor * item.quantity;
               
-              console.log(`Generator/Tower Service Calculation:`, {
-                categoryName: selectedEquipment.category.name,
-                totalServiceItemsCost,
-                serviceIntervalMotohours,
-                serviceIntervalFromDB: (serviceCosts as any).serviceIntervalMotohours,
-                expectedMotohours,
-                hoursPerDay: item.hoursPerDay, // Use item.hoursPerDay directly
-                rentalDays: item.rentalPeriodDays,
-                quantity: item.quantity,
-                proportionFactor,
-                finalCost: totalServiceCost,
-                note: 'DEBUG: Check if hoursPerDay changes trigger recalculation'
-              });
+
             } else if (isVehicle) {
               // For vehicles - use kilometer intervals
               const serviceIntervalKm = parseInt((serviceCosts as any).serviceIntervalKm) || 15000;
@@ -549,19 +535,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
 
 
-        console.log(`Final service cost being set:`, {
-          serviceItemsCost,
-          includeServiceItems: item.includeServiceItems,
-          equipmentCategory: selectedEquipment?.category?.name,
-          quantity: item.quantity,
-          totalServiceItemsCost: (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0),
-          oldTotalServiceItemsCost: item.totalServiceItemsCost,
-          newTotalServiceItemsCost: serviceItemsCost,
-          hoursPerDay: item.hoursPerDay,
-          note: 'CRITICAL: Check if totalServiceItemsCost actually updates in state'
-        });
-        
-        const updatedItem = {
+        onUpdate({
           ...item,
           pricePerDay,
           discountPercent,
@@ -572,10 +546,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           totalServiceItemsCost: serviceItemsCost,
           additionalCost,
           accessoriesCost,
-        };
-        
-        console.log('CRITICAL DEBUG: onUpdate called with totalServiceItemsCost:', serviceItemsCost, 'vs old:', item.totalServiceItemsCost);
-        onUpdate(updatedItem);
+        });
       }
     }
   }, [
@@ -974,7 +945,6 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                           const days = item.rentalPeriodDays;
                           const fuelPrice = item.fuelPricePerLiter || 6.50;
                           const totalFuelCost = consumption * hours * days * fuelPrice;
-                          console.log('DEBUG: Updating hoursPerDay (fuel handler):', hours, 'totalFuelCost:', totalFuelCost);
                           onUpdate({ 
                             ...item, 
                             hoursPerDay: hours,
@@ -1305,7 +1275,6 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                           value={item.hoursPerDay || 8}
                           onChange={(e) => {
                             const hours = parseFloat(e.target.value) || 8;
-                            console.log('DEBUG: Updating hoursPerDay (simple handler):', hours);
                             onUpdate({
                               ...item,
                               hoursPerDay: hours
@@ -1419,11 +1388,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   Całkowity koszt serwisowy
                 </label>
                 <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                  {(() => {
-                    const cost = item.totalServiceItemsCost || 0;
-                    console.log('RENDER DEBUG: Displaying totalServiceItemsCost:', cost, 'hoursPerDay:', item.hoursPerDay, 'item.id:', item.id);
-                    return formatCurrency(cost);
-                  })()}
+                  {formatCurrency(item.totalServiceItemsCost || 0)}
                 </div>
                 
                 {/* Service calculation details */}
