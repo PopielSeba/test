@@ -145,10 +145,30 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
         serviceRatePerTechnician: parseFloat(item.hourlyRatePerTechnician) || 150,
         travelRatePerKm: parseFloat(item.travelRatePerKm) || 1.15,
         totalInstallationCost: parseFloat(item.totalTravelCost) || 0,
-        selectedAdditional: [],
-        selectedAccessories: [],
-        additionalCost: 0,
-        accessoriesCost: 0,
+        selectedAdditional: (() => {
+          try {
+            if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+              const notesData = JSON.parse(item.notes);
+              return notesData.selectedAdditional || [];
+            }
+          } catch (e) {
+            console.log('Error parsing notes for additional equipment:', e);
+          }
+          return [];
+        })(),
+        selectedAccessories: (() => {
+          try {
+            if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+              const notesData = JSON.parse(item.notes);
+              return notesData.selectedAccessories || [];
+            }
+          } catch (e) {
+            console.log('Error parsing notes for accessories:', e);
+          }
+          return [];
+        })(),
+        additionalCost: parseFloat(item.additionalCost) || 0,
+        accessoriesCost: parseFloat(item.accessoriesCost) || 0,
         includeMaintenanceCost: item.includeMaintenanceCost || false,
         totalMaintenanceCost: parseFloat(item.totalMaintenanceCost) || 0,
         includeServiceItems: item.includeServiceItems || false,
