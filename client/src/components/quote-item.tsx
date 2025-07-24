@@ -300,12 +300,48 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         
         const totalEquipmentPrice = pricePerDay * item.quantity * item.rentalPeriodDays;
         
-        // Calculate fuel cost for generators and lighting towers
+        // Calculate fuel cost for different equipment types
         let fuelCost = 0;
-        if (item.includeFuelCost && item.fuelConsumptionLH && item.fuelPricePerLiter && item.hoursPerDay) {
-          const totalHours = item.rentalPeriodDays * item.hoursPerDay;
-          const totalFuelNeeded = totalHours * item.fuelConsumptionLH * item.quantity;
-          fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
+        if (item.includeFuelCost && item.fuelPricePerLiter) {
+          if (selectedEquipment?.category.name === 'Pojazdy') {
+            // Vehicle fuel calculation: km-based
+            if (item.fuelConsumptionPer100km && item.kilometersPerDay) {
+              const totalKm = item.rentalPeriodDays * item.kilometersPerDay;
+              const totalFuelNeeded = (totalKm / 100) * item.fuelConsumptionPer100km * item.quantity;
+              fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
+              
+              console.log('Vehicle fuel calculation:', {
+                category: selectedEquipment.category.name,
+                rentalDays: item.rentalPeriodDays,
+                kilometersPerDay: item.kilometersPerDay,
+                totalKm,
+                fuelConsumptionPer100km: item.fuelConsumptionPer100km,
+                quantity: item.quantity,
+                fuelPricePerLiter: item.fuelPricePerLiter,
+                totalFuelNeeded,
+                fuelCost
+              });
+            }
+          } else {
+            // Engine equipment fuel calculation: hour-based (generators, lighting towers, etc.)
+            if (item.fuelConsumptionLH && item.hoursPerDay) {
+              const totalHours = item.rentalPeriodDays * item.hoursPerDay;
+              const totalFuelNeeded = totalHours * item.fuelConsumptionLH * item.quantity;
+              fuelCost = totalFuelNeeded * item.fuelPricePerLiter;
+              
+              console.log('Engine equipment fuel calculation:', {
+                category: selectedEquipment?.category.name || 'Unknown',
+                rentalDays: item.rentalPeriodDays,
+                hoursPerDay: item.hoursPerDay,
+                totalHours,
+                fuelConsumptionLH: item.fuelConsumptionLH,
+                quantity: item.quantity,
+                fuelPricePerLiter: item.fuelPricePerLiter,
+                totalFuelNeeded,
+                fuelCost
+              });
+            }
+          }
         }
 
         // Calculate installation cost
@@ -437,7 +473,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.includeFuelCost, 
     item.fuelConsumptionLH, 
     item.fuelPricePerLiter, 
-    item.hoursPerDay, 
+    item.hoursPerDay,
+    item.fuelConsumptionPer100km,
+    item.kilometersPerDay,
     item.includeInstallationCost, 
     item.installationDistanceKm, 
     item.travelRatePerKm,
@@ -447,17 +485,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.serviceItem1Cost,
     item.serviceItem2Cost, 
     item.serviceItem3Cost,
-    serviceCosts,
-    selectedEquipment,
-
-
-    
-    item.includeServiceItems,
-    item.totalServiceItemsCost,
+    (item as any).serviceItem4Cost,
     item.additionalCost,
     item.accessoriesCost,
     selectedEquipment,
-    pricingSchema
+    pricingSchema,
+    serviceCosts,
   ]);
 
   const getPricingForPeriod = (equipment: Equipment, days: number) => {
