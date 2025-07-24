@@ -1021,7 +1021,14 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
                       const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
                       
-                      console.log('Loading service costs on enable:', { item1Cost, item2Cost, item3Cost, serviceItems });
+                      console.log('Loading service costs on enable:', { 
+                        item1Cost, 
+                        item2Cost, 
+                        item3Cost, 
+                        serviceItemsData: serviceItems,
+                        firstItem: (serviceItems as any[])[0],
+                        secondItem: (serviceItems as any[])[1]
+                      });
                       
                       updatedItem = {
                         ...updatedItem,
@@ -1109,7 +1116,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])[0]?.itemName || 'Przegląd serwisowy'}
+                    {(serviceItems as any[])?.[0]?.itemName || 'Pozycja serwisowa 1'}
                   </label>
                   <Input
                     type="number"
@@ -1129,7 +1136,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])[1]?.itemName || 'Dojazd'}
+                    {(serviceItems as any[])?.[1]?.itemName || 'Pozycja serwisowa 2'}
                   </label>
                   <Input
                     type="number"
@@ -1149,7 +1156,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {(serviceItems as any[])[2]?.itemName || 'Wymiana palnika'}
+                    {(serviceItems as any[])?.[2]?.itemName || 'Pozycja serwisowa 3'}
                   </label>
                   <Input
                     type="number"
