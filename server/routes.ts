@@ -1028,44 +1028,27 @@ function generateQuoteHTML(quote: any) {
     }
 
     // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
-    // Show selected additional equipment based on what's stored in notes field
-    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
-      // Try to parse selected items from notes field (JSON format)
-      let selectedAdditionalIds: number[] = [];
-      let selectedAccessoriesIds: number[] = [];
+    // Show additional equipment only if costs are > 0 (indicating items were selected)
+    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0 && 
+        (parseFloat(item.additionalCost || '0') > 0 || parseFloat(item.accessoriesCost || '0') > 0)) {
       
-      try {
-        if (item.notes && item.notes.includes('selectedAdditional')) {
-          const notesData = JSON.parse(item.notes);
-          selectedAdditionalIds = notesData.selectedAdditional || [];
-          selectedAccessoriesIds = notesData.selectedAccessories || [];
-        }
-      } catch (e) {
-        // If parsing fails, don't show any additional equipment
-      }
+      // For now, show all additional equipment if any cost is present
+      // In future version, we'll properly track selected items in database
+      const additionalItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'additional');
+      const accessoryItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'accessories');
       
-      const selectedAdditionalItems = item.equipment.additionalEquipment.filter((add: any) => 
-        add.type === 'additional' && selectedAdditionalIds.includes(add.id)
-      );
-      const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
-        add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
-      );
-      
-      if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
+      if ((additionalItems.length > 0 && parseFloat(item.additionalCost || '0') > 0) || 
+          (accessoryItems.length > 0 && parseFloat(item.accessoriesCost || '0') > 0)) {
         let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
         
-        if (selectedAdditionalItems.length > 0) {
+        if (additionalItems.length > 0 && parseFloat(item.additionalCost || '0') > 0) {
           additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
-          selectedAdditionalItems.forEach((add: any) => {
-            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
-          });
+          additionalHTML += `• Koszt wyposażenia dodatkowego: ${formatCurrency(item.additionalCost)}<br>`;
         }
         
-        if (selectedAccessoryItems.length > 0) {
+        if (accessoryItems.length > 0 && parseFloat(item.accessoriesCost || '0') > 0) {
           additionalHTML += '<strong>Akcesoria:</strong><br>';
-          selectedAccessoryItems.forEach((add: any) => {
-            additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
-          });
+          additionalHTML += `• Koszt akcesoriów: ${formatCurrency(item.accessoriesCost)}<br>`;
         }
         
         detailsRows.push(`
