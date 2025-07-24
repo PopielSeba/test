@@ -196,6 +196,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: string): Promise<void> {
+    // First, update all quotes created by this user to have null createdById
+    await db
+      .update(quotes)
+      .set({ createdById: null })
+      .where(eq(quotes.createdById, id));
+    
+    // Now we can safely delete the user
     await db.delete(users).where(eq(users.id, id));
   }
 
