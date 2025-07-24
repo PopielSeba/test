@@ -173,9 +173,11 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
   });
 
   // Query to get service items for the selected equipment
-  const { data: serviceItems = [] } = useQuery({
+  const { data: serviceItems = [], refetch: refetchServiceItems } = useQuery({
     queryKey: ["/api/equipment", item.equipmentId, "service-items"],
     enabled: !!item.equipmentId && item.equipmentId > 0,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache
   });
 
   // Auto-populate service costs from database when service items load and costs are enabled but empty
@@ -194,7 +196,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           item1Cost, 
           item2Cost, 
           item3Cost,
-          rawServiceItems: serviceItems
+          rawServiceItems: serviceItems,
+          itemNames: (serviceItems as any[]).map(item => item?.itemName)
         });
         
         if (item1Cost > 0 || item2Cost > 0 || item3Cost > 0) {
@@ -1027,8 +1030,14 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         item3Cost, 
                         serviceItemsData: serviceItems,
                         firstItem: (serviceItems as any[])[0],
-                        secondItem: (serviceItems as any[])[1]
+                        secondItem: (serviceItems as any[])[1],
+                        firstItemName: (serviceItems as any[])[0]?.itemName,
+                        secondItemName: (serviceItems as any[])[1]?.itemName,
+                        allItemNames: (serviceItems as any[]).map(item => item?.itemName)
                       });
+                      
+                      // Refetch latest data from server
+                      refetchServiceItems();
                       
                       updatedItem = {
                         ...updatedItem,
