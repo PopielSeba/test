@@ -1028,31 +1028,25 @@ function generateQuoteHTML(quote: any) {
     }
 
     // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
-    // Only show additional equipment that was actually selected
-    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
-      const selectedAdditionalIds = item.selectedAdditional || [];
-      const selectedAccessoriesIds = item.selectedAccessories || [];
+    // For now, don't show additional equipment until we fix the database schema
+    // This prevents the bug where all equipment is shown instead of selected items only
+    if (false && item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
+      const additionalItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'additional');
+      const accessoryItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'accessories');
       
-      const selectedAdditionalItems = item.equipment.additionalEquipment.filter((add: any) => 
-        add.type === 'additional' && selectedAdditionalIds.includes(add.id)
-      );
-      const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
-        add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
-      );
-      
-      if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
+      if (additionalItems.length > 0 || accessoryItems.length > 0) {
         let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
         
-        if (selectedAdditionalItems.length > 0) {
+        if (additionalItems.length > 0) {
           additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
-          selectedAdditionalItems.forEach((add: any) => {
+          additionalItems.forEach((add: any) => {
             additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
           });
         }
         
-        if (selectedAccessoryItems.length > 0) {
+        if (accessoryItems.length > 0) {
           additionalHTML += '<strong>Akcesoria:</strong><br>';
-          selectedAccessoryItems.forEach((add: any) => {
+          accessoryItems.forEach((add: any) => {
             additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
           });
         }
