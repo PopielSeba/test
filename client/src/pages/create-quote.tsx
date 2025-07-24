@@ -456,6 +456,9 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           serviceItem2Cost: (item.serviceItem2Cost || 0).toString(),
           serviceItem3Cost: (item.serviceItem3Cost || 0).toString(),
           totalServiceItemsCost: (item.totalServiceItemsCost || 0).toString(),
+          // Additional equipment and accessories costs
+          additionalCost: (item.additionalCost || 0).toString(),
+          accessoriesCost: (item.accessoriesCost || 0).toString(),
         };
         
         console.log("Item data being sent:", itemData);
