@@ -123,6 +123,7 @@ interface QuoteItemProps {
 
 
 export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, onRemove, canRemove }: QuoteItemProps) {
+  console.log('COMPONENT PROPS DEBUG: QuoteItem received props with totalServiceItemsCost:', item.totalServiceItemsCost, 'hoursPerDay:', item.hoursPerDay);
   // Helper functions for handling notes with hidden JSON data
   const getUserNotes = (notes: string): string => {
     try {
@@ -1419,7 +1420,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
                   {(() => {
                     const cost = item.totalServiceItemsCost || 0;
-                    console.log('RENDER DEBUG: Displaying totalServiceItemsCost:', cost, 'hoursPerDay:', item.hoursPerDay);
+                    console.log('RENDER DEBUG: Displaying totalServiceItemsCost:', cost, 'hoursPerDay:', item.hoursPerDay, 'item.id:', item.id);
                     return formatCurrency(cost);
                   })()}
                 </div>
