@@ -154,15 +154,20 @@ export const quoteItems = pgTable("quote_items", {
   pricePerDay: decimal("price_per_day", { precision: 10, scale: 2 }).notNull(),
   discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
   totalPrice: decimal("total_price", { precision: 12, scale: 2 }).notNull(),
-  // Fuel cost fields for generators
+  // Fuel cost fields for generators (motohours-based)
   fuelConsumptionLH: decimal("fuel_consumption_lh", { precision: 5, scale: 2 }), // liters per hour
   fuelPricePerLiter: decimal("fuel_price_per_liter", { precision: 6, scale: 2 }), // PLN per liter
   hoursPerDay: integer("hours_per_day").default(8), // operating hours per day
   totalFuelCost: decimal("total_fuel_cost", { precision: 12, scale: 2 }).default("0"),
   includeFuelCost: boolean("include_fuel_cost").default(false),
+  // Fuel cost fields for vehicles (kilometers-based)
+  fuelConsumptionPer100km: decimal("fuel_consumption_per_100km", { precision: 5, scale: 2 }), // liters per 100km for vehicles
+  kilometersPerDay: integer("kilometers_per_day"), // kilometers driven per day
   // Maintenance/exploitation cost fields for generators (every 500 mth)
   includeMaintenanceCost: boolean("include_maintenance_cost").default(false),
-  maintenanceIntervalHours: integer("maintenance_interval_hours").default(500), // every 500 mth
+  maintenanceIntervalHours: integer("maintenance_interval_hours").default(500), // every 500 mth for generators
+  maintenanceIntervalKm: integer("maintenance_interval_km"), // service interval in kilometers for vehicles
+  calculationType: varchar("calculation_type").default("motohours"), // 'motohours' or 'kilometers'
   // Filter costs (6 filters)
   fuelFilter1Cost: decimal("fuel_filter_1_cost", { precision: 8, scale: 2 }).default("49.00"),
   fuelFilter2Cost: decimal("fuel_filter_2_cost", { precision: 8, scale: 2 }).default("118.00"),

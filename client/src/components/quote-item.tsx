@@ -18,12 +18,17 @@ interface QuoteItemData {
   discountPercent: number;
   totalPrice: number;
   notes?: string;
-  // Fuel cost fields for generators
+  // Fuel cost fields for generators (motohours-based)
   fuelConsumptionLH?: number;
   fuelPricePerLiter?: number;
   hoursPerDay?: number;
   totalFuelCost?: number;
   includeFuelCost?: boolean;
+  
+  // Fuel cost fields for vehicles (kilometers-based)
+  fuelConsumptionPer100km?: number;
+  kilometersPerDay?: number;
+  calculationType?: 'motohours' | 'kilometers';
 
   // Installation cost fields
   includeInstallationCost?: boolean;
@@ -576,8 +581,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           </div>
         </div>
 
-        {/* Fuel Cost Calculation for Generators, Lighting Towers, and Heaters */}
-        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Nagrzewnice') && (
+        {/* Fuel Cost Calculation for Generators, Lighting Towers, Heaters, and Vehicles */}
+        {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Nagrzewnice' || selectedEquipment.category.name === 'Pojazdy') && (
           <div className="mt-4">
             <Separator className="my-4" />
             <div className="flex items-center space-x-2 mb-4">
@@ -599,64 +604,201 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             </div>
             
             {item.includeFuelCost && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/50 p-4 rounded-lg">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Zużycie paliwa (l/h)
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={item.fuelConsumptionLH || ""}
-                    onChange={(e) => onUpdate({
-                      ...item,
-                      fuelConsumptionLH: parseFloat(e.target.value) || 0
-                    })}
-                    placeholder="np. 15.5"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Cena paliwa (zł/l)
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={item.fuelPricePerLiter || ""}
-                    onChange={(e) => onUpdate({
-                      ...item,
-                      fuelPricePerLiter: parseFloat(e.target.value) || 0
-                    })}
-                    placeholder="np. 6.50"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Godziny pracy/dzień
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="24"
-                    value={item.hoursPerDay || 8}
-                    onChange={(e) => onUpdate({
-                      ...item,
-                      hoursPerDay: parseInt(e.target.value) || 8
-                    })}
-                    placeholder="8"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Koszt paliwa
-                  </label>
-                  <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
-                    {formatCurrency(item.totalFuelCost || 0)}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                {/* Show different inputs based on equipment category */}
+                {selectedEquipment.category.name === 'Pojazdy' ? (
+                  // Vehicle fuel calculation (kilometers-based)
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Zużycie paliwa (l/100km)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="np. 8.5"
+                        value={item.fuelConsumptionPer100km || ""}
+                        onChange={(e) => {
+                          const consumption = parseFloat(e.target.value) || 0;
+                          const days = item.rentalPeriodDays;
+                          const kmPerDay = item.kilometersPerDay || 0;
+                          const fuelPrice = item.fuelPricePerLiter || 6.50;
+                          const totalKm = days * kmPerDay;
+                          const totalFuelCost = (totalKm / 100) * consumption * fuelPrice;
+                          onUpdate({ 
+                            ...item, 
+                            fuelConsumptionPer100km: consumption,
+                            totalFuelCost: totalFuelCost,
+                            calculationType: 'kilometers'
+                          });
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Kilometry dziennie
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="np. 50"
+                        value={item.kilometersPerDay || ""}
+                        onChange={(e) => {
+                          const kmPerDay = parseInt(e.target.value) || 0;
+                          const days = item.rentalPeriodDays;
+                          const consumption = item.fuelConsumptionPer100km || 0;
+                          const fuelPrice = item.fuelPricePerLiter || 6.50;
+                          const totalKm = days * kmPerDay;
+                          const totalFuelCost = (totalKm / 100) * consumption * fuelPrice;
+                          onUpdate({ 
+                            ...item, 
+                            kilometersPerDay: kmPerDay,
+                            totalFuelCost: totalFuelCost,
+                            calculationType: 'kilometers'
+                          });
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Cena paliwa (zł/l)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="6.50"
+                        value={item.fuelPricePerLiter || ""}
+                        onChange={(e) => {
+                          const fuelPrice = parseFloat(e.target.value) || 0;
+                          const days = item.rentalPeriodDays;
+                          const kmPerDay = item.kilometersPerDay || 0;
+                          const consumption = item.fuelConsumptionPer100km || 0;
+                          const totalKm = days * kmPerDay;
+                          const totalFuelCost = (totalKm / 100) * consumption * fuelPrice;
+                          onUpdate({ 
+                            ...item, 
+                            fuelPricePerLiter: fuelPrice,
+                            totalFuelCost: totalFuelCost,
+                            calculationType: 'kilometers'
+                          });
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Łączny koszt paliwa
+                      </label>
+                      <Input 
+                        value={formatCurrency(item.totalFuelCost || 0)}
+                        disabled
+                        className="bg-background"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {item.rentalPeriodDays * (item.kilometersPerDay || 0)} km całkowity przebieg
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  // Standard fuel calculation (motohours-based) for generators, lighting towers, heaters
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Zużycie paliwa (l/h)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="np. 35.3"
+                        value={item.fuelConsumptionLH || ""}
+                        onChange={(e) => {
+                          const consumption = parseFloat(e.target.value) || 0;
+                          const hours = item.hoursPerDay || 8;
+                          const days = item.rentalPeriodDays;
+                          const fuelPrice = item.fuelPricePerLiter || 6.50;
+                          const totalFuelCost = consumption * hours * days * fuelPrice;
+                          onUpdate({ 
+                            ...item, 
+                            fuelConsumptionLH: consumption,
+                            totalFuelCost: totalFuelCost,
+                            calculationType: 'motohours'
+                          });
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Godziny pracy dziennie
+                      </label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="24"
+                        placeholder="8"
+                        value={item.hoursPerDay || ""}
+                        onChange={(e) => {
+                          const hours = parseInt(e.target.value) || 8;
+                          const consumption = item.fuelConsumptionLH || 0;
+                          const days = item.rentalPeriodDays;
+                          const fuelPrice = item.fuelPricePerLiter || 6.50;
+                          const totalFuelCost = consumption * hours * days * fuelPrice;
+                          onUpdate({ 
+                            ...item, 
+                            hoursPerDay: hours,
+                            totalFuelCost: totalFuelCost,
+                            calculationType: 'motohours'
+                          });
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Cena paliwa (zł/l)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="6.50"
+                        value={item.fuelPricePerLiter || ""}
+                        onChange={(e) => {
+                          const fuelPrice = parseFloat(e.target.value) || 0;
+                          const consumption = item.fuelConsumptionLH || 0;
+                          const hours = item.hoursPerDay || 8;
+                          const days = item.rentalPeriodDays;
+                          const totalFuelCost = consumption * hours * days * fuelPrice;
+                          onUpdate({ 
+                            ...item, 
+                            fuelPricePerLiter: fuelPrice,
+                            totalFuelCost: totalFuelCost,
+                            calculationType: 'motohours'
+                          });
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Łączny koszt paliwa
+                      </label>
+                      <Input 
+                        value={formatCurrency(item.totalFuelCost || 0)}
+                        disabled
+                        className="bg-background"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {item.rentalPeriodDays * (item.hoursPerDay || 8)} mth łącznie
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

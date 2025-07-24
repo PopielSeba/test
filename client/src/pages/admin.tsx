@@ -1343,8 +1343,8 @@ export default function Admin() {
                                   />
                                 )}
 
-                                {/* Equipment with fuel consumption - show for agregat, nagrzewnic, and maszty oświetleniowe */}
-                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic") || selectedCategoryName.includes("oświetlen")) && (
+                                {/* Equipment with fuel consumption - show for agregat, nagrzewnic, maszty oświetleniowe, and pojazdy */}
+                                {(selectedCategoryName.includes("agregat") || selectedCategoryName.includes("nagrzewnic") || selectedCategoryName.includes("oświetlen") || selectedCategoryName.includes("pojazd")) && (
                                   <>
                                     <FormField
                                       control={equipmentForm.control}
@@ -1352,13 +1352,17 @@ export default function Admin() {
                                       render={({ field }) => (
                                         <FormItem>
                                           <FormLabel>
-                                            {selectedCategoryName.includes("oświetlen") ? "Spalanie paliwa (l/h)" : "Spalanie przy 75% obciążenia (l/h)"}
+                                            {selectedCategoryName.includes("oświetlen") ? "Spalanie paliwa (l/h)" : 
+                                             selectedCategoryName.includes("pojazd") ? "Spalanie paliwa (l/100km)" :
+                                             "Spalanie przy 75% obciążenia (l/h)"}
                                           </FormLabel>
                                           <FormControl>
                                             <Input 
                                               type="number" 
                                               step="0.1"
-                                              placeholder={selectedCategoryName.includes("oświetlen") ? "np. 4.2" : "np. 35.3"}
+                                              placeholder={selectedCategoryName.includes("oświetlen") ? "np. 4.2" : 
+                                                         selectedCategoryName.includes("pojazd") ? "np. 8.5" :
+                                                         "np. 35.3"}
                                               {...field}
                                             />
                                           </FormControl>
@@ -1371,11 +1375,15 @@ export default function Admin() {
                                       name="fuelTankCapacity"
                                       render={({ field }) => (
                                         <FormItem>
-                                          <FormLabel>Pojemność zbiornika paliwa (l)</FormLabel>
+                                          <FormLabel>
+                                            {selectedCategoryName.includes("pojazd") ? "Pojemność zbiornika paliwa (l)" : "Pojemność zbiornika paliwa (l)"}
+                                          </FormLabel>
                                           <FormControl>
                                             <Input 
                                               type="number" 
-                                              placeholder={selectedCategoryName.includes("oświetlen") ? "np. 60" : "np. 350"}
+                                              placeholder={selectedCategoryName.includes("oświetlen") ? "np. 60" : 
+                                                         selectedCategoryName.includes("pojazd") ? "np. 80" :
+                                                         "np. 350"}
                                               {...field}
                                             />
                                           </FormControl>

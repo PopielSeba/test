@@ -43,12 +43,17 @@ interface QuoteItemData {
   discountPercent: number;
   totalPrice: number;
   notes?: string;
-  // Fuel cost fields for generators
+  // Fuel cost fields for generators (motohours-based)
   fuelConsumptionLH?: number;
   fuelPricePerLiter?: number;
   hoursPerDay?: number;
   totalFuelCost?: number;
   includeFuelCost?: boolean;
+  
+  // Fuel cost fields for vehicles (kilometers-based)
+  fuelConsumptionPer100km?: number;
+  kilometersPerDay?: number;
+  calculationType?: 'motohours' | 'kilometers';
 
   // Installation cost fields
   includeInstallationCost?: boolean;
@@ -151,6 +156,10 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
         serviceItem2Cost: parseFloat(item.serviceItem2Cost) || 0,
         serviceItem3Cost: parseFloat(item.serviceItem3Cost) || 0,
         totalServiceItemsCost: parseFloat(item.totalServiceItemsCost) || 0,
+        // Vehicle-specific fields
+        fuelConsumptionPer100km: parseFloat(item.fuelConsumptionPer100km) || 0,
+        kilometersPerDay: parseInt(item.kilometersPerDay) || 0,
+        calculationType: item.calculationType || 'motohours',
       }));
       setQuoteItems(initialItems);
     }
@@ -197,7 +206,11 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           fuelPricePerLiter: 6.50, // Default fuel price
           hoursPerDay: 8,
           totalFuelCost: 0,
-          includeFuelCost: selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe',
+          includeFuelCost: selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Pojazdy',
+          // Vehicle-specific fields
+          fuelConsumptionPer100km: 0,
+          kilometersPerDay: 0,
+          calculationType: selectedEquipment.category.name === 'Pojazdy' ? 'kilometers' : 'motohours',
           includeInstallationCost: false,
           installationDistanceKm: 0,
           numberOfTechnicians: 1,
@@ -406,6 +419,10 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           fuelPricePerLiter: item.fuelPricePerLiter?.toString() || "6.50",
           hoursPerDay: item.hoursPerDay || 8,
           totalFuelCost: (item.totalFuelCost || 0).toString(),
+          // Vehicle-specific fields for kilometers-based calculation
+          fuelConsumptionPer100km: item.fuelConsumptionPer100km?.toString() || "0",
+          kilometersPerDay: item.kilometersPerDay || 0,
+          calculationType: item.calculationType || "motohours",
           includeInstallationCost: item.includeInstallationCost,
           travelDistanceKm: (item.installationDistanceKm || 0).toString(),
           numberOfTechnicians: item.numberOfTechnicians || 1,
