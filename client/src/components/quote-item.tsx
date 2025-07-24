@@ -1744,10 +1744,18 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         newCost -= parseFloat(additional.price);
                       }
                       
+                      // Update notes with selected additional items info
+                      const notesData = {
+                        selectedAdditional: newSelected,
+                        selectedAccessories: item.selectedAccessories || [],
+                        originalNotes: item.notes || ""
+                      };
+                      
                       onUpdate({
                         ...item,
                         selectedAdditional: newSelected,
-                        additionalCost: Math.max(0, newCost)
+                        additionalCost: Math.max(0, newCost),
+                        notes: JSON.stringify(notesData)
                       });
                     }}
                   />
@@ -1816,10 +1824,18 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         newCost -= parseFloat(accessory.price);
                       }
                       
+                      // Update notes with selected accessories info
+                      const notesData = {
+                        selectedAdditional: item.selectedAdditional || [],
+                        selectedAccessories: newSelected,
+                        originalNotes: item.notes || ""
+                      };
+                      
                       onUpdate({
                         ...item,
                         selectedAccessories: newSelected,
-                        accessoriesCost: Math.max(0, newCost)
+                        accessoriesCost: Math.max(0, newCost),
+                        notes: JSON.stringify(notesData)
                       });
                     }}
                   />

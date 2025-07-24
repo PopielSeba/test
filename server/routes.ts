@@ -1028,25 +1028,42 @@ function generateQuoteHTML(quote: any) {
     }
 
     // Wyposażenie dodatkowe i akcesoria - wyświetl dostępne opcje dla tego sprzętu
-    // For now, don't show additional equipment until we fix the database schema
-    // This prevents the bug where all equipment is shown instead of selected items only
-    if (false && item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
-      const additionalItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'additional');
-      const accessoryItems = item.equipment.additionalEquipment.filter((add: any) => add.type === 'accessories');
+    // Show selected additional equipment based on what's stored in notes field
+    if (item.equipment.additionalEquipment && item.equipment.additionalEquipment.length > 0) {
+      // Try to parse selected items from notes field (JSON format)
+      let selectedAdditionalIds: number[] = [];
+      let selectedAccessoriesIds: number[] = [];
       
-      if (additionalItems.length > 0 || accessoryItems.length > 0) {
+      try {
+        if (item.notes && item.notes.includes('selectedAdditional')) {
+          const notesData = JSON.parse(item.notes);
+          selectedAdditionalIds = notesData.selectedAdditional || [];
+          selectedAccessoriesIds = notesData.selectedAccessories || [];
+        }
+      } catch (e) {
+        // If parsing fails, don't show any additional equipment
+      }
+      
+      const selectedAdditionalItems = item.equipment.additionalEquipment.filter((add: any) => 
+        add.type === 'additional' && selectedAdditionalIds.includes(add.id)
+      );
+      const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
+        add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
+      );
+      
+      if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
         let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
         
-        if (additionalItems.length > 0) {
+        if (selectedAdditionalItems.length > 0) {
           additionalHTML += '<strong>Wyposażenie dodatkowe:</strong><br>';
-          additionalItems.forEach((add: any) => {
+          selectedAdditionalItems.forEach((add: any) => {
             additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
           });
         }
         
-        if (accessoryItems.length > 0) {
+        if (selectedAccessoryItems.length > 0) {
           additionalHTML += '<strong>Akcesoria:</strong><br>';
-          accessoryItems.forEach((add: any) => {
+          selectedAccessoryItems.forEach((add: any) => {
             additionalHTML += `• ${add.name} - ${formatCurrency(add.price)}<br>`;
           });
         }
