@@ -1042,7 +1042,8 @@ function generateQuoteHTML(quote: any) {
           console.log('Print debug - parsed notes:', {
             selectedAdditionalIds,
             selectedAccessoriesIds,
-            availableAdditional: item.equipment.additionalEquipment?.map(a => ({ id: a.id, name: a.name, type: a.type }))
+            availableAdditional: item.equipment.additionalEquipment?.map(a => ({ id: a.id, name: a.name, type: a.type, price: a.price })),
+            notesRaw: item.notes
           });
         }
       } catch (e) {
@@ -1057,6 +1058,11 @@ function generateQuoteHTML(quote: any) {
       const selectedAccessoryItems = item.equipment.additionalEquipment.filter((add: any) => 
         add.type === 'accessories' && selectedAccessoriesIds.includes(add.id)
       );
+      
+      console.log('Print debug - filtered results:', {
+        selectedAdditionalItems: selectedAdditionalItems.map(a => ({ id: a.id, name: a.name, price: a.price })),
+        selectedAccessoryItems: selectedAccessoryItems.map(a => ({ id: a.id, name: a.name, price: a.price }))
+      });
       
       if (selectedAdditionalItems.length > 0 || selectedAccessoryItems.length > 0) {
         let additionalHTML = '<strong>🔧 Wyposażenie dodatkowe i akcesoria:</strong><br>';
