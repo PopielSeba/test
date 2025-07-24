@@ -113,6 +113,15 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Smart interval detection**: System automatically shows appropriate interval type based on equipment category (km for vehicles, mth for engines, months for others)
 - **Database schema enhanced**: Added serviceIntervalMotohours field to equipment_service_costs table
 
+### January 24, 2025 (późniejszy)
+- **NAPRAWIONO problemy z pamięcią wyposażenia dodatkowego w edycji**: System teraz poprawnie parsuje wybrane wyposażenie i akcesoria z pola notes oraz automatycznie przelicza ich koszty
+- **Dodano automatyczne obliczanie kosztów**: useEffect monitoruje załadowane dane i synchronizuje koszty wyposażenia dodatkowego z wybranymi elementami
+- **Rozwiązano problem z nazwami usług na wydruku**: System pobiera rzeczywiste nazwy usług z bazy danych zamiast pokazywać hardcoded "wymiana palnika"
+- **Naprawiono formatowanie wartości paliwowej**: Usunięto ostrzeżenia walidacji w polach input poprzez konwersję na string
+- **CRITICAL FIX: Rozwiązano problem z aktualizowaniem kosztów serwisowych**: Naprawiono błąd gdzie React nie wykrywał zmian w stanie komponentu, powodując brak aktualizacji kosztów serwisowych przy zmianie godzin pracy
+- **Wprowadzono głęboką kopię JSON**: Zastosowano JSON serialization/deserialization z unikalnym timestampem w updateQuoteItem aby wymusić wykrycie zmian przez React
+- **Ujednolicono interwały serwisowe**: Wszystkie kategorie sprzętu (nagrzewnice, klimatyzacje, etc.) używają teraz interwałów motogodzinowych zamiast miesięcznych dla spójności z agregatami i masztami
+
 
 
 ## User Preferences

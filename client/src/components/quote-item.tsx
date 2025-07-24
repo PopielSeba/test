@@ -510,12 +510,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 note: 'Check if all service items are included'
               });
             } else {
-              // For other equipment - use monthly intervals
-              const serviceIntervalMonths = parseInt((serviceCosts as any).serviceIntervalMonths) || 12;
-              const serviceIntervalDays = serviceIntervalMonths * 30;
+              // For other equipment (nagrzewnice, klimatyzacje, etc.) - use hour-based intervals like generators
+              const serviceIntervalMotohours = parseInt((serviceCosts as any).serviceIntervalMotohours) || 500;
+              const hoursPerDay = item.hoursPerDay || 8;
+              const expectedMotohours = item.rentalPeriodDays * hoursPerDay;
               
               // Calculate proportional service cost based on actual usage vs interval
-              const proportionFactor = item.rentalPeriodDays / serviceIntervalDays;
+              const proportionFactor = expectedMotohours / serviceIntervalMotohours;
               totalServiceCost = totalServiceItemsCost * proportionFactor * item.quantity;
             }
           } else {
@@ -1412,9 +1413,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         </>
                       ) : (
                         <>
-                          <div>Interwał serwisu: {serviceCosts?.serviceIntervalMonths || 12} miesięcy</div>
-                          <div>Okres wynajmu: {item.rentalPeriodDays} dni</div>
-                          <div>Proporcja użytkowania: {(item.rentalPeriodDays / (serviceCosts?.serviceIntervalMonths * 30 || 360) * 100).toFixed(2)}%</div>
+                          <div>Interwał serwisu: {serviceCosts?.serviceIntervalMotohours || 500} mth (motogodzin)</div>
+                          <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)} mth</div>
+                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.hoursPerDay || 8)) / (serviceCosts?.serviceIntervalMotohours || 500) * 100).toFixed(2)}%</div>
                           <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       )}
