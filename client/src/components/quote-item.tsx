@@ -156,6 +156,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
   const isGenerator = selectedEquipment?.category.name === 'Agregaty prądotwórcze';
   const isLightingTower = selectedEquipment?.category.name === 'Maszty oświetleniowe';
   const isAirConditioner = selectedEquipment?.category.name === 'Klimatyzacje';
+  const isVehicle = selectedEquipment?.category.name === 'Pojazdy';
   const hasMaintenanceCosts = isGenerator || isLightingTower || isAirConditioner;
 
 
@@ -1104,44 +1105,86 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 <h4 className="font-medium text-foreground">Koszty serwisowe</h4>
               </div>
 
-              {/* Operating Hours Per Day Configuration */}
+              {/* Operating Hours Per Day Configuration - show different fields for vehicles vs equipment */}
               <div className="mb-4 p-3 bg-background rounded border">
-                <h5 className="text-sm font-medium text-foreground mb-2">Założenia pracy urządzenia</h5>
+                <h5 className="text-sm font-medium text-foreground mb-2">
+                  {isVehicle ? 'Założenia eksploatacji pojazdu' : 'Założenia pracy urządzenia'}
+                </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Godziny pracy dziennie
-                    </label>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      min="1"
-                      max="24"
-                      value={item.hoursPerDay || 8}
-                      onChange={(e) => {
-                        const hours = parseFloat(e.target.value) || 8;
-                        onUpdate({
-                          ...item,
-                          hoursPerDay: hours
-                        });
-                      }}
-                      placeholder="8"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Standardowo: 8h/dzień (1 zmiana), 16h/dzień (2 zmiany), 24h/dzień (ciągła praca)
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Łączne motogodziny
-                    </label>
-                    <div className="text-lg font-medium text-foreground bg-muted p-2 rounded border">
-                      {(item.rentalPeriodDays * (item.hoursPerDay || 8)).toFixed(0)}h
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {item.rentalPeriodDays} dni × {item.hoursPerDay || 8}h/dzień
-                    </p>
-                  </div>
+                  {isVehicle ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Kilometry dziennie
+                        </label>
+                        <Input
+                          type="number"
+                          step="1"
+                          min="1"
+                          value={item.kilometersPerDay || 100}
+                          onChange={(e) => {
+                            const km = parseFloat(e.target.value) || 100;
+                            onUpdate({
+                              ...item,
+                              kilometersPerDay: km
+                            });
+                          }}
+                          placeholder="100"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Przewidywane kilometry dziennie
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Łączne kilometry
+                        </label>
+                        <div className="text-lg font-medium text-foreground bg-muted p-2 rounded border">
+                          {(item.rentalPeriodDays * (item.kilometersPerDay || 100)).toFixed(0)} km
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {item.rentalPeriodDays} dni × {item.kilometersPerDay || 100} km/dzień
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Godziny pracy dziennie
+                        </label>
+                        <Input
+                          type="number"
+                          step="0.5"
+                          min="1"
+                          max="24"
+                          value={item.hoursPerDay || 8}
+                          onChange={(e) => {
+                            const hours = parseFloat(e.target.value) || 8;
+                            onUpdate({
+                              ...item,
+                              hoursPerDay: hours
+                            });
+                          }}
+                          placeholder="8"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Standardowo: 8h/dzień (1 zmiana), 16h/dzień (2 zmiany), 24h/dzień (ciągła praca)
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Łączne motogodziny
+                        </label>
+                        <div className="text-lg font-medium text-foreground bg-muted p-2 rounded border">
+                          {(item.rentalPeriodDays * (item.hoursPerDay || 8)).toFixed(0)}h
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {item.rentalPeriodDays} dni × {item.hoursPerDay || 8}h/dzień
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               
@@ -1239,7 +1282,14 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   <div className="mt-3 p-3 bg-muted/50 rounded text-sm">
                     <h5 className="font-medium mb-2">Szczegóły kalkulacji serwisu:</h5>
                     <div className="space-y-1 text-muted-foreground">
-                      {isGenerator || isLightingTower ? (
+                      {isVehicle ? (
+                        <>
+                          <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalKm || 15000} km</div>
+                          <div>Przewidywane kilometry: {item.rentalPeriodDays * (item.kilometersPerDay || 100)} km</div>
+                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.kilometersPerDay || 100)) / ((serviceCosts as any).serviceIntervalKm || 15000) * 100).toFixed(2)}%</div>
+                          <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
+                        </>
+                      ) : isGenerator || isLightingTower ? (
                         <>
                           <div>Interwał serwisu: {(serviceCosts as any).serviceIntervalMotohours || 500} mth (motogodzin)</div>
                           <div>Przewidywane motogodziny: {item.rentalPeriodDays * (item.hoursPerDay || 8)} mth</div>
