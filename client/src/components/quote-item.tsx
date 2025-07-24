@@ -966,6 +966,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                           const days = item.rentalPeriodDays;
                           const fuelPrice = item.fuelPricePerLiter || 6.50;
                           const totalFuelCost = consumption * hours * days * fuelPrice;
+                          console.log('DEBUG: Updating hoursPerDay (fuel handler):', hours, 'totalFuelCost:', totalFuelCost);
                           onUpdate({ 
                             ...item, 
                             hoursPerDay: hours,
@@ -1296,6 +1297,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                           value={item.hoursPerDay || 8}
                           onChange={(e) => {
                             const hours = parseFloat(e.target.value) || 8;
+                            console.log('DEBUG: Updating hoursPerDay (simple handler):', hours);
                             onUpdate({
                               ...item,
                               hoursPerDay: hours
