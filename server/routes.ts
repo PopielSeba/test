@@ -841,6 +841,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/equipment/:id/service-items', isAuthenticated, async (req, res) => {
     try {
       const equipmentId = parseInt(req.params.id);
+      
+      // Auto-sync service work hours with admin configuration before returning data
+      await storage.syncServiceWorkHours(equipmentId);
+      
       const serviceItems = await storage.getEquipmentServiceItems(equipmentId);
       res.json(serviceItems);
     } catch (error) {

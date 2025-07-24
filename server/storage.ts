@@ -89,6 +89,7 @@ export interface IStorage {
   createEquipmentServiceItem(serviceItem: InsertEquipmentServiceItems): Promise<EquipmentServiceItems>;
   updateEquipmentServiceItem(id: number, serviceItem: Partial<InsertEquipmentServiceItems>): Promise<EquipmentServiceItems>;
   deleteEquipmentServiceItem(id: number): Promise<void>;
+  syncServiceWorkHours(equipmentId: number): Promise<void>;
 
   // Clients
   getClients(): Promise<Client[]>;
@@ -820,6 +821,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEquipmentServiceItem(id: number): Promise<void> {
     await db.delete(equipmentServiceItems).where(eq(equipmentServiceItems.id, id));
+  }
+
+  async syncServiceWorkHours(equipmentId: number): Promise<void> {
+    // Get current service costs configuration for this equipment
+    const serviceCosts = await this.getEquipmentServiceCosts(equipmentId);
+    
+    if (serviceCosts && serviceCosts.workerHours && serviceCosts.workerCostPerHour) {
+      // Calculate the total cost for service work hours
+      const totalCost = parseFloat(serviceCosts.workerHours.toString()) * parseFloat(serviceCosts.workerCostPerHour.toString());
+      
+      // Update the "Roboczogodziny serwisowe" item with the calculated cost
+      await db
+        .update(equipmentServiceItems)
+        .set({ 
+          itemCost: totalCost.toString(),
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(equipmentServiceItems.equipmentId, equipmentId),
+            eq(equipmentServiceItems.itemName, 'Roboczogodziny serwisowe')
+          )
+        );
+    }
   }
 }
 
