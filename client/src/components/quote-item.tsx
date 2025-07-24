@@ -357,7 +357,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               
               // Calculate proportional service cost based on actual usage vs interval
               const proportionFactor = expectedMotohours / serviceIntervalMotohours;
-              totalServiceCost = totalServiceItemsCost * proportionFactor;
+              totalServiceCost = totalServiceItemsCost * proportionFactor * item.quantity;
               
               console.log(`Generator/Tower Service Calculation:`, {
                 categoryName: selectedEquipment.category.name,
@@ -367,9 +367,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 expectedMotohours,
                 hoursPerDay,
                 rentalDays: item.rentalPeriodDays,
+                quantity: item.quantity,
                 proportionFactor,
                 finalCost: totalServiceCost,
-                note: 'Service interval should come from database, not default'
+                note: 'Service cost now properly multiplied by quantity'
               });
             } else if (isVehicle) {
               // For vehicles - use kilometer intervals
@@ -379,7 +380,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               
               // Calculate proportional service cost based on actual usage vs interval
               const proportionFactor = expectedKm / serviceIntervalKm;
-              totalServiceCost = totalServiceItemsCost * proportionFactor;
+              totalServiceCost = totalServiceItemsCost * proportionFactor * item.quantity;
             } else {
               // For other equipment - use monthly intervals
               const serviceIntervalMonths = parseInt((serviceCosts as any).serviceIntervalMonths) || 12;
@@ -387,11 +388,11 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               
               // Calculate proportional service cost based on actual usage vs interval
               const proportionFactor = item.rentalPeriodDays / serviceIntervalDays;
-              totalServiceCost = totalServiceItemsCost * proportionFactor;
+              totalServiceCost = totalServiceItemsCost * proportionFactor * item.quantity;
             }
           } else {
-            // No service cost data or no service items - use base cost
-            totalServiceCost = totalServiceItemsCost;
+            // No service cost data or no service items - use base cost multiplied by quantity
+            totalServiceCost = totalServiceItemsCost * item.quantity;
           }
           
           serviceItemsCost = totalServiceCost;
@@ -410,7 +411,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           serviceItemsCost,
           includeServiceItems: item.includeServiceItems,
           equipmentCategory: selectedEquipment?.category?.name,
-          totalServiceItemsCost: (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0)
+          quantity: item.quantity,
+          totalServiceItemsCost: (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0),
+          note: 'Service cost now properly multiplied by equipment quantity'
         });
         
         onUpdate({
