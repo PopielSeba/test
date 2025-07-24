@@ -985,19 +985,39 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   
                   if (checked) {
                     // Load default values from service items or use fallback defaults for all equipment
-                    if (selectedEquipment) {
+                    if (selectedEquipment && serviceItems && (serviceItems as any[]).length > 0) {
                       console.log('Service items data:', serviceItems);
-                      const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 200;
+                      const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 100;
                       const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 100;
                       const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 150;
                       
-                      console.log('Setting service costs:', { item1Cost, item2Cost, item3Cost });
+                      console.log('Setting service costs from database:', { item1Cost, item2Cost, item3Cost });
                       
                       updatedItem = {
                         ...updatedItem,
                         serviceItem1Cost: updatedItem.serviceItem1Cost || item1Cost,
                         serviceItem2Cost: updatedItem.serviceItem2Cost || item2Cost,
                         serviceItem3Cost: updatedItem.serviceItem3Cost || item3Cost,
+                      };
+                    } else {
+                      // No service items in database - use equipment category defaults
+                      console.log('No service items in database, using category defaults for:', selectedEquipment?.category);
+                      let defaultCosts = { item1: 100, item2: 100, item3: 150 };
+                      
+                      // Set different defaults based on equipment category
+                      if (selectedEquipment?.category === 'Maszty oświetleniowe') {
+                        defaultCosts = { item1: 80, item2: 80, item3: 120 };
+                      } else if (selectedEquipment?.category === 'Agregaty prądotwórcze') {
+                        defaultCosts = { item1: 200, item2: 100, item3: 150 };
+                      } else if (selectedEquipment?.category === 'Nagrzewnice') {
+                        defaultCosts = { item1: 140, item2: 120, item3: 180 };
+                      }
+                      
+                      updatedItem = {
+                        ...updatedItem,
+                        serviceItem1Cost: updatedItem.serviceItem1Cost || defaultCosts.item1,
+                        serviceItem2Cost: updatedItem.serviceItem2Cost || defaultCosts.item2,
+                        serviceItem3Cost: updatedItem.serviceItem3Cost || defaultCosts.item3,
                       };
                     }
                     
