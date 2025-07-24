@@ -338,7 +338,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           let totalServiceCost = 0;
           
           // Calculate total service cost proportionally based on usage
-          const totalServiceItemsCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
+          const totalServiceItemsCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0) + ((item as any).serviceItem4Cost || 0);
           
           if (serviceCosts && selectedEquipment && totalServiceItemsCost > 0) {
             const isGenerator = selectedEquipment.category.name === 'Agregaty prądotwórcze';
@@ -1040,6 +1040,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 0;
                       const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
                       const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
+                      const item4Cost = (serviceItems as any[])[3]?.itemCost ? parseFloat((serviceItems as any[])[3].itemCost) : 0;
                       
                       console.log('Loading service costs on enable:', { 
                         item1Cost, 
@@ -1061,6 +1062,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         serviceItem1Cost: item1Cost,
                         serviceItem2Cost: item2Cost,
                         serviceItem3Cost: item3Cost,
+                        serviceItem4Cost: item4Cost,
                       };
                     } else {
                       // No data available yet, set to 0
@@ -1069,6 +1071,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         serviceItem1Cost: 0,
                         serviceItem2Cost: 0,
                         serviceItem3Cost: 0,
+                        serviceItem4Cost: 0,
                       };
                     }
                     
@@ -1139,7 +1142,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     {(serviceItems as any[])?.[0]?.itemName || 'Pozycja serwisowa 1'}
@@ -1197,6 +1200,25 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       });
                     }}
                     placeholder={(serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost).toFixed(2) : "0.00"}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    {(serviceItems as any[])?.[3]?.itemName || 'Pozycja serwisowa 4'}
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={(item as any).serviceItem4Cost || 0}
+                    onChange={(e) => {
+                      const cost = parseFloat(e.target.value) || 0;
+                      onUpdate({
+                        ...item,
+                        serviceItem4Cost: cost
+                      });
+                    }}
+                    placeholder={(serviceItems as any[])[3]?.itemCost ? parseFloat((serviceItems as any[])[3].itemCost).toFixed(2) : "0.00"}
                   />
                 </div>
               </div>
