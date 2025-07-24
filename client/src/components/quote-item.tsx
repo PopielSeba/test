@@ -178,7 +178,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     enabled: !!item.equipmentId && item.equipmentId > 0,
   });
 
-  // Auto-populate service costs from database when service items load
+  // Auto-populate service costs from database when service items load and costs are enabled but empty
   useEffect(() => {
     if (item.includeServiceItems && serviceItems && (serviceItems as any[]).length > 0) {
       // Check if values need to be populated (all are 0)
@@ -189,7 +189,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
         const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
         
-        console.log('Auto-populating service costs from database:', { 
+        console.log('Auto-populating service costs from database (useEffect):', { 
           serviceItemsLength: serviceItems.length,
           item1Cost, 
           item2Cost, 
@@ -1015,13 +1015,29 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   let updatedItem = { ...item };
                   
                   if (checked) {
-                    // Initially set to 0, will be updated when service items load
-                    updatedItem = {
-                      ...updatedItem,
-                      serviceItem1Cost: 0,
-                      serviceItem2Cost: 0,
-                      serviceItem3Cost: 0,
-                    };
+                    // Load values from database if available
+                    if (serviceItems && (serviceItems as any[]).length > 0) {
+                      const item1Cost = (serviceItems as any[])[0]?.itemCost ? parseFloat((serviceItems as any[])[0].itemCost) : 0;
+                      const item2Cost = (serviceItems as any[])[1]?.itemCost ? parseFloat((serviceItems as any[])[1].itemCost) : 0;
+                      const item3Cost = (serviceItems as any[])[2]?.itemCost ? parseFloat((serviceItems as any[])[2].itemCost) : 0;
+                      
+                      console.log('Loading service costs on enable:', { item1Cost, item2Cost, item3Cost, serviceItems });
+                      
+                      updatedItem = {
+                        ...updatedItem,
+                        serviceItem1Cost: item1Cost,
+                        serviceItem2Cost: item2Cost,
+                        serviceItem3Cost: item3Cost,
+                      };
+                    } else {
+                      // No data available yet, set to 0
+                      updatedItem = {
+                        ...updatedItem,
+                        serviceItem1Cost: 0,
+                        serviceItem2Cost: 0,
+                        serviceItem3Cost: 0,
+                      };
+                    }
                     
                     // Don't calculate totalServiceItemsCost here - let the useEffect calculate it proportionally
                     updatedItem.totalServiceItemsCost = 0; // Will be calculated by useEffect
