@@ -1039,9 +1039,15 @@ function generateQuoteHTML(quote: any) {
           const notesData = JSON.parse(item.notes);
           selectedAdditionalIds = notesData.selectedAdditional || [];
           selectedAccessoriesIds = notesData.selectedAccessories || [];
+          console.log('Print debug - parsed notes:', {
+            selectedAdditionalIds,
+            selectedAccessoriesIds,
+            availableAdditional: item.equipment.additionalEquipment?.map(a => ({ id: a.id, name: a.name, type: a.type }))
+          });
         }
       } catch (e) {
         // If parsing fails, don't show any additional equipment
+        console.log('Print debug - notes parsing failed:', e);
       }
       
       // Filter to show only selected items
