@@ -93,6 +93,16 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Complete user lifecycle management**: From registration through approval to full system access
 - **User interface improvements**: Removed duplicate buttons and information sections on landing page for cleaner presentation
 
+### January 24, 2025
+- **ADDED VEHICLE CATEGORY**: Implemented "Pojazdy" category with kilometer-based fuel consumption calculations
+- **Database schema updates**: Added vehicle-specific fields (fuelConsumptionPer100km, kilometersPerDay, calculationType, serviceIntervalKm) to quote_items and equipment_service_costs tables
+- **Frontend vehicle support**: Updated quote-item.tsx to show different calculation inputs for vehicles (l/100km, km/day) vs traditional equipment (l/h, hours/day)
+- **Admin panel enhancements**: Extended equipment creation to support vehicles with proper fuel consumption fields (l/100km instead of l/h)
+- **Service interval differentiation**: Vehicles now use kilometer-based service intervals (e.g., 15,000 km) instead of monthly intervals
+- **Fixed database constraints**: Added unique constraint to equipment_service_costs table to resolve upsert conflicts
+- **Sample vehicle added**: Created "Ciężarówka z HDS" with appropriate pricing structure for testing
+- **Automatic category detection**: System automatically detects vehicle category and switches calculation methods accordingly
+
 
 
 ## User Preferences

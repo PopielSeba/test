@@ -781,6 +781,7 @@ export class DatabaseStorage implements IStorage {
         target: equipmentServiceCosts.equipmentId,
         set: {
           serviceIntervalMonths: serviceCosts.serviceIntervalMonths,
+          serviceIntervalKm: (serviceCosts as any).serviceIntervalKm,
           workerHours: serviceCosts.workerHours,
           workerCostPerHour: serviceCosts.workerCostPerHour,
           updatedAt: new Date(),

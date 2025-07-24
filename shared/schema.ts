@@ -207,8 +207,9 @@ export const quoteItems = pgTable("quote_items", {
 // Service cost configuration for equipment
 export const equipmentServiceCosts = pgTable("equipment_service_costs", {
   id: serial("id").primaryKey(),
-  equipmentId: integer("equipment_id").references(() => equipment.id).notNull(),
-  serviceIntervalMonths: integer("service_interval_months").default(12).notNull(), // How often service is required
+  equipmentId: integer("equipment_id").references(() => equipment.id).notNull().unique(),
+  serviceIntervalMonths: integer("service_interval_months").default(12), // How often service is required for traditional equipment
+  serviceIntervalKm: integer("service_interval_km"), // Service interval in kilometers for vehicles
   workerHours: decimal("worker_hours", { precision: 4, scale: 1 }).default("2.0").notNull(), // Fixed field name
   workerCostPerHour: decimal("worker_cost_per_hour", { precision: 8, scale: 2 }).default("100.00").notNull(), // Fixed field name
   createdAt: timestamp("created_at").defaultNow(),
