@@ -346,8 +346,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             const isVehicle = selectedEquipment.category.name === 'Pojazdy';
             
             if (isGenerator || isLightingTower) {
-              // For engine equipment - use motohour intervals
-              const serviceIntervalMotohours = parseInt((serviceCosts as any).serviceIntervalMotohours) || (isLightingTower ? 1000 : 500);
+              // For engine equipment - use motohour intervals from database
+              const serviceIntervalMotohours = parseInt((serviceCosts as any).serviceIntervalMotohours) || 500;
               const hoursPerDay = item.hoursPerDay || 8;
               const expectedMotohours = item.rentalPeriodDays * hoursPerDay;
               
@@ -359,11 +359,13 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 categoryName: selectedEquipment.category.name,
                 totalServiceItemsCost,
                 serviceIntervalMotohours,
+                serviceIntervalFromDB: (serviceCosts as any).serviceIntervalMotohours,
                 expectedMotohours,
                 hoursPerDay,
                 rentalDays: item.rentalPeriodDays,
                 proportionFactor,
-                finalCost: totalServiceCost
+                finalCost: totalServiceCost,
+                note: 'Service interval should come from database, not default'
               });
             } else if (isVehicle) {
               // For vehicles - use kilometer intervals
