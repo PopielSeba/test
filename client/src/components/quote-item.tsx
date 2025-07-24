@@ -312,6 +312,17 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           // Service cost (per technician)
           const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
           installationCost = travelCost + serviceCost;
+          
+          console.log('Installation cost calculation:', {
+            includeInstallationCost: item.includeInstallationCost,
+            distanceKm: item.installationDistanceKm,
+            travelRate: item.travelRatePerKm,
+            travelCost,
+            numberOfTechnicians: item.numberOfTechnicians,
+            serviceRate: item.serviceRatePerTechnician,
+            serviceCost,
+            totalInstallationCost: installationCost
+          });
         }
 
         // Maintenance costs removed per user request
@@ -336,7 +347,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
             
             if (isGenerator || isLightingTower) {
               // For engine equipment - use motohour intervals
-              const serviceIntervalMotohours = parseInt((serviceCosts as any).serviceIntervalMotohours) || 500;
+              const serviceIntervalMotohours = parseInt((serviceCosts as any).serviceIntervalMotohours) || (isLightingTower ? 1000 : 500);
               const hoursPerDay = item.hoursPerDay || 8;
               const expectedMotohours = item.rentalPeriodDays * hoursPerDay;
               
