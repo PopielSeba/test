@@ -297,9 +297,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           
           // Calculate service worker cost based on hours and intervals
           if (serviceCosts && selectedEquipment) {
-            const isGenerator = selectedEquipment.categoryId === 4; // Agregaty prądotwórcze
-            const isLightingTower = selectedEquipment.categoryId === 3; // Maszty oświetleniowe
-            const isVehicle = selectedEquipment.categoryId === 7; // Pojazdy
+            const isGenerator = selectedEquipment.category === 'Agregaty prądotwórcze';
+            const isLightingTower = selectedEquipment.category === 'Maszty oświetleniowe';
+            const isVehicle = selectedEquipment.category === 'Pojazdy';
             
             if (isGenerator || isLightingTower) {
               // For engine equipment - use motohour intervals
@@ -314,6 +314,15 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               const serviceWorkerCost = workerHours * workerCostPerHour;
               const serviceCostProportional = (serviceWorkerCost / serviceIntervalMotohours) * expectedMotohours;
               
+              console.log(`Generator/Tower Service Calculation:`, {
+                serviceItemsBaseCost,
+                serviceWorkerCost,
+                serviceIntervalMotohours,
+                expectedMotohours,
+                serviceCostProportional,
+                totalCalculated: serviceItemsBaseCost + serviceCostProportional
+              });
+              
               totalServiceCost = serviceItemsBaseCost + serviceCostProportional;
             } else if (isVehicle) {
               // For vehicles - use kilometer intervals
@@ -321,7 +330,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               const workerHours = parseFloat((serviceCosts as any).workerHours) || 2.0;
               const workerCostPerHour = parseFloat((serviceCosts as any).workerCostPerHour) || 100.0;
               
-              const dailyKm = item.dailyKm || 100;
+              const dailyKm = (item as any).dailyKm || 100;
               const expectedKm = item.rentalPeriodDays * dailyKm;
               
               // Calculate proportional service cost for rental period based on kilometers
@@ -359,6 +368,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
 
 
+        console.log(`Final service cost being set:`, {
+          serviceItemsCost,
+          includeServiceItems: item.includeServiceItems,
+          equipmentCategory: selectedEquipment?.category
+        });
+        
         onUpdate({
           ...item,
           pricePerDay,
