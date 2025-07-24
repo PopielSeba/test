@@ -305,6 +305,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
   // Calculate price when equipment, quantity, or period changes
   useEffect(() => {
+    console.log('USEEFFECT TRIGGER: Main calculation useEffect triggered with hoursPerDay:', item.hoursPerDay, 'totalServiceItemsCost:', item.totalServiceItemsCost);
     if (selectedEquipment && item.quantity > 0 && item.rentalPeriodDays > 0) {
       const pricing = getPricingForPeriod(selectedEquipment, item.rentalPeriodDays);
       if (pricing) {
