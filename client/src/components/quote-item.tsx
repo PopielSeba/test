@@ -330,9 +330,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           const totalServiceItemsCost = (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0);
           
           if (serviceCosts && selectedEquipment && totalServiceItemsCost > 0) {
-            const isGenerator = selectedEquipment.category === 'Agregaty prądotwórcze';
-            const isLightingTower = selectedEquipment.category === 'Maszty oświetleniowe';
-            const isVehicle = selectedEquipment.category === 'Pojazdy';
+            const isGenerator = selectedEquipment.category.name === 'Agregaty prądotwórcze';
+            const isLightingTower = selectedEquipment.category.name === 'Maszty oświetleniowe';
+            const isVehicle = selectedEquipment.category.name === 'Pojazdy';
             
             if (isGenerator || isLightingTower) {
               // For engine equipment - use motohour intervals
@@ -345,9 +345,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               totalServiceCost = totalServiceItemsCost * proportionFactor;
               
               console.log(`Generator/Tower Service Calculation:`, {
+                categoryName: selectedEquipment.category.name,
                 totalServiceItemsCost,
                 serviceIntervalMotohours,
                 expectedMotohours,
+                hoursPerDay,
+                rentalDays: item.rentalPeriodDays,
                 proportionFactor,
                 finalCost: totalServiceCost
               });
@@ -389,7 +392,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         console.log(`Final service cost being set:`, {
           serviceItemsCost,
           includeServiceItems: item.includeServiceItems,
-          equipmentCategory: selectedEquipment?.category
+          equipmentCategory: selectedEquipment?.category?.name,
+          totalServiceItemsCost: (item.serviceItem1Cost || 0) + (item.serviceItem2Cost || 0) + (item.serviceItem3Cost || 0)
         });
         
         onUpdate({
