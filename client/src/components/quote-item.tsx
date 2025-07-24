@@ -933,7 +933,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         step="0.01"
                         min="0"
                         placeholder="6.50"
-                        value={item.fuelPricePerLiter || ""}
+                        value={item.fuelPricePerLiter?.toString() || ""}
                         onChange={(e) => {
                           const fuelPrice = parseFloat(e.target.value) || 0;
                           const consumption = item.fuelConsumptionLH || 0;

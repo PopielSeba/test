@@ -660,6 +660,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied. Admin or employee role required." });
       }
 
+      // Fetch service items for each equipment in the quote
+      const quoteWithServiceItems = {
+        ...quote,
+        items: await Promise.all(quote.items.map(async (item) => {
+          const serviceItems = await storage.getEquipmentServiceItems(item.equipmentId);
+          return {
+            ...item,
+            serviceItems: serviceItems || []
+          };
+        }))
+      };
+
       // Generate HTML content for the quote
       console.log("Quote data for print:", {
         id: quote.id,
@@ -667,7 +679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         items: quote.items
       });
       
-      const htmlContent = generateQuoteHTML(quote);
+      const htmlContent = generateQuoteHTML(quoteWithServiceItems);
       
       res.setHeader('Content-Type', 'text/html');
       res.send(htmlContent);
@@ -1013,16 +1025,44 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Szczegółowe pozycje serwisowe (dla nagrzewnic)
+    // Szczegółowe pozycje serwisowe - używamy rzeczywistych nazw z bazy danych
     if (item.includeServiceItems && (parseFloat(item.serviceItem1Cost) > 0 || parseFloat(item.serviceItem2Cost) > 0 || parseFloat(item.serviceItem3Cost) > 0)) {
+      let serviceItemsHTML = '';
+      
+      // Pobierz rzeczywiste nazwy usług z bazy danych
+      if (item.serviceItems && item.serviceItems.length > 0) {
+        if (parseFloat(item.serviceItem1Cost) > 0 && item.serviceItems[0]) {
+          serviceItemsHTML += `• ${item.serviceItems[0].itemName}: ${formatCurrency(item.serviceItem1Cost)}<br>`;
+        }
+        if (parseFloat(item.serviceItem2Cost) > 0 && item.serviceItems[1]) {
+          serviceItemsHTML += `• ${item.serviceItems[1].itemName}: ${formatCurrency(item.serviceItem2Cost)}<br>`;
+        }
+        if (parseFloat(item.serviceItem3Cost) > 0 && item.serviceItems[2]) {
+          serviceItemsHTML += `• ${item.serviceItems[2].itemName}: ${formatCurrency(item.serviceItem3Cost)}<br>`;
+        }
+        if (parseFloat(item.serviceItem4Cost || 0) > 0 && item.serviceItems[3]) {
+          serviceItemsHTML += `• ${item.serviceItems[3].itemName}: ${formatCurrency(item.serviceItem4Cost)}<br>`;
+        }
+      } else {
+        // Fallback jeśli nie ma danych service items
+        if (parseFloat(item.serviceItem1Cost) > 0) {
+          serviceItemsHTML += `• Pozycja serwisowa 1: ${formatCurrency(item.serviceItem1Cost)}<br>`;
+        }
+        if (parseFloat(item.serviceItem2Cost) > 0) {
+          serviceItemsHTML += `• Pozycja serwisowa 2: ${formatCurrency(item.serviceItem2Cost)}<br>`;
+        }
+        if (parseFloat(item.serviceItem3Cost) > 0) {
+          serviceItemsHTML += `• Pozycja serwisowa 3: ${formatCurrency(item.serviceItem3Cost)}<br>`;
+        }
+      }
+      
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff0f8; font-size: 0.9em;">
             <strong>🛠️ Koszty serwisowe:</strong> ${formatCurrency(item.totalServiceItemsCost)}<br>
-            ${parseFloat(item.serviceItem1Cost) > 0 ? `• Przegląd serwisowy: ${formatCurrency(item.serviceItem1Cost)}<br>` : ''}
-            ${parseFloat(item.serviceItem2Cost) > 0 ? `• Dojazd: ${formatCurrency(item.serviceItem2Cost)}<br>` : ''}
-            ${parseFloat(item.serviceItem3Cost) > 0 ? `• Wymiana palnika: ${formatCurrency(item.serviceItem3Cost)}<br>` : ''}
+            ${serviceItemsHTML}
           </td>
+        </tr>
         </tr>
       `);
     }
