@@ -1630,27 +1630,28 @@ export default function Admin() {
                               />
                             </TableCell>
                             <TableCell>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-1">
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => handleEditEquipment(item)}
                                   title="Edytuj"
+                                  className="h-7 w-7 p-0"
                                 >
-                                  <Edit className="w-4 h-4" />
+                                  <Edit className="w-3 h-3" />
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => handleCopyEquipment(item)}
                                   title="Kopiuj"
-                                  className="text-blue-600 hover:text-blue-700"
+                                  className="text-blue-600 hover:text-blue-700 h-7 w-7 p-0"
                                 >
-                                  <Copy className="w-4 h-4" />
+                                  <Copy className="w-3 h-3" />
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => {
                                     setSelectedEquipmentForPricing(item);
                                     setLocalPrices({});
@@ -1661,24 +1662,25 @@ export default function Admin() {
                                     }
                                   }}
                                   title="Edytuj cennik"
+                                  className="h-7 w-7 p-0"
                                 >
-                                  <DollarSign className="w-4 h-4" />
+                                  <DollarSign className="w-3 h-3" />
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => {
                                     setSelectedEquipmentForAdditional(item);
                                     setIsEquipmentAdditionalDialogOpen(true);
                                   }}
                                   title="Wyposażenie dodatkowe i akcesoria"
-                                  className="text-green-600 hover:text-green-700"
+                                  className="text-green-600 hover:text-green-700 h-7 w-7 p-0"
                                 >
-                                  <Plus className="w-4 h-4" />
+                                  <Plus className="w-3 h-3" />
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => {
                                     setSelectedEquipmentForServiceCosts(item);
                                     // Scroll to service costs section
@@ -1690,18 +1692,18 @@ export default function Admin() {
                                     }, 100);
                                   }}
                                   title="Koszty serwisu"
-                                  className="text-purple-600 hover:text-purple-700"
+                                  className="text-purple-600 hover:text-purple-700 h-7 w-7 p-0"
                                 >
-                                  <Wrench className="w-4 h-4" />
+                                  <Wrench className="w-3 h-3" />
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="xs"
                                   onClick={() => handleDeleteEquipment(item.id)}
-                                  className="text-red-600 hover:text-red-700"
+                                  className="text-red-600 hover:text-red-700 h-7 w-7 p-0"
                                   title="Usuń"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               </div>
                             </TableCell>
