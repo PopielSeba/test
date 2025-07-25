@@ -17,6 +17,21 @@ import {
   insertPricingSchemaSchema,
 
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, sql, asc, count, and, inArray } from "drizzle-orm";
+import { 
+  equipmentCategories, 
+  equipment, 
+  equipmentPricing, 
+  equipmentAdditional, 
+  equipmentServiceCosts, 
+  equipmentServiceItems, 
+  clients, 
+  quotes, 
+  quoteItems, 
+  users, 
+  pricingSchemas 
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -660,14 +675,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied. Admin or employee role required." });
       }
 
-      // Fetch service items for each equipment in the quote
+      // Fetch service items and additional equipment for each equipment in the quote
       const quoteWithServiceItems = {
         ...quote,
         items: await Promise.all(quote.items.map(async (item) => {
           const serviceItems = await storage.getEquipmentServiceItems(item.equipmentId);
+          
+          // Parse selected additional equipment and accessories from notes
+          let selectedAdditional = [];
+          let selectedAccessories = [];
+          let additionalEquipmentData = [];
+          let accessoriesData = [];
+          
+          try {
+            if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+              const notesData = JSON.parse(item.notes);
+              selectedAdditional = notesData.selectedAdditional || [];
+              selectedAccessories = notesData.selectedAccessories || [];
+              
+              // Fetch additional equipment details
+              if (selectedAdditional.length > 0) {
+                additionalEquipmentData = await db.select().from(equipmentAdditional)
+                  .where(and(
+                    eq(equipmentAdditional.equipmentId, item.equipmentId),
+                    eq(equipmentAdditional.type, 'additional'),
+                    inArray(equipmentAdditional.id, selectedAdditional)
+                  ));
+              }
+              
+              // Fetch accessories details
+              if (selectedAccessories.length > 0) {
+                accessoriesData = await db.select().from(equipmentAdditional)
+                  .where(and(
+                    eq(equipmentAdditional.equipmentId, item.equipmentId),
+                    eq(equipmentAdditional.type, 'accessories'),
+                    inArray(equipmentAdditional.id, selectedAccessories)
+                  ));
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing notes for additional equipment:', e);
+          }
+          
           return {
             ...item,
-            serviceItems: serviceItems || []
+            serviceItems: serviceItems || [],
+            additionalEquipmentData,
+            accessoriesData
           };
         }))
       };
@@ -1109,11 +1163,42 @@ function generateQuoteHTML(quote: any) {
     if (hasAdditionalCosts || hasAccessoriesCosts) {
       let additionalHTML = '';
       
-      if (hasAdditionalCosts) {
+      // Parse selected items from notes
+      let selectedAdditional = [];
+      let selectedAccessories = [];
+      
+      try {
+        if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+          const notesData = JSON.parse(item.notes);
+          selectedAdditional = notesData.selectedAdditional || [];
+          selectedAccessories = notesData.selectedAccessories || [];
+        }
+      } catch (e) {
+        console.error('Error parsing notes for additional equipment:', e);
+      }
+      
+      // Show detailed equipment and accessories using pre-fetched data
+      if (hasAdditionalCosts && item.additionalEquipmentData && item.additionalEquipmentData.length > 0) {
+        additionalHTML += `<strong>Wyposażenie dodatkowe:</strong><br>`;
+        
+        for (const additionalItem of item.additionalEquipmentData) {
+          const itemCost = parseFloat(additionalItem.price) * item.quantity;
+          additionalHTML += `&nbsp;&nbsp;• ${additionalItem.name}: ${formatCurrency(parseFloat(additionalItem.price))} × ${item.quantity} = ${formatCurrency(itemCost)}<br>`;
+        }
+        additionalHTML += `&nbsp;&nbsp;<strong>Suma wyposażenia dodatkowego: ${formatCurrency(parseFloat(item.additionalCost))}</strong><br><br>`;
+      } else if (hasAdditionalCosts) {
         additionalHTML += `• Wyposażenie dodatkowe: ${formatCurrency(parseFloat(item.additionalCost))}<br>`;
       }
       
-      if (hasAccessoriesCosts) {
+      if (hasAccessoriesCosts && item.accessoriesData && item.accessoriesData.length > 0) {
+        additionalHTML += `<strong>Akcesoria:</strong><br>`;
+        
+        for (const accessoryItem of item.accessoriesData) {
+          const itemCost = parseFloat(accessoryItem.price) * item.quantity;
+          additionalHTML += `&nbsp;&nbsp;• ${accessoryItem.name}: ${formatCurrency(parseFloat(accessoryItem.price))} × ${item.quantity} = ${formatCurrency(itemCost)}<br>`;
+        }
+        additionalHTML += `&nbsp;&nbsp;<strong>Suma akcesoriów: ${formatCurrency(parseFloat(item.accessoriesCost))}</strong><br>`;
+      } else if (hasAccessoriesCosts) {
         additionalHTML += `• Akcesoria: ${formatCurrency(parseFloat(item.accessoriesCost))}<br>`;
       }
       
