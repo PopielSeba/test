@@ -722,14 +722,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   ));
               }
               
-              // Fetch specific accessories details if we have selection
-              if (selectedAccessories.length > 0) {
+              // Fetch specific accessories details if we have selection (only if not already fetched by fallback)
+              if (selectedAccessories.length > 0 && accessoriesData.length === 0) {
                 accessoriesData = await db.select().from(equipmentAdditional)
                   .where(and(
                     eq(equipmentAdditional.equipmentId, item.equipmentId),
                     eq(equipmentAdditional.type, 'accessories'),
                     inArray(equipmentAdditional.id, selectedAccessories)
                   ));
+                console.log('Found specific accessories from selection:', accessoriesData.length);
               }
             }
           } catch (e) {
