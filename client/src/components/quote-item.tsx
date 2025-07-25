@@ -544,8 +544,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               const hoursPerDay = item.hoursPerDay || 8;
               const expectedHours = item.rentalPeriodDays * hoursPerDay;
               
-              // Assume standard working hours per month (30 days * 8 hours = 240 hours/month)
-              const standardHoursPerMonth = 30 * 8;
+              // Calculate actual working hours per month based on equipment usage
+              const hoursPerDayActual = item.hoursPerDay || 8;
+              const standardHoursPerMonth = 30 * hoursPerDayActual;
               const serviceIntervalHours = serviceIntervalMonths * standardHoursPerMonth;
               
               // Calculate proportional service cost based on actual usage vs interval
@@ -1773,7 +1774,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                         <>
                           <div>Interwał serwisu: {serviceCosts?.serviceIntervalMonths || 12} miesięcy</div>
                           <div>Przewidywane godziny pracy: {item.rentalPeriodDays * (item.hoursPerDay || 8)} h</div>
-                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.hoursPerDay || 8)) / ((serviceCosts?.serviceIntervalMonths || 12) * 30 * 8) * 100).toFixed(2)}%</div>
+                          <div>Proporcja użytkowania: {((item.rentalPeriodDays * (item.hoursPerDay || 8)) / ((serviceCosts?.serviceIntervalMonths || 12) * 30 * (item.hoursPerDay || 8)) * 100).toFixed(2)}%</div>
                           <div>Koszt serwisu na okres: {formatCurrency(item.totalServiceItemsCost || 0)}</div>
                         </>
                       )}
