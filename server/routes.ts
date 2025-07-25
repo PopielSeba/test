@@ -941,6 +941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 function generateQuoteHTML(quote: any) {
   const formatCurrency = (amount: string | number) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    if (isNaN(numAmount)) return "0,00 zł";
     return new Intl.NumberFormat('pl-PL', {
       style: 'currency',
       currency: 'PLN',
@@ -964,40 +965,60 @@ function generateQuoteHTML(quote: any) {
   const itemsHTML = quote.items.map((item: any) => {
     const detailsRows = [];
     
-    // Podstawowe informacje o sprzęcie
+    // Podstawowa linia sprzętu
     detailsRows.push(`
       <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.equipment.name}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${item.equipment.name}</td>
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${getRentalPeriodText(item.rentalPeriodDays)}</td>
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.pricePerDay)}</td>
         <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.discountPercent}%</td>
-        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.totalPrice)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: bold;">${formatCurrency(item.totalPrice)}</td>
       </tr>
     `);
 
-    // Szczegółowe opcje paliwowe
-    if (item.includeFuelCost) {
+    // Opcja: Koszt paliwa
+    if (item.includeFuelCost && parseFloat(item.totalFuelCost || 0) > 0) {
+      let fuelDetails = '';
+      if (item.calculationType === 'kilometers') {
+        // Pojazdy - kalkulacja kilometrowa
+        const totalKm = item.kilometersPerDay * item.rentalPeriodDays;
+        const totalFuelConsumption = (totalKm / 100) * parseFloat(item.fuelConsumptionPer100km);
+        fuelDetails = `
+          • Zużycie: ${item.fuelConsumptionPer100km} l/100km<br>
+          • Kilometry dziennie: ${item.kilometersPerDay} km<br>
+          • Całkowite kilometry: ${totalKm} km<br>
+          • Całkowite zużycie: ${totalFuelConsumption.toFixed(1)} l<br>
+          • Cena paliwa: ${formatCurrency(item.fuelPricePerLiter)}/l
+        `;
+      } else {
+        // Tradycyjne urządzenia - kalkulacja motogodzinowa
+        const totalFuelConsumption = parseFloat(item.fuelConsumptionLH) * item.hoursPerDay * item.rentalPeriodDays;
+        fuelDetails = `
+          • Zużycie: ${item.fuelConsumptionLH} l/h<br>
+          • Godziny pracy dziennie: ${item.hoursPerDay} h<br>
+          • Całkowite zużycie: ${totalFuelConsumption.toFixed(1)} l<br>
+          • Cena paliwa: ${formatCurrency(item.fuelPricePerLiter)}/l
+        `;
+      }
+      
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f8f9ff; font-size: 0.9em;">
-            <strong>🛢️ Koszt paliwa:</strong> ${formatCurrency(item.totalFuelCost)}<br>
-            • Zużycie: ${item.fuelConsumptionLH} l/h<br>
-            • Cena paliwa: ${formatCurrency(item.fuelPricePerLiter)}/l<br>
-            • Godziny pracy dziennie: ${item.hoursPerDay} h<br>
-            • Całkowite zużycie: ${(parseFloat(item.fuelConsumptionLH) * item.hoursPerDay * item.rentalPeriodDays).toFixed(1)} l
+            <strong>🛢️ Uwzględniono koszt paliwa:</strong> ${formatCurrency(item.totalFuelCost)}<br>
+            ${fuelDetails}
           </td>
         </tr>
       `);
     }
 
-    // Szczegółowe opcje montażu
-    if (item.includeInstallationCost || parseFloat(item.totalInstallationCost || 0) > 0) {
+    // Opcja: Koszt montażu
+    if (item.includeInstallationCost && parseFloat(item.totalInstallationCost || 0) > 0) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0fff8; font-size: 0.9em;">
-            <strong>🔧 Koszt montażu:</strong> ${formatCurrency(item.totalInstallationCost || 0)}<br>
-            • Dystans: ${item.installationDistanceKm || 0} km<br>
+            <strong>🔧 Uwzględniono koszt montażu:</strong> ${formatCurrency(item.totalInstallationCost)}<br>
+            • Dystans (tam i z powrotem): ${item.installationDistanceKm || 0} km<br>
             • Liczba techników: ${item.numberOfTechnicians || 1}<br>
             • Stawka za technika: ${formatCurrency(item.serviceRatePerTechnician || 150)}<br>
             • Stawka za km: ${formatCurrency(item.travelRatePerKm || 1.15)}/km
@@ -1006,13 +1027,13 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Szczegółowe opcje demontażu
-    if (item.includeDisassemblyCost || parseFloat(item.totalDisassemblyCost || 0) > 0) {
+    // Opcja: Koszt demontażu
+    if (item.includeDisassemblyCost && parseFloat(item.totalDisassemblyCost || 0) > 0) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff8f0; font-size: 0.9em;">
-            <strong>🔨 Koszt demontażu:</strong> ${formatCurrency(item.totalDisassemblyCost || 0)}<br>
-            • Dystans: ${item.disassemblyDistanceKm || 0} km<br>
+            <strong>🔨 Uwzględniono koszt demontażu:</strong> ${formatCurrency(item.totalDisassemblyCost)}<br>
+            • Dystans (tam i z powrotem): ${item.disassemblyDistanceKm || 0} km<br>
             • Liczba techników: ${item.disassemblyNumberOfTechnicians || 1}<br>
             • Stawka za technika: ${formatCurrency(item.disassemblyServiceRatePerTechnician || 150)}<br>
             • Stawka za km: ${formatCurrency(item.disassemblyTravelRatePerKm || 1.15)}/km
@@ -1021,13 +1042,13 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Szczegółowe opcje dojazdu/serwisu
-    if (item.includeTravelServiceCost || parseFloat(item.totalTravelServiceCost || 0) > 0) {
+    // Opcja: Koszt dojazdu / serwis
+    if (item.includeTravelServiceCost && parseFloat(item.totalTravelServiceCost || 0) > 0) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f8fff0; font-size: 0.9em;">
-            <strong>🚚 Koszt dojazdu / serwis:</strong> ${formatCurrency(item.totalTravelServiceCost || 0)}<br>
-            • Dystans: ${item.travelServiceDistanceKm || 0} km<br>
+            <strong>🚚 Uwzględniono koszt dojazdu / serwis:</strong> ${formatCurrency(item.totalTravelServiceCost)}<br>
+            • Dystans (tam i z powrotem): ${item.travelServiceDistanceKm || 0} km<br>
             • Liczba techników: ${item.travelServiceNumberOfTechnicians || 1}<br>
             • Stawka za technika: ${formatCurrency(item.travelServiceServiceRatePerTechnician || 150)}<br>
             • Stawka za km: ${formatCurrency(item.travelServiceTravelRatePerKm || 1.15)}/km<br>
@@ -1037,69 +1058,51 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Szczegółowe opcje eksploatacji/serwisu
-    if (item.includeMaintenanceCost) {
-      detailsRows.push(`
-        <tr>
-          <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff8f0; font-size: 0.9em;">
-            <strong>🔧 Koszt eksploatacji:</strong> ${formatCurrency(item.totalMaintenanceCost)}<br>
-            • Interwał serwisowy: co ${item.maintenanceIntervalHours} mth<br>
-            • Filtry paliwowe: ${formatCurrency(item.fuelFilter1Cost)} + ${formatCurrency(item.fuelFilter2Cost)}<br>
-            • Filtr oleju: ${formatCurrency(item.oilFilterCost)}<br>
-            • Filtry powietrza: ${formatCurrency(item.airFilter1Cost)} + ${formatCurrency(item.airFilter2Cost)}<br>
-            • Filtr silnika: ${formatCurrency(item.engineFilterCost)}<br>
-            • Olej: ${formatCurrency(item.oilCost)} (${item.oilQuantityLiters}l)<br>
-            • Praca serwisowa: ${item.serviceWorkHours}h × ${formatCurrency(item.serviceWorkRatePerHour)}/h<br>
-            • Dojazd serwisu: ${item.serviceTravelDistanceKm}km × ${formatCurrency(item.serviceTravelRatePerKm)}/km
-          </td>
-        </tr>
-      `);
-    }
-
-    // Szczegółowe pozycje serwisowe - używamy rzeczywistych nazw z bazy danych
-    if (item.includeServiceItems && (parseFloat(item.serviceItem1Cost) > 0 || parseFloat(item.serviceItem2Cost) > 0 || parseFloat(item.serviceItem3Cost) > 0)) {
+    // Opcja: Koszty serwisowe (pozycje serwisowe)
+    if (item.includeServiceItems && parseFloat(item.totalServiceItemsCost || 0) > 0) {
       let serviceItemsHTML = '';
       
       // Pobierz rzeczywiste nazwy usług z bazy danych
       if (item.serviceItems && item.serviceItems.length > 0) {
-        if (parseFloat(item.serviceItem1Cost) > 0 && item.serviceItems[0]) {
+        if (parseFloat(item.serviceItem1Cost || 0) > 0 && item.serviceItems[0]) {
           serviceItemsHTML += `• ${item.serviceItems[0].itemName}: ${formatCurrency(item.serviceItem1Cost)}<br>`;
         }
-        if (parseFloat(item.serviceItem2Cost) > 0 && item.serviceItems[1]) {
+        if (parseFloat(item.serviceItem2Cost || 0) > 0 && item.serviceItems[1]) {
           serviceItemsHTML += `• ${item.serviceItems[1].itemName}: ${formatCurrency(item.serviceItem2Cost)}<br>`;
         }
-        if (parseFloat(item.serviceItem3Cost) > 0 && item.serviceItems[2]) {
+        if (parseFloat(item.serviceItem3Cost || 0) > 0 && item.serviceItems[2]) {
           serviceItemsHTML += `• ${item.serviceItems[2].itemName}: ${formatCurrency(item.serviceItem3Cost)}<br>`;
         }
         if (parseFloat(item.serviceItem4Cost || 0) > 0 && item.serviceItems[3]) {
           serviceItemsHTML += `• ${item.serviceItems[3].itemName}: ${formatCurrency(item.serviceItem4Cost)}<br>`;
         }
       } else {
-        // Fallback jeśli nie ma danych service items
-        if (parseFloat(item.serviceItem1Cost) > 0) {
+        // Fallback nazwy
+        if (parseFloat(item.serviceItem1Cost || 0) > 0) {
           serviceItemsHTML += `• Pozycja serwisowa 1: ${formatCurrency(item.serviceItem1Cost)}<br>`;
         }
-        if (parseFloat(item.serviceItem2Cost) > 0) {
+        if (parseFloat(item.serviceItem2Cost || 0) > 0) {
           serviceItemsHTML += `• Pozycja serwisowa 2: ${formatCurrency(item.serviceItem2Cost)}<br>`;
         }
-        if (parseFloat(item.serviceItem3Cost) > 0) {
+        if (parseFloat(item.serviceItem3Cost || 0) > 0) {
           serviceItemsHTML += `• Pozycja serwisowa 3: ${formatCurrency(item.serviceItem3Cost)}<br>`;
+        }
+        if (parseFloat(item.serviceItem4Cost || 0) > 0) {
+          serviceItemsHTML += `• Pozycja serwisowa 4: ${formatCurrency(item.serviceItem4Cost)}<br>`;
         }
       }
       
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff0f8; font-size: 0.9em;">
-            <strong>🛠️ Koszty serwisowe:</strong> ${formatCurrency(item.totalServiceItemsCost)}<br>
+            <strong>🛠️ Uwzględniono koszty serwisowe:</strong> ${formatCurrency(item.totalServiceItemsCost)}<br>
             ${serviceItemsHTML}
           </td>
-        </tr>
         </tr>
       `);
     }
 
-    // Wyposażenie dodatkowe i akcesoria - nowa implementacja
-    // Oparta na kolumnach additionalCost i accessoriesCost zamiast parsowania JSON
+    // Opcja: Wyposażenie dodatkowe i akcesoria
     const hasAdditionalCosts = parseFloat(item.additionalCost || 0) > 0;
     const hasAccessoriesCosts = parseFloat(item.accessoriesCost || 0) > 0;
     
@@ -1107,27 +1110,26 @@ function generateQuoteHTML(quote: any) {
       let additionalHTML = '';
       
       if (hasAdditionalCosts) {
-        additionalHTML += `<strong>Wyposażenie dodatkowe:</strong> ${formatCurrency(parseFloat(item.additionalCost))}<br>`;
+        additionalHTML += `• Wyposażenie dodatkowe: ${formatCurrency(parseFloat(item.additionalCost))}<br>`;
       }
       
       if (hasAccessoriesCosts) {
-        additionalHTML += `<strong>Akcesoria:</strong> ${formatCurrency(parseFloat(item.accessoriesCost))}<br>`;
+        additionalHTML += `• Akcesoria: ${formatCurrency(parseFloat(item.accessoriesCost))}<br>`;
       }
       
       const totalAdditionalCost = (parseFloat(item.additionalCost || 0) + parseFloat(item.accessoriesCost || 0));
-      additionalHTML += `<strong>Razem:</strong> ${formatCurrency(totalAdditionalCost)}`;
       
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0f8ff; font-size: 0.9em;">
-            <strong>📦 Wyposażenie dodatkowe i akcesoria:</strong><br>
+            <strong>📦 Uwzględniono wyposażenie dodatkowe i akcesoria:</strong> ${formatCurrency(totalAdditionalCost)}<br>
             ${additionalHTML}
           </td>
         </tr>
       `);
     }
 
-    // Uwagi - show only user notes, not technical JSON data
+    // Uwagi użytkownika
     let userNotes = "";
     try {
       if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
@@ -1243,3 +1245,5 @@ function generateQuoteHTML(quote: any) {
     </html>
   `;
 }
+
+
