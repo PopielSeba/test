@@ -669,12 +669,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
       
       // Auto-fill fuel consumption and maintenance costs for generators, lighting towers, and heaters
       let fuelData = {};
-      if (equipment.category.name === 'Agregaty prądotwórcze' || equipment.category.name === 'Maszty oświetleniowe' || equipment.category.name === 'Nagrzewnice') {
+      if (equipment.category.name === 'Agregaty prądotwórcze' || equipment.category.name === 'Maszty oświetleniowe' || equipment.category.name === 'Nagrzewnice' || equipment.category.name === 'Klimatyzacje') {
         fuelData = {
           includeFuelCost: true,
           fuelConsumptionLH: equipment.fuelConsumption75 || 0,
           fuelPricePerLiter: 6.50, // Default fuel price PLN/liter
-          hoursPerDay: 8,
+          hoursPerDay: equipment.category.name === 'Klimatyzacje' ? 12 : 8,
           totalFuelCost: 0,
           // Maintenance costs removed per user request
         };

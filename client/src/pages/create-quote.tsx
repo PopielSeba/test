@@ -241,9 +241,9 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           notes: "",
           fuelConsumptionLH: selectedEquipment.fuelConsumption75 || 0,
           fuelPricePerLiter: 6.50, // Default fuel price
-          hoursPerDay: 8,
+          hoursPerDay: selectedEquipment.category.name === 'Klimatyzacje' ? 12 : 8,
           totalFuelCost: 0,
-          includeFuelCost: selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Pojazdy',
+          includeFuelCost: selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Pojazdy' || selectedEquipment.category.name === 'Klimatyzacje',
           // Vehicle-specific fields
           fuelConsumptionPer100km: 0,
           kilometersPerDay: 0,

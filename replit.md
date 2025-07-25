@@ -130,6 +130,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **ADDED travel/service cost functionality**: Added third cost option "Uwzględnij koszt dojazdu / serwis" with same calculation logic as installation and disassembly
 - **ENHANCED travel/service cost with trip multiplier**: Added "Ilość wyjazdów" field to multiply travel/service costs by number of trips
 - **FIXED quote printing**: Added missing disassembly and travel/service cost sections to quote printouts
+- **FIXED accessories display in printing**: Resolved critical bug where fallback logic was overwriting accessories data with empty arrays
+- **ENHANCED print functionality**: All three cost options (installation, disassembly, travel/service) now display properly with detailed itemized content
+- **SET air conditioning default hours**: Air conditioning units now default to 12 hours daily operation time instead of 8 hours
 
 
 
