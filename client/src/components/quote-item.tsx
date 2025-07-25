@@ -52,6 +52,7 @@ interface QuoteItemData {
   travelServiceNumberOfTechnicians?: number;
   travelServiceServiceRatePerTechnician?: number;
   travelServiceTravelRatePerKm?: number;
+  travelServiceNumberOfTrips?: number;
   totalTravelServiceCost?: number;
 
   // Service items for heaters
@@ -473,7 +474,10 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
           // Service cost (per technician)
           const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
-          travelServiceCost = travelCost + serviceCost;
+          // Total cost per trip
+          const costPerTrip = travelCost + serviceCost;
+          // Multiply by number of trips
+          travelServiceCost = costPerTrip * (item.travelServiceNumberOfTrips || 1);
         }
 
         // Maintenance costs removed per user request
@@ -606,6 +610,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.travelServiceTravelRatePerKm,
     item.travelServiceNumberOfTechnicians,
     item.travelServiceServiceRatePerTechnician,
+    item.travelServiceNumberOfTrips,
     item.includeServiceItems,
     item.serviceItem1Cost,
     item.serviceItem2Cost, 
@@ -1336,7 +1341,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 if (checked) {
                   const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
                   const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
-                  totalCost = travelCost + serviceCost;
+                  const costPerTrip = travelCost + serviceCost;
+                  totalCost = costPerTrip * (item.travelServiceNumberOfTrips || 1);
                 }
                 onUpdate({ 
                   ...item, 
@@ -1345,6 +1351,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   travelServiceNumberOfTechnicians: checked ? (item.travelServiceNumberOfTechnicians || 1) : 1,
                   travelServiceServiceRatePerTechnician: checked ? (item.travelServiceServiceRatePerTechnician || 150) : 150,
                   travelServiceTravelRatePerKm: checked ? (item.travelServiceTravelRatePerKm || 1.15) : 1.15,
+                  travelServiceNumberOfTrips: checked ? (item.travelServiceNumberOfTrips || 1) : 1,
                   totalTravelServiceCost: totalCost
                 });
               }}
@@ -1357,7 +1364,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           
           {item.includeTravelServiceCost && (
             <div className="bg-muted/50 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Ilość kilometrów (tam i z powrotem)
@@ -1370,7 +1377,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       const distance = parseFloat(e.target.value) || 0;
                       const travelCost = distance * (item.travelServiceTravelRatePerKm || 1.15);
                       const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
-                      const totalCost = travelCost + serviceCost;
+                      const costPerTrip = travelCost + serviceCost;
+                      const totalCost = costPerTrip * (item.travelServiceNumberOfTrips || 1);
                       onUpdate({
                         ...item,
                         travelServiceDistanceKm: distance,
@@ -1393,7 +1401,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       const technicians = parseInt(e.target.value) || 1;
                       const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
                       const serviceCost = technicians * (item.travelServiceServiceRatePerTechnician || 150);
-                      const totalCost = travelCost + serviceCost;
+                      const costPerTrip = travelCost + serviceCost;
+                      const totalCost = costPerTrip * (item.travelServiceNumberOfTrips || 1);
                       onUpdate({
                         ...item,
                         travelServiceNumberOfTechnicians: technicians,
@@ -1416,7 +1425,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       const serviceRate = parseFloat(e.target.value) || 150;
                       const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
                       const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * serviceRate;
-                      const totalCost = travelCost + serviceCost;
+                      const costPerTrip = travelCost + serviceCost;
+                      const totalCost = costPerTrip * (item.travelServiceNumberOfTrips || 1);
                       onUpdate({
                         ...item,
                         travelServiceServiceRatePerTechnician: serviceRate,
@@ -1439,7 +1449,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       const rate = parseFloat(e.target.value) || 1.15;
                       const travelCost = (item.travelServiceDistanceKm || 0) * rate;
                       const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
-                      const totalCost = travelCost + serviceCost;
+                      const costPerTrip = travelCost + serviceCost;
+                      const totalCost = costPerTrip * (item.travelServiceNumberOfTrips || 1);
                       onUpdate({
                         ...item,
                         travelServiceTravelRatePerKm: rate,
@@ -1447,6 +1458,30 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                       });
                     }}
                     placeholder="1.15"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Ilość wyjazdów
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.travelServiceNumberOfTrips || 1}
+                    onChange={(e) => {
+                      const trips = parseInt(e.target.value) || 1;
+                      const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
+                      const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
+                      const costPerTrip = travelCost + serviceCost;
+                      const totalCost = costPerTrip * trips;
+                      onUpdate({
+                        ...item,
+                        travelServiceNumberOfTrips: trips,
+                        totalTravelServiceCost: totalCost
+                      });
+                    }}
+                    placeholder="1"
                   />
                 </div>
                 
