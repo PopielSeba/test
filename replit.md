@@ -133,6 +133,8 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **FIXED accessories display in printing**: Resolved critical bug where fallback logic was overwriting accessories data with empty arrays
 - **ENHANCED print functionality**: All three cost options (installation, disassembly, travel/service) now display properly with detailed itemized content
 - **SET air conditioning default hours**: Air conditioning units now default to 12 hours daily operation time instead of 8 hours
+- **FIXED service cost proportion calculation**: Air conditioning service costs now use actual working hours (12h/day) instead of hardcoded 8h/day for interval calculations
+- **ADDED equipment category filtering in admin panel**: Equipment management section now has dropdown filter to show only selected category, reducing long equipment lists
 
 
 

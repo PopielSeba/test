@@ -197,6 +197,7 @@ export default function Admin() {
   const [isPricingSchemaDialogOpen, setIsPricingSchemaDialogOpen] = useState(false);
   const [editingPricingSchema, setEditingPricingSchema] = useState<PricingSchema | null>(null);
   const [selectedEquipmentForServiceCosts, setSelectedEquipmentForServiceCosts] = useState<Equipment | null>(null);
+  const [selectedEquipmentCategory, setSelectedEquipmentCategory] = useState<string>("all");
 
 
   // Allow development access to admin data  
@@ -1167,6 +1168,26 @@ export default function Admin() {
                     <Wrench className="w-5 h-5 mr-2" />
                     Zarządzanie sprzętem
                   </CardTitle>
+                </div>
+                <div className="flex gap-4 items-center mt-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Kategoria:</label>
+                    <Select value={selectedEquipmentCategory} onValueChange={setSelectedEquipmentCategory}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Wybierz kategorię" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Wszystkie kategorie</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex justify-end items-center">{/* Move buttons to the right */}
                   <div className="flex space-x-2">
                     <Button
                       variant="outline"
@@ -1556,7 +1577,9 @@ export default function Admin() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        equipment.map((item) => (
+                        equipment
+                          .filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory)
+                          .map((item) => (
                           <TableRow key={item.id}>
                             <TableCell>
                               <div>
@@ -1678,7 +1701,7 @@ export default function Admin() {
             </Card>
 
             {/* Equipment Additional and Accessories Management */}
-            {equipment.length > 0 && (
+            {equipment.filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory).length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -1687,7 +1710,9 @@ export default function Admin() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {equipment.map((item) => (
+                  {equipment
+                    .filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory)
+                    .map((item) => (
                     <EquipmentAdditionalManager
                       key={item.id}
                       equipmentId={item.id}
@@ -2079,7 +2104,9 @@ export default function Admin() {
             <CardContent>
               <div className="space-y-6">
                 <div className="flex flex-wrap gap-2">
-                  {equipment.map((item) => (
+                  {equipment
+                    .filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory)
+                    .map((item) => (
                     <Button
                       key={item.id}
                       variant={selectedEquipmentForPricing?.id === item.id ? "default" : "outline"}
