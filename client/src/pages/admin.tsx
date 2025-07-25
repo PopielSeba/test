@@ -199,6 +199,7 @@ export default function Admin() {
   const [selectedEquipmentForServiceCosts, setSelectedEquipmentForServiceCosts] = useState<Equipment | null>(null);
   const [selectedEquipmentCategory, setSelectedEquipmentCategory] = useState<string>("all");
   const [isEquipmentAdditionalDialogOpen, setIsEquipmentAdditionalDialogOpen] = useState(false);
+  const [selectedEquipmentForAdditional, setSelectedEquipmentForAdditional] = useState<Equipment | null>(null);
 
 
   // Allow development access to admin data  
@@ -1193,16 +1194,6 @@ export default function Admin() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsEquipmentAdditionalDialogOpen(true)}
-                      title="Zarządzanie wyposażeniem dodatkowym i akcesoriami"
-                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Wyposażenie dodatkowe
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => syncAllEquipmentMutation.mutate()}
                       disabled={syncAllEquipmentMutation.isPending}
                       title="Zsynchronizuj wszystkie urządzenia z ustawieniami panelu admina"
@@ -1677,6 +1668,18 @@ export default function Admin() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
+                                    setSelectedEquipmentForAdditional(item);
+                                    setIsEquipmentAdditionalDialogOpen(true);
+                                  }}
+                                  title="Wyposażenie dodatkowe i akcesoria"
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
                                     setSelectedEquipmentForServiceCosts(item);
                                     // Scroll to service costs section
                                     setTimeout(() => {
@@ -1717,19 +1720,17 @@ export default function Admin() {
                 <DialogHeader>
                   <DialogTitle className="flex items-center">
                     <Plus className="w-5 h-5 mr-2" />
-                    Wyposażenie dodatkowe i akcesoria
+                    Wyposażenie dodatkowe i akcesoria - {selectedEquipmentForAdditional?.name}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-6">
-                  {equipment
-                    .filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory)
-                    .map((item) => (
+                  {selectedEquipmentForAdditional && (
                     <EquipmentAdditionalManager
-                      key={item.id}
-                      equipmentId={item.id}
-                      equipmentName={item.name}
+                      key={selectedEquipmentForAdditional.id}
+                      equipmentId={selectedEquipmentForAdditional.id}
+                      equipmentName={selectedEquipmentForAdditional.name}
                     />
-                  ))}
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
