@@ -63,6 +63,23 @@ interface QuoteItemData {
   travelRatePerKm?: number;
   totalInstallationCost?: number;
 
+  // Disassembly cost fields
+  includeDisassemblyCost?: boolean;
+  disassemblyDistanceKm?: number;
+  disassemblyNumberOfTechnicians?: number;
+  disassemblyServiceRatePerTechnician?: number;
+  disassemblyTravelRatePerKm?: number;
+  totalDisassemblyCost?: number;
+
+  // Travel/Service cost fields
+  includeTravelServiceCost?: boolean;
+  travelServiceDistanceKm?: number;
+  travelServiceNumberOfTechnicians?: number;
+  travelServiceServiceRatePerTechnician?: number;
+  travelServiceTravelRatePerKm?: number;
+  travelServiceNumberOfTrips?: number;
+  totalTravelServiceCost?: number;
+
   // Additional equipment and accessories
   selectedAdditional?: number[]; // IDs of selected additional equipment
   selectedAccessories?: number[]; // IDs of selected accessories
@@ -451,11 +468,26 @@ export default function CreateQuote({ editingQuote }: CreateQuoteProps = {}) {
           kilometersPerDay: item.kilometersPerDay || 0,
           calculationType: item.calculationType || "motohours",
           includeInstallationCost: item.includeInstallationCost,
-          travelDistanceKm: (item.installationDistanceKm || 0).toString(),
+          installationDistanceKm: (item.installationDistanceKm || 0).toString(),
           numberOfTechnicians: item.numberOfTechnicians || 1,
-          hourlyRatePerTechnician: (item.serviceRatePerTechnician || 150).toString(),
+          serviceRatePerTechnician: (item.serviceRatePerTechnician || 150).toString(),
           travelRatePerKm: (item.travelRatePerKm || 1.15).toString(),
-          totalTravelCost: (item.totalInstallationCost || 0).toString(),
+          totalInstallationCost: (item.totalInstallationCost || 0).toString(),
+          // Disassembly cost fields
+          includeDisassemblyCost: item.includeDisassemblyCost,
+          disassemblyDistanceKm: (item.disassemblyDistanceKm || 0).toString(),
+          disassemblyNumberOfTechnicians: item.disassemblyNumberOfTechnicians || 1,
+          disassemblyServiceRatePerTechnician: (item.disassemblyServiceRatePerTechnician || 150).toString(),
+          disassemblyTravelRatePerKm: (item.disassemblyTravelRatePerKm || 1.15).toString(),
+          totalDisassemblyCost: (item.totalDisassemblyCost || 0).toString(),
+          // Travel/Service cost fields
+          includeTravelServiceCost: item.includeTravelServiceCost,
+          travelServiceDistanceKm: (item.travelServiceDistanceKm || 0).toString(),
+          travelServiceNumberOfTechnicians: item.travelServiceNumberOfTechnicians || 1,
+          travelServiceServiceRatePerTechnician: (item.travelServiceServiceRatePerTechnician || 150).toString(),
+          travelServiceTravelRatePerKm: (item.travelServiceTravelRatePerKm || 1.15).toString(),
+          travelServiceNumberOfTrips: item.travelServiceNumberOfTrips || 1,
+          totalTravelServiceCost: (item.totalTravelServiceCost || 0).toString(),
           includeMaintenanceCost: item.includeMaintenanceCost || false,
           totalMaintenanceCost: (item.totalMaintenanceCost || 0).toString(),
           includeServiceItems: item.includeServiceItems || false,
