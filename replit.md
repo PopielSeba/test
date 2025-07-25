@@ -129,6 +129,7 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **ADDED disassembly cost functionality**: Copied installation cost logic to create disassembly cost section with identical functionality but separate fields
 - **ADDED travel/service cost functionality**: Added third cost option "Uwzględnij koszt dojazdu / serwis" with same calculation logic as installation and disassembly
 - **ENHANCED travel/service cost with trip multiplier**: Added "Ilość wyjazdów" field to multiply travel/service costs by number of trips
+- **FIXED quote printing**: Added missing disassembly and travel/service cost sections to quote printouts
 
 
 
