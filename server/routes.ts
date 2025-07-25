@@ -1012,12 +1012,12 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Opcja: Koszt montażu
-    if (item.includeInstallationCost && parseFloat(item.totalInstallationCost || 0) > 0) {
+    // Opcja: Koszt montażu - pokazuj gdy flaga jest zaznaczona
+    if (item.includeInstallationCost) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0fff8; font-size: 0.9em;">
-            <strong>🔧 Uwzględniono koszt montażu:</strong> ${formatCurrency(item.totalInstallationCost)}<br>
+            <strong>🔧 Uwzględniono koszt montażu:</strong> ${formatCurrency(item.totalInstallationCost || 0)}<br>
             • Dystans (tam i z powrotem): ${item.installationDistanceKm || 0} km<br>
             • Liczba techników: ${item.numberOfTechnicians || 1}<br>
             • Stawka za technika: ${formatCurrency(item.serviceRatePerTechnician || 150)}<br>
@@ -1027,12 +1027,12 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Opcja: Koszt demontażu
-    if (item.includeDisassemblyCost && parseFloat(item.totalDisassemblyCost || 0) > 0) {
+    // Opcja: Koszt demontażu - pokazuj gdy flaga jest zaznaczona
+    if (item.includeDisassemblyCost) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff8f0; font-size: 0.9em;">
-            <strong>🔨 Uwzględniono koszt demontażu:</strong> ${formatCurrency(item.totalDisassemblyCost)}<br>
+            <strong>🔨 Uwzględniono koszt demontażu:</strong> ${formatCurrency(item.totalDisassemblyCost || 0)}<br>
             • Dystans (tam i z powrotem): ${item.disassemblyDistanceKm || 0} km<br>
             • Liczba techników: ${item.disassemblyNumberOfTechnicians || 1}<br>
             • Stawka za technika: ${formatCurrency(item.disassemblyServiceRatePerTechnician || 150)}<br>
@@ -1042,12 +1042,12 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Opcja: Koszt dojazdu / serwis
-    if (item.includeTravelServiceCost && parseFloat(item.totalTravelServiceCost || 0) > 0) {
+    // Opcja: Koszt dojazdu / serwis - pokazuj gdy flaga jest zaznaczona
+    if (item.includeTravelServiceCost) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f8fff0; font-size: 0.9em;">
-            <strong>🚚 Uwzględniono koszt dojazdu / serwis:</strong> ${formatCurrency(item.totalTravelServiceCost)}<br>
+            <strong>🚚 Uwzględniono koszt dojazdu / serwis:</strong> ${formatCurrency(item.totalTravelServiceCost || 0)}<br>
             • Dystans (tam i z powrotem): ${item.travelServiceDistanceKm || 0} km<br>
             • Liczba techników: ${item.travelServiceNumberOfTechnicians || 1}<br>
             • Stawka za technika: ${formatCurrency(item.travelServiceServiceRatePerTechnician || 150)}<br>
@@ -1058,8 +1058,8 @@ function generateQuoteHTML(quote: any) {
       `);
     }
 
-    // Opcja: Koszty serwisowe (pozycje serwisowe)
-    if (item.includeServiceItems && parseFloat(item.totalServiceItemsCost || 0) > 0) {
+    // Opcja: Koszty serwisowe (pozycje serwisowe) - pokazuj gdy flaga jest zaznaczona
+    if (item.includeServiceItems) {
       let serviceItemsHTML = '';
       
       // Pobierz rzeczywiste nazwy usług z bazy danych
