@@ -433,8 +433,8 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         // Calculate installation cost
         let installationCost = 0;
         if (item.includeInstallationCost) {
-          // Travel cost (round trip)
-          const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+          // Travel cost (round trip) - kilometers should not be multiplied by technicians
+          const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15);
           // Service cost (per technician)
           const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
           installationCost = travelCost + serviceCost;
@@ -1015,7 +1015,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               onCheckedChange={(checked) => {
                 let totalCost = 0;
                 if (checked) {
-                  const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+                  const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15);
                   const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
                   totalCost = travelCost + serviceCost;
                 }
@@ -1041,7 +1041,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Odległość (km)
+                    Ilość kilometrów (tam i z powrotem)
                   </label>
                   <Input
                     type="number"
@@ -1049,7 +1049,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.installationDistanceKm || ""}
                     onChange={(e) => {
                       const distance = parseFloat(e.target.value) || 0;
-                      const travelCost = distance * (item.travelRatePerKm || 1.15) * 2;
+                      const travelCost = distance * (item.travelRatePerKm || 1.15);
                       const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
                       const totalCost = travelCost + serviceCost;
                       onUpdate({
@@ -1072,7 +1072,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.numberOfTechnicians || 1}
                     onChange={(e) => {
                       const technicians = parseInt(e.target.value) || 1;
-                      const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+                      const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15);
                       const serviceCost = technicians * (item.serviceRatePerTechnician || 150);
                       const totalCost = travelCost + serviceCost;
                       onUpdate({
@@ -1095,7 +1095,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.serviceRatePerTechnician || 150}
                     onChange={(e) => {
                       const serviceRate = parseFloat(e.target.value) || 150;
-                      const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15) * 2;
+                      const travelCost = (item.installationDistanceKm || 0) * (item.travelRatePerKm || 1.15);
                       const serviceCost = (item.numberOfTechnicians || 1) * serviceRate;
                       const totalCost = travelCost + serviceCost;
                       onUpdate({
@@ -1118,7 +1118,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                     value={item.travelRatePerKm || 1.15}
                     onChange={(e) => {
                       const rate = parseFloat(e.target.value) || 1.15;
-                      const travelCost = (item.installationDistanceKm || 0) * rate * 2;
+                      const travelCost = (item.installationDistanceKm || 0) * rate;
                       const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
                       const totalCost = travelCost + serviceCost;
                       onUpdate({
