@@ -126,6 +126,7 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **FIXED equipment and accessories multiplication**: Additional equipment and accessories costs are now properly multiplied by equipment quantity
 - **FIXED installation cost calculation**: Removed incorrect multiplication of travel cost by 2 - distance field now represents total kilometers (round trip)
 - **Updated installation cost labels**: Changed "Odległość (km)" to "Ilość kilometrów (tam i z powrotem)" for clarity
+- **ADDED disassembly cost functionality**: Copied installation cost logic to create disassembly cost section with identical functionality but separate fields
 
 
 

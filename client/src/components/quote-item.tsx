@@ -38,6 +38,14 @@ interface QuoteItemData {
   travelRatePerKm?: number;
   totalInstallationCost?: number;
 
+  // Disassembly cost fields
+  includeDisassemblyCost?: boolean;
+  disassemblyDistanceKm?: number;
+  disassemblyNumberOfTechnicians?: number;
+  disassemblyServiceRatePerTechnician?: number;
+  disassemblyTravelRatePerKm?: number;
+  totalDisassemblyCost?: number;
+
   // Service items for heaters
   includeServiceItems?: boolean;
   serviceItem1Cost?: number;
@@ -438,17 +446,16 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           // Service cost (per technician)
           const serviceCost = (item.numberOfTechnicians || 1) * (item.serviceRatePerTechnician || 150);
           installationCost = travelCost + serviceCost;
-          
-          console.log('Installation cost calculation:', {
-            includeInstallationCost: item.includeInstallationCost,
-            distanceKm: item.installationDistanceKm,
-            travelRate: item.travelRatePerKm,
-            travelCost,
-            numberOfTechnicians: item.numberOfTechnicians,
-            serviceRate: item.serviceRatePerTechnician,
-            serviceCost,
-            totalInstallationCost: installationCost
-          });
+        }
+
+        // Calculate disassembly cost
+        let disassemblyCost = 0;
+        if (item.includeDisassemblyCost) {
+          // Travel cost (round trip) - kilometers should not be multiplied by technicians
+          const travelCost = (item.disassemblyDistanceKm || 0) * (item.disassemblyTravelRatePerKm || 1.15);
+          // Service cost (per technician)
+          const serviceCost = (item.disassemblyNumberOfTechnicians || 1) * (item.disassemblyServiceRatePerTechnician || 150);
+          disassemblyCost = travelCost + serviceCost;
         }
 
         // Maintenance costs removed per user request
@@ -534,7 +541,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         }
         
         // Total price (maintenance costs removed per user request)
-        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + serviceItemsCost + additionalCost + accessoriesCost;
+        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + disassemblyCost + serviceItemsCost + additionalCost + accessoriesCost;
         
 
 
@@ -547,6 +554,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           totalPrice,
           totalFuelCost: fuelCost,
           totalInstallationCost: installationCost,
+          totalDisassemblyCost: disassemblyCost,
           totalMaintenanceCost: 0,
           totalServiceItemsCost: serviceItemsCost,
           additionalCost,
@@ -569,6 +577,11 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.travelRatePerKm,
     item.numberOfTechnicians,
     item.serviceRatePerTechnician,
+    item.includeDisassemblyCost,
+    item.disassemblyDistanceKm,
+    item.disassemblyTravelRatePerKm,
+    item.disassemblyNumberOfTechnicians,
+    item.disassemblyServiceRatePerTechnician,
     item.includeServiceItems,
     item.serviceItem1Cost,
     item.serviceItem2Cost, 
@@ -1137,6 +1150,147 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   </label>
                   <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
                     {formatCurrency(item.totalInstallationCost || 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    W obie strony
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Disassembly Cost Section */}
+        <div className="mt-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <Checkbox 
+              id="includeDisassemblyCost" 
+              checked={item.includeDisassemblyCost || false}
+              onCheckedChange={(checked) => {
+                let totalCost = 0;
+                if (checked) {
+                  const travelCost = (item.disassemblyDistanceKm || 0) * (item.disassemblyTravelRatePerKm || 1.15);
+                  const serviceCost = (item.disassemblyNumberOfTechnicians || 1) * (item.disassemblyServiceRatePerTechnician || 150);
+                  totalCost = travelCost + serviceCost;
+                }
+                onUpdate({ 
+                  ...item, 
+                  includeDisassemblyCost: checked as boolean,
+                  disassemblyDistanceKm: checked ? (item.disassemblyDistanceKm || 0) : 0,
+                  disassemblyNumberOfTechnicians: checked ? (item.disassemblyNumberOfTechnicians || 1) : 1,
+                  disassemblyServiceRatePerTechnician: checked ? (item.disassemblyServiceRatePerTechnician || 150) : 150,
+                  disassemblyTravelRatePerKm: checked ? (item.disassemblyTravelRatePerKm || 1.15) : 1.15,
+                  totalDisassemblyCost: totalCost
+                });
+              }}
+            />
+            <label htmlFor="includeDisassemblyCost" className="text-sm font-medium text-foreground flex items-center">
+              <Car className="w-4 h-4 mr-2" />
+              Uwzględnij koszty demontażu
+            </label>
+          </div>
+          
+          {item.includeDisassemblyCost && (
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Ilość kilometrów (tam i z powrotem)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={item.disassemblyDistanceKm || ""}
+                    onChange={(e) => {
+                      const distance = parseFloat(e.target.value) || 0;
+                      const travelCost = distance * (item.disassemblyTravelRatePerKm || 1.15);
+                      const serviceCost = (item.disassemblyNumberOfTechnicians || 1) * (item.disassemblyServiceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        disassemblyDistanceKm: distance,
+                        totalDisassemblyCost: totalCost
+                      });
+                    }}
+                    placeholder="np. 50"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Ilość techników
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.disassemblyNumberOfTechnicians || 1}
+                    onChange={(e) => {
+                      const technicians = parseInt(e.target.value) || 1;
+                      const travelCost = (item.disassemblyDistanceKm || 0) * (item.disassemblyTravelRatePerKm || 1.15);
+                      const serviceCost = technicians * (item.disassemblyServiceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        disassemblyNumberOfTechnicians: technicians,
+                        totalDisassemblyCost: totalCost
+                      });
+                    }}
+                    placeholder="1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Stawka za usługę (zł)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.disassemblyServiceRatePerTechnician || 150}
+                    onChange={(e) => {
+                      const serviceRate = parseFloat(e.target.value) || 150;
+                      const travelCost = (item.disassemblyDistanceKm || 0) * (item.disassemblyTravelRatePerKm || 1.15);
+                      const serviceCost = (item.disassemblyNumberOfTechnicians || 1) * serviceRate;
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        disassemblyServiceRatePerTechnician: serviceRate,
+                        totalDisassemblyCost: totalCost
+                      });
+                    }}
+                    placeholder="150.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Stawka za km (zł)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.disassemblyTravelRatePerKm || 1.15}
+                    onChange={(e) => {
+                      const rate = parseFloat(e.target.value) || 1.15;
+                      const travelCost = (item.disassemblyDistanceKm || 0) * rate;
+                      const serviceCost = (item.disassemblyNumberOfTechnicians || 1) * (item.disassemblyServiceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        disassemblyTravelRatePerKm: rate,
+                        totalDisassemblyCost: totalCost
+                      });
+                    }}
+                    placeholder="1.15"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Koszt demontażu
+                  </label>
+                  <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                    {formatCurrency(item.totalDisassemblyCost || 0)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     W obie strony
