@@ -992,46 +992,46 @@ function generateQuoteHTML(quote: any) {
     }
 
     // Szczegółowe opcje montażu
-    if (item.includeInstallationCost || item.totalInstallationCost > 0) {
+    if (item.includeInstallationCost || parseFloat(item.totalInstallationCost || 0) > 0) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f0fff8; font-size: 0.9em;">
-            <strong>🔧 Koszt montażu:</strong> ${formatCurrency(item.totalInstallationCost)}<br>
-            • Dystans: ${item.installationDistanceKm} km<br>
-            • Liczba techników: ${item.numberOfTechnicians}<br>
-            • Stawka za technika: ${formatCurrency(item.serviceRatePerTechnician)}/h<br>
-            • Stawka za km: ${formatCurrency(item.travelRatePerKm)}/km
+            <strong>🔧 Koszt montażu:</strong> ${formatCurrency(item.totalInstallationCost || 0)}<br>
+            • Dystans: ${item.installationDistanceKm || 0} km<br>
+            • Liczba techników: ${item.numberOfTechnicians || 1}<br>
+            • Stawka za technika: ${formatCurrency(item.serviceRatePerTechnician || 150)}<br>
+            • Stawka za km: ${formatCurrency(item.travelRatePerKm || 1.15)}/km
           </td>
         </tr>
       `);
     }
 
     // Szczegółowe opcje demontażu
-    if (item.includeDisassemblyCost || item.totalDisassemblyCost > 0) {
+    if (item.includeDisassemblyCost || parseFloat(item.totalDisassemblyCost || 0) > 0) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #fff8f0; font-size: 0.9em;">
-            <strong>🔨 Koszt demontażu:</strong> ${formatCurrency(item.totalDisassemblyCost)}<br>
-            • Dystans: ${item.disassemblyDistanceKm} km<br>
-            • Liczba techników: ${item.disassemblyNumberOfTechnicians}<br>
-            • Stawka za technika: ${formatCurrency(item.disassemblyServiceRatePerTechnician)}/h<br>
-            • Stawka za km: ${formatCurrency(item.disassemblyTravelRatePerKm)}/km
+            <strong>🔨 Koszt demontażu:</strong> ${formatCurrency(item.totalDisassemblyCost || 0)}<br>
+            • Dystans: ${item.disassemblyDistanceKm || 0} km<br>
+            • Liczba techników: ${item.disassemblyNumberOfTechnicians || 1}<br>
+            • Stawka za technika: ${formatCurrency(item.disassemblyServiceRatePerTechnician || 150)}<br>
+            • Stawka za km: ${formatCurrency(item.disassemblyTravelRatePerKm || 1.15)}/km
           </td>
         </tr>
       `);
     }
 
     // Szczegółowe opcje dojazdu/serwisu
-    if (item.includeTravelServiceCost || item.totalTravelServiceCost > 0) {
+    if (item.includeTravelServiceCost || parseFloat(item.totalTravelServiceCost || 0) > 0) {
       detailsRows.push(`
         <tr>
           <td colspan="6" style="padding: 8px 15px; border-bottom: 1px solid #eee; background-color: #f8fff0; font-size: 0.9em;">
-            <strong>🚚 Koszt dojazdu / serwis:</strong> ${formatCurrency(item.totalTravelServiceCost)}<br>
-            • Dystans: ${item.travelServiceDistanceKm} km<br>
-            • Liczba techników: ${item.travelServiceNumberOfTechnicians}<br>
-            • Stawka za technika: ${formatCurrency(item.travelServiceServiceRatePerTechnician)}/h<br>
-            • Stawka za km: ${formatCurrency(item.travelServiceTravelRatePerKm)}/km<br>
-            • Ilość wyjazdów: ${item.travelServiceNumberOfTrips}
+            <strong>🚚 Koszt dojazdu / serwis:</strong> ${formatCurrency(item.totalTravelServiceCost || 0)}<br>
+            • Dystans: ${item.travelServiceDistanceKm || 0} km<br>
+            • Liczba techników: ${item.travelServiceNumberOfTechnicians || 1}<br>
+            • Stawka za technika: ${formatCurrency(item.travelServiceServiceRatePerTechnician || 150)}<br>
+            • Stawka za km: ${formatCurrency(item.travelServiceTravelRatePerKm || 1.15)}/km<br>
+            • Ilość wyjazdów: ${item.travelServiceNumberOfTrips || 1}
           </td>
         </tr>
       `);

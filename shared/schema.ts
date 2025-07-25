@@ -187,12 +187,35 @@ export const quoteItems = pgTable("quote_items", {
   // Total maintenance cost for the rental period
   totalMaintenanceCost: decimal("total_maintenance_cost", { precision: 12, scale: 2 }).default("0"),
   expectedMaintenanceHours: integer("expected_maintenance_hours"), // expected operating hours for the rental period
-  // Service travel cost fields
+  // Installation cost fields
+  includeInstallationCost: boolean("include_installation_cost").default(false),
+  installationDistanceKm: decimal("installation_distance_km", { precision: 8, scale: 2 }),
+  numberOfTechnicians: integer("number_of_technicians").default(1),
+  serviceRatePerTechnician: decimal("service_rate_per_technician", { precision: 8, scale: 2 }).default("150"),
+  travelRatePerKm: decimal("travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
+  totalInstallationCost: decimal("total_installation_cost", { precision: 10, scale: 2 }).default("0"),
+  
+  // Disassembly cost fields
+  includeDisassemblyCost: boolean("include_disassembly_cost").default(false),
+  disassemblyDistanceKm: decimal("disassembly_distance_km", { precision: 8, scale: 2 }),
+  disassemblyNumberOfTechnicians: integer("disassembly_number_of_technicians").default(1),
+  disassemblyServiceRatePerTechnician: decimal("disassembly_service_rate_per_technician", { precision: 8, scale: 2 }).default("150"),
+  disassemblyTravelRatePerKm: decimal("disassembly_travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
+  totalDisassemblyCost: decimal("total_disassembly_cost", { precision: 10, scale: 2 }).default("0"),
+  
+  // Travel/Service cost fields
+  includeTravelServiceCost: boolean("include_travel_service_cost").default(false),
+  travelServiceDistanceKm: decimal("travel_service_distance_km", { precision: 8, scale: 2 }),
+  travelServiceNumberOfTechnicians: integer("travel_service_number_of_technicians").default(1),
+  travelServiceServiceRatePerTechnician: decimal("travel_service_service_rate_per_technician", { precision: 8, scale: 2 }).default("150"),
+  travelServiceTravelRatePerKm: decimal("travel_service_travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
+  travelServiceNumberOfTrips: integer("travel_service_number_of_trips").default(1),
+  totalTravelServiceCost: decimal("total_travel_service_cost", { precision: 10, scale: 2 }).default("0"),
+  
+  // Legacy travel cost fields (keeping for backward compatibility)
   includeTravelCost: boolean("include_travel_cost").default(false),
   travelDistanceKm: decimal("travel_distance_km", { precision: 8, scale: 2 }),
-  numberOfTechnicians: integer("number_of_technicians").default(1),
   hourlyRatePerTechnician: decimal("hourly_rate_per_technician", { precision: 8, scale: 2 }).default("150"),
-  travelRatePerKm: decimal("travel_rate_per_km", { precision: 6, scale: 2 }).default("1.15"),
   totalTravelCost: decimal("total_travel_cost", { precision: 10, scale: 2 }).default("0"),
   // Service items for heaters
   includeServiceItems: boolean("include_service_items").default(false),
