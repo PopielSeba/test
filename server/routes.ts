@@ -682,16 +682,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const serviceItems = await storage.getEquipmentServiceItems(item.equipmentId);
           
           // Parse selected additional equipment and accessories from notes
-          let selectedAdditional = [];
-          let selectedAccessories = [];
-          let additionalEquipmentData = [];
-          let accessoriesData = [];
+          let selectedAdditional: number[] = [];
+          let selectedAccessories: number[] = [];
+          let additionalEquipmentData: any[] = [];
+          let accessoriesData: any[] = [];
           
           try {
-            if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
-              const notesData = JSON.parse(item.notes);
-              selectedAdditional = notesData.selectedAdditional || [];
-              selectedAccessories = notesData.selectedAccessories || [];
+            console.log(`Processing item ${item.equipmentId}, notes:`, item.notes);
+            
+            // Check if accessoriesCost > 0, then try to fetch all accessories for this equipment
+            if (parseFloat(item.accessoriesCost || 0) > 0) {
+              console.log(`Item has accessories cost: ${item.accessoriesCost}, fetching all accessories for equipment ${item.equipmentId}`);
+              
+              // If notes contain selection data, use it
+              if (item.notes && item.notes.startsWith('{"selectedAdditional"')) {
+                const notesData = JSON.parse(item.notes);
+                selectedAdditional = notesData.selectedAdditional || [];
+                selectedAccessories = notesData.selectedAccessories || [];
+                console.log('Found selected accessories in notes:', selectedAccessories);
+              } else {
+                // Fallback: get all accessories for this equipment since cost > 0
+                console.log('No selection data in notes, fetching all accessories');
+                const allAccessories = await db.select().from(equipmentAdditional)
+                  .where(and(
+                    eq(equipmentAdditional.equipmentId, item.equipmentId),
+                    eq(equipmentAdditional.type, 'accessories')
+                  ));
+                accessoriesData = allAccessories;
+                console.log('Found accessories (fallback):', accessoriesData.length);
+              }
               
               // Fetch additional equipment details
               if (selectedAdditional.length > 0) {
@@ -703,7 +722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   ));
               }
               
-              // Fetch accessories details
+              // Fetch specific accessories details if we have selection
               if (selectedAccessories.length > 0) {
                 accessoriesData = await db.select().from(equipmentAdditional)
                   .where(and(
@@ -730,7 +749,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Quote data for print:", {
         id: quote.id,
         itemsCount: quote.items?.length || 0,
-        items: quote.items
+        items: quoteWithServiceItems.items.map((item: any) => ({
+          notes: item.notes,
+          additionalEquipmentData: item.additionalEquipmentData?.length || 0,
+          accessoriesData: item.accessoriesData?.length || 0,
+          hasAdditionalCosts: parseFloat(item.additionalCost || 0) > 0,
+          hasAccessoriesCosts: parseFloat(item.accessoriesCost || 0) > 0
+        }))
       });
       
       const htmlContent = generateQuoteHTML(quoteWithServiceItems);
