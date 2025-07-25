@@ -46,6 +46,14 @@ interface QuoteItemData {
   disassemblyTravelRatePerKm?: number;
   totalDisassemblyCost?: number;
 
+  // Travel/Service cost fields
+  includeTravelServiceCost?: boolean;
+  travelServiceDistanceKm?: number;
+  travelServiceNumberOfTechnicians?: number;
+  travelServiceServiceRatePerTechnician?: number;
+  travelServiceTravelRatePerKm?: number;
+  totalTravelServiceCost?: number;
+
   // Service items for heaters
   includeServiceItems?: boolean;
   serviceItem1Cost?: number;
@@ -458,6 +466,16 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           disassemblyCost = travelCost + serviceCost;
         }
 
+        // Calculate travel/service cost
+        let travelServiceCost = 0;
+        if (item.includeTravelServiceCost) {
+          // Travel cost (round trip) - kilometers should not be multiplied by technicians
+          const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
+          // Service cost (per technician)
+          const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
+          travelServiceCost = travelCost + serviceCost;
+        }
+
         // Maintenance costs removed per user request
 
         // Additional equipment and accessories cost (already multiplied by quantity in useEffect)
@@ -541,7 +559,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         }
         
         // Total price (maintenance costs removed per user request)
-        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + disassemblyCost + serviceItemsCost + additionalCost + accessoriesCost;
+        const totalPrice = totalEquipmentPrice + fuelCost + installationCost + disassemblyCost + travelServiceCost + serviceItemsCost + additionalCost + accessoriesCost;
         
 
 
@@ -555,6 +573,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
           totalFuelCost: fuelCost,
           totalInstallationCost: installationCost,
           totalDisassemblyCost: disassemblyCost,
+          totalTravelServiceCost: travelServiceCost,
           totalMaintenanceCost: 0,
           totalServiceItemsCost: serviceItemsCost,
           additionalCost,
@@ -582,6 +601,11 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
     item.disassemblyTravelRatePerKm,
     item.disassemblyNumberOfTechnicians,
     item.disassemblyServiceRatePerTechnician,
+    item.includeTravelServiceCost,
+    item.travelServiceDistanceKm,
+    item.travelServiceTravelRatePerKm,
+    item.travelServiceNumberOfTechnicians,
+    item.travelServiceServiceRatePerTechnician,
     item.includeServiceItems,
     item.serviceItem1Cost,
     item.serviceItem2Cost, 
@@ -1291,6 +1315,147 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                   </label>
                   <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
                     {formatCurrency(item.totalDisassemblyCost || 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    W obie strony
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Travel/Service Cost Section */}
+        <div className="mt-4">
+          <div className="flex items-center space-x-2 mb-3">
+            <Checkbox 
+              id="includeTravelServiceCost" 
+              checked={item.includeTravelServiceCost || false}
+              onCheckedChange={(checked) => {
+                let totalCost = 0;
+                if (checked) {
+                  const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
+                  const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
+                  totalCost = travelCost + serviceCost;
+                }
+                onUpdate({ 
+                  ...item, 
+                  includeTravelServiceCost: checked as boolean,
+                  travelServiceDistanceKm: checked ? (item.travelServiceDistanceKm || 0) : 0,
+                  travelServiceNumberOfTechnicians: checked ? (item.travelServiceNumberOfTechnicians || 1) : 1,
+                  travelServiceServiceRatePerTechnician: checked ? (item.travelServiceServiceRatePerTechnician || 150) : 150,
+                  travelServiceTravelRatePerKm: checked ? (item.travelServiceTravelRatePerKm || 1.15) : 1.15,
+                  totalTravelServiceCost: totalCost
+                });
+              }}
+            />
+            <label htmlFor="includeTravelServiceCost" className="text-sm font-medium text-foreground flex items-center">
+              <Car className="w-4 h-4 mr-2" />
+              Uwzględnij koszt dojazdu / serwis
+            </label>
+          </div>
+          
+          {item.includeTravelServiceCost && (
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Ilość kilometrów (tam i z powrotem)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={item.travelServiceDistanceKm || ""}
+                    onChange={(e) => {
+                      const distance = parseFloat(e.target.value) || 0;
+                      const travelCost = distance * (item.travelServiceTravelRatePerKm || 1.15);
+                      const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        travelServiceDistanceKm: distance,
+                        totalTravelServiceCost: totalCost
+                      });
+                    }}
+                    placeholder="np. 50"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Ilość techników
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.travelServiceNumberOfTechnicians || 1}
+                    onChange={(e) => {
+                      const technicians = parseInt(e.target.value) || 1;
+                      const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
+                      const serviceCost = technicians * (item.travelServiceServiceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        travelServiceNumberOfTechnicians: technicians,
+                        totalTravelServiceCost: totalCost
+                      });
+                    }}
+                    placeholder="1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Stawka za usługę (zł)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.travelServiceServiceRatePerTechnician || 150}
+                    onChange={(e) => {
+                      const serviceRate = parseFloat(e.target.value) || 150;
+                      const travelCost = (item.travelServiceDistanceKm || 0) * (item.travelServiceTravelRatePerKm || 1.15);
+                      const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * serviceRate;
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        travelServiceServiceRatePerTechnician: serviceRate,
+                        totalTravelServiceCost: totalCost
+                      });
+                    }}
+                    placeholder="150.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Stawka za km (zł)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.travelServiceTravelRatePerKm || 1.15}
+                    onChange={(e) => {
+                      const rate = parseFloat(e.target.value) || 1.15;
+                      const travelCost = (item.travelServiceDistanceKm || 0) * rate;
+                      const serviceCost = (item.travelServiceNumberOfTechnicians || 1) * (item.travelServiceServiceRatePerTechnician || 150);
+                      const totalCost = travelCost + serviceCost;
+                      onUpdate({
+                        ...item,
+                        travelServiceTravelRatePerKm: rate,
+                        totalTravelServiceCost: totalCost
+                      });
+                    }}
+                    placeholder="1.15"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Koszt dojazdu / serwis
+                  </label>
+                  <div className="text-lg font-medium text-foreground bg-background p-2 rounded border">
+                    {formatCurrency(item.totalTravelServiceCost || 0)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     W obie strony
