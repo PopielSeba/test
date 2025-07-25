@@ -221,12 +221,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
       let shouldUpdate = false;
       let updatedItem = { ...item };
       
-      // Calculate additional equipment costs
+      // Calculate additional equipment costs (multiply by quantity)
       if (item.selectedAdditional && item.selectedAdditional.length > 0) {
         const currentAdditionalCost = item.selectedAdditional.reduce((sum, id) => {
           const additionalItem = additionalEquipment.find(add => add.id === id && add.type === 'additional');
           return sum + (additionalItem ? parseFloat(additionalItem.price) : 0);
-        }, 0);
+        }, 0) * item.quantity;
         
         if (currentAdditionalCost !== (item.additionalCost || 0)) {
           updatedItem.additionalCost = currentAdditionalCost;
@@ -238,12 +238,12 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         shouldUpdate = true;
       }
       
-      // Calculate accessories costs
+      // Calculate accessories costs (multiply by quantity)
       if (item.selectedAccessories && item.selectedAccessories.length > 0) {
         const currentAccessoriesCost = item.selectedAccessories.reduce((sum, id) => {
           const accessoryItem = additionalEquipment.find(acc => acc.id === id && acc.type === 'accessories');
           return sum + (accessoryItem ? parseFloat(accessoryItem.price) : 0);
-        }, 0);
+        }, 0) * item.quantity;
         
         if (currentAccessoriesCost !== (item.accessoriesCost || 0)) {
           updatedItem.accessoriesCost = currentAccessoriesCost;
@@ -265,7 +265,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
         onUpdate(updatedItem);
       }
     }
-  }, [additionalEquipment, item.selectedAdditional, item.selectedAccessories, item.additionalCost, item.accessoriesCost]);
+  }, [additionalEquipment, item.selectedAdditional, item.selectedAccessories, item.additionalCost, item.accessoriesCost, item.quantity]);
 
   // Auto-populate service costs from database when service items load and costs are enabled but empty
   useEffect(() => {
@@ -453,9 +453,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
         // Maintenance costs removed per user request
 
-        // Calculate additional equipment and accessories cost (multiply by quantity)
-        const additionalCost = (item.additionalCost || 0) * item.quantity;
-        const accessoriesCost = (item.accessoriesCost || 0) * item.quantity;
+        // Additional equipment and accessories cost (already multiplied by quantity in useEffect)
+        const additionalCost = item.additionalCost || 0;
+        const accessoriesCost = item.accessoriesCost || 0;
         
         // Calculate service items cost - only include if service items are enabled
         let serviceItemsCost = 0;
