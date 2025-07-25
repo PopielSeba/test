@@ -198,6 +198,7 @@ export default function Admin() {
   const [editingPricingSchema, setEditingPricingSchema] = useState<PricingSchema | null>(null);
   const [selectedEquipmentForServiceCosts, setSelectedEquipmentForServiceCosts] = useState<Equipment | null>(null);
   const [selectedEquipmentCategory, setSelectedEquipmentCategory] = useState<string>("all");
+  const [isEquipmentAdditionalDialogOpen, setIsEquipmentAdditionalDialogOpen] = useState(false);
 
 
   // Allow development access to admin data  
@@ -1192,6 +1193,16 @@ export default function Admin() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => setIsEquipmentAdditionalDialogOpen(true)}
+                      title="Zarządzanie wyposażeniem dodatkowym i akcesoriami"
+                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Wyposażenie dodatkowe
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => syncAllEquipmentMutation.mutate()}
                       disabled={syncAllEquipmentMutation.isPending}
                       title="Zsynchronizuj wszystkie urządzenia z ustawieniami panelu admina"
@@ -1700,16 +1711,16 @@ export default function Admin() {
               </CardContent>
             </Card>
 
-            {/* Equipment Additional and Accessories Management */}
-            {equipment.filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
+            {/* Equipment Additional and Accessories Management Dialog */}
+            <Dialog open={isEquipmentAdditionalDialogOpen} onOpenChange={setIsEquipmentAdditionalDialogOpen}>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center">
                     <Plus className="w-5 h-5 mr-2" />
                     Wyposażenie dodatkowe i akcesoria
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
                   {equipment
                     .filter((item) => selectedEquipmentCategory === "all" || item.category.id.toString() === selectedEquipmentCategory)
                     .map((item) => (
@@ -1719,9 +1730,9 @@ export default function Admin() {
                       equipmentName={item.name}
                     />
                   ))}
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Settings and Users */}
