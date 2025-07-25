@@ -122,6 +122,9 @@ Ofertnik is a comprehensive equipment rental pricing system designed for Sebasti
 - **Wprowadzono głęboką kopię JSON**: Zastosowano JSON serialization/deserialization z unikalnym timestampem w updateQuoteItem aby wymusić wykrycie zmian przez React
 - **Poprawiono interwały serwisowe**: Nagrzewnice i klimatyzacje używają miesięcznych interwałów serwisowych (zgodnie z ustawieniami admina), ale przeliczają koszty proporcjonalnie na podstawie godzin pracy. Agregaty i maszty używają interwałów motogodzinowych, pojazdy kilometrowych.
 
+### January 25, 2025
+- **FIXED equipment and accessories multiplication**: Additional equipment and accessories costs are now properly multiplied by equipment quantity
+
 
 
 ## User Preferences

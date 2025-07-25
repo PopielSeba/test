@@ -453,9 +453,9 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
 
         // Maintenance costs removed per user request
 
-        // Calculate additional equipment and accessories cost
-        const additionalCost = item.additionalCost || 0;
-        const accessoriesCost = item.accessoriesCost || 0;
+        // Calculate additional equipment and accessories cost (multiply by quantity)
+        const additionalCost = (item.additionalCost || 0) * item.quantity;
+        const accessoriesCost = (item.accessoriesCost || 0) * item.quantity;
         
         // Calculate service items cost - only include if service items are enabled
         let serviceItemsCost = 0;
