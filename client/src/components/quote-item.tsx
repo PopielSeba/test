@@ -848,6 +848,18 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
               </label>
             </div>
             
+            {/* Advisory text for fuel-related equipment */}
+            {selectedEquipment && (selectedEquipment.category.name === 'Agregaty prądotwórcze' || selectedEquipment.category.name === 'Maszty oświetleniowe' || selectedEquipment.category.name === 'Nagrzewnice') && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg mb-4 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start space-x-2">
+                  <div className="text-blue-600 dark:text-blue-400 mt-0.5">💡</div>
+                  <div className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Porada:</strong> W przypadku konieczności tankowania urządzeń przez pracownika, może wystąpić konieczność jego dojazdu z innej lokalizacji - uwzględnij te koszty np. w "kosztach dojazdu / serwisu"
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {item.includeFuelCost && (
               <div className="bg-muted/50 p-4 rounded-lg">
                 {/* Show different inputs based on equipment category */}
