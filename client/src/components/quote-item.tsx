@@ -1142,7 +1142,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Stawka za usługę (zł)
+                    Koszt usługi jednego pracownika (zł)
                   </label>
                   <Input
                     type="number"
@@ -1283,7 +1283,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Stawka za usługę (zł)
+                    Koszt usługi jednego pracownika (zł)
                   </label>
                   <Input
                     type="number"
@@ -1428,7 +1428,7 @@ export default function QuoteItem({ item, equipment, pricingSchema, onUpdate, on
                 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Stawka za usługę (zł)
+                    Koszt usługi jednego pracownika (zł)
                   </label>
                   <Input
                     type="number"
